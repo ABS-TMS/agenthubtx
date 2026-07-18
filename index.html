@@ -211,6 +211,61 @@ const TOOLS = [
       body: "Hi [Listing Agent Name], wanted to give you a heads-up as early as possible: [reason]. We're now looking at [new date] instead of [original date]. Would an amendment extending the closing date work on your end?" }
   },
   {
+    category: "Marketing & Lead Generation", side: "seller", name: "Neighborhood Pages", tag: "Lead Gen",
+    description: "A self-serve landing page for any subdivision you're farming — instant home value range, community news, local business spotlight, and a service directory, all under your name.",
+    example: { type: "calc", subdivision: "Willow Creek", range: "$410,000 – $465,000" }
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "Getting Started Checklist", tag: "New Agent",
+    description: "From active license to your first 30 days — MLS, forms, Agent Shield, business cards, and your landing page, in order.",
+    example: { type: "topics", items: [
+      "Get set up with MLS access and your core logins",
+      "Complete required forms and disclosures",
+      "Set up your Agent Shield profile and daily tools",
+      "Order business cards and set up your landing page"
+    ]}
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "Markful", tag: "Print & Apparel",
+    description: "Order your print business cards, signs, and apparel — pre-approved, brand-locked, no design fees.",
+    example: { type: "topics", items: [
+      "Pre-approved templates, already brand-compliant",
+      "No design fees — just pick, personalize, and order",
+      "Business cards, yard signs, and apparel in one place"
+    ]}
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "My Bio", tag: "Profile",
+    description: "Tell us about yourself and upload a photo — this becomes your public bio on the website.",
+    example: { type: "topics", items: [
+      "Short form: your background, specialties, a few personal details",
+      "Upload a headshot",
+      "Published as your public-facing bio"
+    ]}
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "Showing Tips for New Agents", tag: "Reference",
+    description: "What actually trips up new agents on their first few showings, and how to avoid it.",
+    example: { type: "topics", items: [
+      "Common first-showing mistakes and how to sidestep them",
+      "What to bring, what to check before you go",
+      "How to handle the moments that catch new agents off guard"
+    ]}
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "The Working Numbers", tag: "Calculators",
+    description: "Mortgage, net proceeds, commission split, and other calculators — one link, six tools.",
+    example: { type: "calc", subdivision: "Sample seller net proceeds", range: "$412,300 estimated net" }
+  },
+  {
+    category: "Resources & Onboarding", side: "general", name: "Help & How-To Guide", tag: "Support",
+    description: "Step-by-step guidance for every tool on the hub.",
+    example: { type: "topics", items: [
+      "Walkthroughs for every tool, in plain language",
+      "No hunting for instructions — it's all in one place"
+    ]}
+  },
+  {
     category: "Field & Property Tools", side: "buyer", name: "Buyer Intake", tag: "Mobile",
     description: "Capture everything you need from a new buyer at the showing itself — no follow-up form to chase down later.",
     example: { type: "steps", items: [
@@ -352,6 +407,15 @@ function renderPeekPanel(tool, id) {
       <ul style="margin:0 0 0 18px; padding:0;">
         ${tool.example.items.map(s => `<li style="margin-bottom:5px;">${escapeHtml(s)}</li>`).join('')}
       </ul>`;
+  } else if (tool.example.type === 'calc') {
+    inner = `
+      <span class="peek-eyebrow">Sample output</span>
+      <p class="peek-q">"${escapeHtml(tool.example.subdivision)}" &mdash; instant estimate</p>
+      <div style="background:#fff; border-radius:10px; padding:16px 18px; margin:8px 0; text-align:center; border:1px solid #eee;">
+        <div style="font-size:22px; font-weight:800; color:var(--navy, #0C3057);">${escapeHtml(tool.example.range)}</div>
+        <div style="font-size:11.5px; color:#888; margin-top:2px;">Estimated range based on recent neighborhood activity</div>
+      </div>
+      <p class="peek-fb"><strong>Delivered instantly</strong> &mdash; no CMA request, no waiting on the agent.</p>`;
   }
   return `<div class="peek-panel" id="${id}"><div class="peek-inner">${inner}</div></div>`;
 }
