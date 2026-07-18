@@ -27,6 +27,9 @@
   .header-inner { max-width: 1000px; margin: 0 auto; }
   .header-brand { color: var(--white); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
   .header-brand span { color: var(--gold); }
+  .header-widgets { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+  .header-widget { font-size: 12px; color: var(--gray-300); }
+  .header-widget .val { color: var(--gold); font-weight: 700; }
   .header-sub { color: var(--gray-300); font-size: 13.5px; }
 
   .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 20px 40px; }
@@ -161,6 +164,11 @@
   <div class="header-inner">
     <div class="header-brand">AgentHubTX</div>
     <div class="header-sub">A look at the daily toolkit agents actually use.</div>
+    <div class="header-widgets">
+      <span class="header-widget" id="hdrClock"></span>
+      <span class="header-widget" id="hdrWeather"></span>
+      <span class="header-widget" id="hdrMortgage"></span>
+    </div>
   </div>
 </header>
 
@@ -397,6 +405,60 @@ const TOOLS = [
 
 const SIDE_LABELS = { buyer: 'Buyer', seller: 'Seller', both: 'Buyer + Seller', general: 'General' };
 let activeSide = "All";
+
+function updateHdrClock() {
+  const el = document.getElementById('hdrClock');
+  if (!el) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' });
+  el.innerHTML = `<span class="val">${time}</span> CT`;
+}
+
+const HDR_WEATHER_CODES = {
+  0: 'Clear', 1: 'Mostly Clear', 2: 'Partly Cloudy', 3: 'Cloudy',
+  45: 'Fog', 48: 'Fog', 51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
+  61: 'Light Rain', 63: 'Rain', 65: 'Heavy Rain',
+  71: 'Snow', 73: 'Snow', 75: 'Heavy Snow',
+  80: 'Showers', 81: 'Showers', 82: 'Heavy Showers',
+  95: 'Storms', 96: 'Storms', 99: 'Storms',
+};
+
+async function loadHdrWeather() {
+  const el = document.getElementById('hdrWeather');
+  if (!el) return;
+  try {
+    // Austin -- central, capital city, no single brokerage tie, fits
+    // AgentHubTX's statewide (not one-region) framing.
+    const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=30.2672&longitude=-97.7431&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America%2FChicago');
+    const data = await resp.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const label = HDR_WEATHER_CODES[data.current.weather_code] || '';
+    el.innerHTML = `${label} <span class="val">${temp}°F</span> · Austin`;
+  } catch (err) {
+    el.style.display = 'none';
+  }
+}
+
+const HDR_MORTGAGE_API_KEY = '92H2QyOXbSoFAL1LxSTUl0EnTZdiAyAgCmhl6vLZ';
+
+async function loadHdrMortgage() {
+  const el = document.getElementById('hdrMortgage');
+  if (!el) return;
+  try {
+    const resp = await fetch('https://api.api-ninjas.com/v2/mortgagerate', { headers: { 'X-Api-Key': HDR_MORTGAGE_API_KEY } });
+    const data = await resp.json();
+    const latest = Array.isArray(data) ? data[0] : data;
+    if (!latest || !latest.frm_30) { el.style.display = 'none'; return; }
+    el.innerHTML = `30yr <span class="val">${latest.frm_30}%</span>`;
+  } catch (err) {
+    el.style.display = 'none';
+  }
+}
+
+updateHdrClock();
+setInterval(updateHdrClock, 30000);
+loadHdrWeather();
+loadHdrMortgage();
 
 function renderPills() {
   const pillsEl = document.getElementById('pills');
