@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentHubTX — Preview</title>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-700: #3a3a38; --gray-500: #6b6b68; --gray-300: #b8b6b0;
+    --rule: #e3e1db;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+
+  .demo-banner {
+    background: var(--gold);
+    color: var(--navy-dark);
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  header { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 20px 24px; }
+  .header-inner { max-width: 1000px; margin: 0 auto; }
+  .header-brand { color: var(--white); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .header-brand span { color: var(--gold); }
+  .header-sub { color: var(--gray-300); font-size: 13.5px; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 20px 40px; }
+
+  .intro-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--gold);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 26px;
+    font-size: 14px;
+    color: var(--gray-700);
+  }
+  .intro-card strong { color: var(--navy); }
+
+  .search-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .search-input {
+    flex: 1; padding: 13px 16px; border: 1.5px solid var(--rule); border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: var(--white);
+  }
+  .search-input:focus { outline: none; border-color: var(--gold); }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+  .pill {
+    font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 20px;
+    border: 1.5px solid var(--rule); background: var(--white); color: var(--gray-700);
+    cursor: pointer; white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--gold); }
+  .pill.active { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
+  .category-block { margin-bottom: 36px; }
+  .category-label {
+    font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--rule);
+  }
+
+  .tool-card {
+    background: var(--white); border: 1px solid var(--rule); border-left: 4px solid var(--gold);
+    border-radius: 6px; padding: 18px 20px; margin-bottom: 12px;
+  }
+  .tool-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .tool-name { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .tool-desc { font-size: 13.5px; color: var(--gray-500); max-width: 620px; }
+  .tool-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+  .btn-locked {
+    font-size: 12.5px; font-weight: 700; color: var(--gray-500);
+    background: var(--off); border: 1.5px dashed var(--rule); border-radius: 6px;
+    padding: 8px 14px; white-space: nowrap; cursor: default;
+  }
+  .btn-peek {
+    font-size: 12.5px; font-weight: 700; color: var(--navy);
+    background: none; border: 1.5px solid var(--rule); border-radius: 6px;
+    padding: 7px 13px; cursor: pointer; white-space: nowrap;
+  }
+  .btn-peek:hover { border-color: var(--gold); }
+
+  .peek-panel { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .peek-panel.open { max-height: 400px; }
+  .peek-inner {
+    margin-top: 14px; background: var(--off); border: 1px dashed var(--rule);
+    border-radius: 5px; padding: 14px 16px; font-size: 13px;
+  }
+  .peek-eyebrow {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 8px;
+  }
+  .peek-q { font-style: italic; color: var(--gray-500); margin-bottom: 8px; }
+  .peek-a { margin-bottom: 8px; }
+  .peek-a strong { color: var(--navy); }
+  .peek-fb { color: var(--gray-500); border-top: 1px solid var(--rule); padding-top: 8px; }
+  .peek-fb strong { color: var(--gold); }
+
+  .no-results { text-align: center; padding: 50px 20px; color: var(--gray-500); font-size: 14px; }
+
+  .side-badge {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-left: 8px; vertical-align: middle;
+  }
+  .side-buyer { background: #e8f0e8; color: #2E6B45; }
+  .side-seller { background: #f5e9e0; color: #A3612A; }
+  .side-both { background: #ece5f5; color: #5B3A8C; }
+  .side-general { background: #e8eef5; color: var(--navy); }
+
+  .closing-cta {
+    background: var(--navy-dark);
+    color: var(--white);
+    text-align: center;
+    padding: 50px 24px;
+    margin-top: 40px;
+  }
+  .closing-cta h2 { font-size: 22px; margin-bottom: 10px; }
+  .closing-cta p { color: #C9D3DE; max-width: 480px; margin: 0 auto 26px; font-size: 14.5px; }
+  .closing-cta a {
+    display: inline-block; background: var(--gold); color: var(--navy-dark);
+    font-weight: 700; font-size: 14px; padding: 13px 28px; border-radius: 5px; text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">📋 PREVIEW MODE — Sample data shown for informational purposes only. Not connected to any live agent or client information.</div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-brand">AgentHubTX</div>
+    <div class="header-sub">A look at the daily toolkit agents actually use.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro-card">
+    <strong>What you're looking at:</strong> this is a preview of the real Tools Directory inside AgentHubTX — the same tools, categories, and example previews an active agent sees every day. Try the search bar and the Buyer/Seller/General tabs below just like you would in the real thing.
+  </div>
+
+  <div class="search-row">
+    <input type="text" class="search-input" id="search" placeholder="Search tools — e.g. &quot;open house&quot; or &quot;buyer&quot;" oninput="renderTools()">
+  </div>
+  <div class="pills" id="pills"></div>
+  <div id="results"></div>
+</div>
+
+<div class="closing-cta">
+  <h2>Like what you see?</h2>
+  <p>Happy to walk you through the rest.</p>
+  <a href="mailto:mike@attorneybrokerservices.com?subject=Broker%20Connect%20Texas%20-%20Tools%20Preview">Start a Confidential Conversation →</a>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Fully self-contained demo -- no backend calls of any kind.
+// This is a deliberately separate copy of the real Tools Directory
+// content, safe to send externally. Update by hand if the real
+// tool list changes meaningfully; not wired to Supabase on purpose.
+// ---------------------------------------------------------------
+const TOOLS = [
+  {
+    category: "Daily Training & Compliance", side: "general", name: "Daily Scenario Trainer", tag: "AI-Graded",
+    description: "Daily TREC compliance scenarios, graded in real time, with a direct line to your broker if something's unclear.",
+    example: { type: "qa",
+      q: "Your buyer is purchasing as an LLC. The title company asks who's responsible for providing beneficial ownership information under Paragraph 20B — and who pays for it?",
+      a: "The buyer provides it since they're the one forming the LLC.",
+      fb: "Right that it's the buyer's obligation — but under 20-19, the buyer also pays any charges tied to gathering and reporting that information. Worth flagging to entity buyers early, not at the closing table..." }
+  },
+  {
+    category: "Daily Training & Compliance", side: "general", name: "My IABS", tag: "E-Sign",
+    description: "Send your Information About Brokerage Services form for e-signature in a few clicks, with delivery history tracked per client.",
+    example: { type: "steps", items: [
+      "Select which client you're sending to (or add a new one)",
+      "Confirm your pre-filled broker info is correct",
+      "Send for e-signature — done in under a minute",
+      "Delivery history is tracked automatically per client"
+    ]}
+  },
+  {
+    category: "Daily Training & Compliance", side: "general", name: "Client AI Disclosure", tag: "Required",
+    description: "The mandatory disclosure workflow for any AI tool used with a client — required before you can access other client-facing tools.",
+    example: { type: "steps", items: [
+      "Confirm which AI tool you're using with this client",
+      "Review the required disclosure language",
+      "Get the client's acknowledgment",
+      "Unlocks access to other client-facing AI tools"
+    ]}
+  },
+  {
+    category: "Client Communication", side: "seller", name: "Open House Follow-Up", tag: "AI-Drafted",
+    description: "Turn your sign-in sheet into personalized follow-up emails that reference what each visitor actually asked about.",
+    example: { type: "email", subject: "Great meeting you Saturday, Sarah",
+      body: "Hi Sarah, thanks for stopping by 123 Main St this weekend — I remember you asking about the school district and mentioning the kitchen was a big draw. Wanted to follow up on the district question specifically, since I know that was on your mind..." }
+  },
+  {
+    category: "Client Communication", side: "buyer", name: "Working the Other Agent", tag: "Templates",
+    description: "Email templates for offer submissions and option period negotiations — built to keep the listing agent on your side.",
+    example: { type: "email", subject: "[Property Address] — Appraisal Came in Low",
+      body: "Hi [Listing Agent Name], wanted to loop you in quickly — the appraisal came in at $[amount], which is $[gap] under contract. My buyers still want to move forward. A few ways we could bridge the gap, open to whatever works best for your sellers..." }
+  },
+  {
+    category: "Client Communication", side: "both", name: "Difficult Conversations Toolkit", tag: "Templates",
+    description: "Templates for lowball counters, multiple offers, low appraisals, closing delays, and delivering hard news to your own client.",
+    example: { type: "email", subject: "[Property Address] — Closing Date Update",
+      body: "Hi [Listing Agent Name], wanted to give you a heads-up as early as possible: [reason]. We're now looking at [new date] instead of [original date]. Would an amendment extending the closing date work on your end?" }
+  },
+  {
+    category: "Field & Property Tools", side: "buyer", name: "Buyer Intake", tag: "Mobile",
+    description: "Capture everything you need from a new buyer at the showing itself — no follow-up form to chase down later.",
+    example: { type: "steps", items: [
+      "Meet a new buyer at a showing",
+      "Capture their info directly on your phone",
+      "No follow-up form to chase down later — it's already in the system"
+    ]}
+  },
+  {
+    category: "Field & Property Tools", side: "buyer", name: "Showing Tour Agreement", tag: "Compliance",
+    description: "The showing agreement workflow, grounded in Texas §1101.562–.563, with a built-in buyer relationship election.",
+    example: { type: "steps", items: [
+      "Select the buyer relationship tier",
+      "Agreement generates automatically, grounded in Texas §1101.562–.563",
+      "Signed before or during the first showing"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "buyer", name: "Buyer's Checklist — TREC 20-19", tag: "Reference",
+    description: "Every deadline in the current contract, organized in the order you'll actually hit them.",
+    example: { type: "topics", items: [
+      "Earnest money & option fee delivery deadlines",
+      "Option period, inspections & repair negotiations",
+      "Title review & survey objection deadlines",
+      "Financing & lender-required repairs",
+      "Closing & possession"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "seller", name: "Agent's Checklist — TXR-1101", tag: "Reference",
+    description: "The listing agreement walked through paragraph by paragraph.",
+    example: { type: "topics", items: [
+      "Listing terms & authorization",
+      "Commission & compensation structure",
+      "Marketing authorization",
+      "MLS & showing requirements"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "seller", name: "Seller's Guide — TXR-1101", tag: "Reference",
+    description: "A plain-language explainer to hand your seller alongside the listing agreement.",
+    example: { type: "topics", items: [
+      "What the listing agreement means for you",
+      "Pricing & marketing expectations",
+      "The showing & offer process",
+      "What happens at closing"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "general", name: "Advertising Rules Quick Reference", tag: "Reference",
+    description: "What TREC actually requires on your ads, signs, and social posts — in one page.",
+    example: { type: "topics", items: [
+      "Broker name requirements in every ad",
+      "Team name & assumed business name rules",
+      "IABS link requirement on your website",
+      "What you can and can't claim in advertising"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "seller", name: "Groundwater District Questions", tag: "Reference",
+    description: "What to ask before listing rural property, and why it matters under Paragraph 7I.",
+    example: { type: "topics", items: [
+      "Whether the property has groundwater or surface water rights",
+      "Which conservation district applies",
+      "Well permitting requirements",
+      "What to disclose to buyers under Paragraph 7I"
+    ]}
+  },
+  {
+    category: "Practice Aids & Checklists", side: "both", name: "Smart Home Devices & Recording", tag: "Reference",
+    description: "Guidance on disclosing smart devices and recording equipment during showings.",
+    example: { type: "topics", items: [
+      "Disclosing smart devices before showings",
+      "Recording equipment during showings",
+      "What TREC requires vs. best practice"
+    ]}
+  },
+];
+
+const SIDE_LABELS = { buyer: 'Buyer', seller: 'Seller', both: 'Buyer + Seller', general: 'General' };
+let activeSide = "All";
+
+function renderPills() {
+  const pillsEl = document.getElementById('pills');
+  const sides = ["All", "Buyer", "Seller", "General"];
+  pillsEl.innerHTML = sides.map(s =>
+    `<button class="pill ${s === activeSide ? 'active' : ''}" onclick="setSide('${s}')">${s}</button>`
+  ).join('');
+}
+
+function setSide(s) {
+  activeSide = s;
+  renderPills();
+  renderTools();
+}
+
+function matchesSide(tool) {
+  if (activeSide === 'All') return true;
+  if (activeSide === 'Buyer') return tool.side === 'buyer' || tool.side === 'both';
+  if (activeSide === 'Seller') return tool.side === 'seller' || tool.side === 'both';
+  if (activeSide === 'General') return tool.side === 'general';
+  return true;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderPeekButton(tool, id) {
+  if (!tool.example) return '';
+  return `<button class="btn-peek" onclick="togglePeek('${id}')">See example</button>`;
+}
+
+function renderPeekPanel(tool, id) {
+  if (!tool.example) return '';
+  let inner = '';
+  if (tool.example.type === 'qa') {
+    inner = `
+      <span class="peek-eyebrow">Sample scenario</span>
+      <p class="peek-q">"${escapeHtml(tool.example.q)}"</p>
+      <p class="peek-a"><strong>Agent's answer:</strong> "${escapeHtml(tool.example.a)}"</p>
+      <p class="peek-fb"><strong>AI feedback:</strong> ${escapeHtml(tool.example.fb)}</p>`;
+  } else if (tool.example.type === 'email') {
+    inner = `
+      <span class="peek-eyebrow">Sample output</span>
+      <p class="peek-a">Subject: ${escapeHtml(tool.example.subject)}</p>
+      <p class="peek-a">${escapeHtml(tool.example.body)}</p>`;
+  } else if (tool.example.type === 'steps') {
+    inner = `
+      <span class="peek-eyebrow">How it works</span>
+      <ol style="margin:0 0 0 18px; padding:0;">
+        ${tool.example.items.map(s => `<li style="margin-bottom:5px;">${escapeHtml(s)}</li>`).join('')}
+      </ol>`;
+  } else if (tool.example.type === 'topics') {
+    inner = `
+      <span class="peek-eyebrow">What's inside</span>
+      <ul style="margin:0 0 0 18px; padding:0;">
+        ${tool.example.items.map(s => `<li style="margin-bottom:5px;">${escapeHtml(s)}</li>`).join('')}
+      </ul>`;
+  }
+  return `<div class="peek-panel" id="${id}"><div class="peek-inner">${inner}</div></div>`;
+}
+
+function togglePeek(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function renderToolCard(t) {
+  const id = 'peek-' + t.name.replace(/[^a-zA-Z0-9]/g, '');
+  return `
+    <div class="tool-card">
+      <div class="tool-head">
+        <div>
+          <div class="tool-name">${escapeHtml(t.name)}<span class="side-badge side-${t.side}">${SIDE_LABELS[t.side]}</span></div>
+          <div class="tool-desc">${escapeHtml(t.description)}</div>
+        </div>
+        <div class="tool-actions">
+          ${renderPeekButton(t, id)}
+          <span class="btn-locked" title="Available once you're an active agent">🔒 Full access</span>
+        </div>
+      </div>
+      ${renderPeekPanel(t, id)}
+    </div>`;
+}
+
+function renderTools() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('results');
+
+  const filtered = TOOLS.filter(t => {
+    const sideMatch = matchesSide(t);
+    const haystack = (t.name + ' ' + t.description + ' ' + t.category + ' ' + t.tag).toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    return sideMatch && matchesQuery;
+  });
+
+  if (filtered.length === 0) {
+    resultsEl.innerHTML = `<div class="no-results">No tools match that search. Try a different word, or clear the search box.</div>`;
+    return;
+  }
+
+  const grouped = {};
+  filtered.forEach(t => {
+    if (!grouped[t.category]) grouped[t.category] = [];
+    grouped[t.category].push(t);
+  });
+
+  resultsEl.innerHTML = Object.keys(grouped).map(cat => `
+    <div class="category-block">
+      <div class="category-label">${escapeHtml(cat)}</div>
+      ${grouped[cat].map(renderToolCard).join('')}
+    </div>
+  `).join('');
+}
+
+renderPills();
+renderTools();
+</script>
+
+</body>
+</html>
