@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Hub | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+    --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); min-height: 100vh; }
+
+  header { background: linear-gradient(160deg, var(--navy), var(--navy-mid)); color: var(--white); padding: 32px 20px; text-align: center; }
+  header .brand { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  header .brand span { color: var(--gold); }
+  header p { font-size: 14px; color: #cdd8e6; }
+
+  .wrap { max-width: 520px; margin: -30px auto 60px; padding: 0 20px; }
+
+  .card { background: var(--white); border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 28px 26px; }
+  .card h2 { font-size: 17px; color: var(--navy); margin-bottom: 4px; }
+  .card .sub { font-size: 13px; color: var(--gray-500); margin-bottom: 22px; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .field select, .field input { width: 100%; padding: 11px 12px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 14.5px; font-family: inherit; background: var(--white); }
+
+  .btn { width: 100%; background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+  .btn:hover { opacity: 0.92; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .skip-link { display: block; text-align: center; font-size: 13px; color: var(--gray-500); margin-top: 14px; text-decoration: none; }
+
+  .msg { font-size: 13.5px; margin-top: 12px; text-align: center; display: none; }
+  .msg.show { display: block; }
+  .msg.err { color: #A32D2D; }
+
+  #loadingState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<div id="loadingState"><p>Loading...</p></div>
+
+<div id="setupContent" style="display:none;">
+  <header>
+    <div class="brand">Agent<span>HubTX</span></div>
+    <p>Let's set up your daily tools — takes about a minute.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>Your daily tools</h2>
+      <div class="sub">Pick what you use. You can change these anytime from your dashboard.</div>
+
+      <div class="field">
+        <label>Your MLS</label>
+        <select id="mls">
+          <option value="">Select your MLS...</option>
+          <option>Amarillo MLS (AARMLS)</option>
+          <option>Bright MLS (BMLS)</option>
+          <option>Bryan-College Station MLS (BCSMLS)</option>
+          <option>Central Texas MLS (CTXMLS)</option>
+          <option>Corpus Christi/Coastal Bend (CCARMLS)</option>
+          <option>Deep East Texas MLS, LLC (DETMLS)</option>
+          <option>Fort Hood MLS (FHMLS)</option>
+          <option>Greater El Paso Association of REALTORS (GEPAR)</option>
+          <option>Greater McAllen MLS (GMARMLS)</option>
+          <option>Greater Tyler MLS (GTARMLS)</option>
+          <option>Highland Lakes MLS (HLMLS)</option>
+          <option>Houston MLS (HARMLS)</option>
+          <option>North Texas Real Estate Info Systems (NTREIS)</option>
+          <option>Lubbock MLS (LARMLS)</option>
+          <option>Nolan County Board of Realtors (NCBOR)</option>
+          <option>Pampa Board of Realtors (PBOR)</option>
+          <option>San Angelo AOR (SAAORMLS)</option>
+          <option>San Patricio Association of Realtors (SPAOR)</option>
+          <option>Temple Belton MLS (TBBOR)</option>
+          <option>Texarkana MLS (TMLS)</option>
+          <option>Texas MLS (TEXMLS)</option>
+          <option>Unlock MLS</option>
+          <option>Waco MLS (WACOMLS)</option>
+          <option>Wichita Falls MLS (WFMLS)</option>
+          <option>Other / not listed</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>E-sign tool</label>
+        <select id="esign">
+          <option value="">Select...</option>
+          <option>DocuSign</option>
+          <option>AuthentiSign</option>
+          <option>Dotloop</option>
+          <option>Other / not listed</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Showing service</label>
+        <select id="showing">
+          <option value="">Select...</option>
+          <option>ShowingTime</option>
+          <option>BrokerBay</option>
+          <option>Showing Suite</option>
+          <option>Other / not listed</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>CRM <span style="font-weight:400; color:var(--gray-500);">(optional)</span></label>
+        <select id="crm">
+          <option value="">None yet</option>
+          <option>Follow Up Boss</option>
+          <option>Wise Agent</option>
+          <option>Top Producer</option>
+          <option>Other / not listed</option>
+        </select>
+      </div>
+
+      <button class="btn" id="saveBtn" onclick="saveSetup()">Continue to my hub</button>
+      <a class="skip-link" href="dashboard.html">Skip for now</a>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+
+  async function init() {
+    // Supabase's client auto-detects the #access_token in the URL from the
+    // email confirmation link and establishes a session -- we just need to
+    // wait for it, then clean the messy token out of the visible URL.
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    currentUser = session.user;
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('setupContent').style.display = 'block';
+  }
+
+  function showMsg(text) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg show err';
+  }
+
+  async function saveSetup() {
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    try {
+      const { error } = await sb
+        .from('agent_profiles')
+        .update({
+          mls: document.getElementById('mls').value || null,
+          esign_tool: document.getElementById('esign').value || null,
+          showing_tool: document.getElementById('showing').value || null,
+          crm: document.getElementById('crm').value || null,
+        })
+        .eq('id', currentUser.id);
+      if (error) throw error;
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showMsg('Could not save: ' + err.message);
+    }
+    btn.disabled = false;
+  }
+
+  init();
+</script>
+</body>
+</html>
