@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Hub | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); min-height: 100vh; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .brand { color: var(--white); font-size: 18px; font-weight: 700; }
+  .brand span { color: var(--gold); }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-email { color: var(--gray-300); font-size: 13px; }
+  .signout-btn { background: none; border: 1px solid var(--gray-300); color: var(--white); border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .signout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 70px; }
+
+  h1 { font-size: 22px; color: var(--navy); margin-bottom: 4px; }
+  .sub-date { font-size: 13px; color: var(--gray-500); margin-bottom: 26px; }
+
+  .section-label { font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin: 26px 0 12px; }
+
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .tool-tile { background: var(--white); border-radius: 10px; padding: 16px 10px; text-align: center; text-decoration: none; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .tool-tile:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .tool-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--gold); color: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; margin: 0 auto 8px; }
+  .tool-name { font-size: 12.5px; font-weight: 600; color: var(--gray-700); }
+
+  .empty-state { background: var(--white); border: 1px dashed var(--gray-300); border-radius: 10px; padding: 24px; text-align: center; color: var(--gray-500); font-size: 14px; }
+  .empty-state a { color: var(--navy); font-weight: 600; text-decoration: none; }
+
+  .quicklinks { display: flex; gap: 10px; flex-wrap: wrap; }
+  .quicklink { display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: 8px; padding: 10px 16px; text-decoration: none; color: var(--navy); font-size: 13.5px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .quicklink:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+  .edit-link { display: inline-block; margin-top: 26px; font-size: 13px; color: var(--gray-500); text-decoration: none; }
+  .edit-link:hover { color: var(--navy); }
+
+  #loadingState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<div id="loadingState"><p>Loading your hub...</p></div>
+
+<div id="dashboardContent" style="display:none;">
+  <header>
+    <div class="brand">Agent<span>HubTX</span></div>
+    <div class="header-right">
+      <span class="header-email" id="headerEmail"></span>
+      <button class="signout-btn" onclick="signOut()">Sign out</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <h1 id="greeting">Welcome</h1>
+    <div class="sub-date" id="todayDate"></div>
+
+    <div class="section-label">Your Daily Tools</div>
+    <div class="tools-grid" id="toolsGrid"></div>
+    <div class="empty-state" id="emptyToolsState" style="display:none;">
+      You haven't set up your daily tools yet. <a href="setup.html">Set them up now →</a>
+    </div>
+
+    <div class="section-label">Resources</div>
+    <div class="quicklinks">
+      <a class="quicklink" href="new-agent-protips.html" target="_blank">💡 New Agent & Pro Tips</a>
+      <a class="quicklink" href="trec-addenda-library.html" target="_blank">📋 TREC Addenda Library</a>
+      <a class="quicklink" href="index.html" target="_blank">🔍 Browse All Tools</a>
+    </div>
+
+    <a class="edit-link" href="setup.html">✏️ Edit your daily tools</a>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Known URLs for common tools -- anything not in this list falls back to
+  // a plain Google search link, so the tile is still useful even for a
+  // tool we don't have a direct URL for yet.
+  const TOOL_URLS = {
+    'Amarillo MLS (AARMLS)': 'https://www.idxbroker.com/mls/amarillo-mls-aarmls',
+    'Bright MLS (BMLS)': 'https://brightmls.com/',
+    'Corpus Christi/Coastal Bend (CCARMLS)': 'https://ccarmls.com/',
+    'Greater El Paso Association of REALTORS (GEPAR)': 'https://www.gepar.com/',
+    'Houston MLS (HARMLS)': 'https://www.har.com/mls',
+    'North Texas Real Estate Info Systems (NTREIS)': 'https://ntreis.clareity.net/',
+    'Lubbock MLS (LARMLS)': 'https://www.lubbockrealtors.com/',
+    'Texas MLS (TEXMLS)': 'https://www.texasmls.net/',
+    'Unlock MLS': 'https://www.unlockmls.com/',
+    'Waco MLS (WACOMLS)': 'https://www.wacomls.com/',
+    'DocuSign': 'https://www.docusign.com/',
+    'AuthentiSign': 'https://authentisign.com/',
+    'Dotloop': 'https://www.dotloop.com/',
+    'ShowingTime': 'https://www.showingtime.com/',
+    'BrokerBay': 'https://edge.brokerbay.com/',
+    'Showing Suite': 'https://www.showingsuite.com/',
+    'Follow Up Boss': 'https://www.followupboss.com/',
+    'Wise Agent': 'https://www.wiseagent.com/',
+    'Top Producer': 'https://www.topproducer.com/',
+  };
+
+  function toolUrl(name) {
+    if (TOOL_URLS[name]) return TOOL_URLS[name];
+    return `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+  }
+
+  function initials(name) {
+    return (name || '?').trim().charAt(0).toUpperCase();
+  }
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const user = session.user;
+    document.getElementById('headerEmail').textContent = user.email;
+
+    const { data: profile, error } = await sb
+      .from('agent_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const fullName = (profile && profile.full_name) || user.user_metadata?.full_name || '';
+    document.getElementById('greeting').textContent = fullName ? `Welcome, ${fullName.split(' ')[0]}` : 'Welcome';
+    document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+
+    const tools = [];
+    if (profile) {
+      if (profile.mls && profile.mls !== 'Other / not listed') tools.push({ label: 'MLS', name: profile.mls });
+      if (profile.esign_tool && profile.esign_tool !== 'Other / not listed') tools.push({ label: 'E-Sign', name: profile.esign_tool });
+      if (profile.showing_tool && profile.showing_tool !== 'Other / not listed') tools.push({ label: 'Showings', name: profile.showing_tool });
+      if (profile.crm && profile.crm !== 'Other / not listed') tools.push({ label: 'CRM', name: profile.crm });
+    }
+
+    const grid = document.getElementById('toolsGrid');
+    if (tools.length) {
+      grid.innerHTML = tools.map(t => `
+        <a class="tool-tile" href="${toolUrl(t.name)}" target="_blank">
+          <div class="tool-icon">${initials(t.name)}</div>
+          <div class="tool-name">${t.name}</div>
+        </a>
+      `).join('');
+    } else {
+      document.getElementById('emptyToolsState').style.display = 'block';
+    }
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('dashboardContent').style.display = 'block';
+  }
+
+  async function signOut() {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  init();
+</script>
+</body>
+</html>
