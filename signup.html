@@ -83,7 +83,10 @@
     try {
       const { data, error } = await sb.auth.signUp({
         email, password,
-        options: { data: { full_name: fullName } }
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: 'https://agenthubtx.com/setup.html'
+        }
       });
       if (error) throw error;
 
