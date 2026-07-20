@@ -466,6 +466,17 @@ Be specific and practical. Do not claim personal experience, tenure, or transact
     setResult(btn, 'Analyze My Offer →', 'result-offer', 'result-offer-body', 'Error analyzing offer. Please try again.');
   }
 }
+
+// ── DEEP LINK ──
+// Lets Tools Directory cards link straight to a specific tool via
+// ai-tools.html?tool=listing / ?tool=email / ?tool=offer
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const tool = params.get('tool');
+  if (tool && document.getElementById('tool-' + tool)) {
+    showTool(tool);
+  }
+})();
 </script>
 </body>
 </html>
