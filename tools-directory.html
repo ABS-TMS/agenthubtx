@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tools Directory | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-700: #3a3a38; --gray-500: #6b6b68; --gray-300: #b8b6b0;
+    --rule: #e3e1db;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+
+  header { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 20px 24px; }
+  .header-inner { max-width: 1000px; margin: 0 auto; }
+  .header-brand { color: var(--white); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .header-brand span { color: var(--gold); }
+  .header-sub { color: var(--gray-300); font-size: 13.5px; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 20px 70px; }
+
+  .search-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .search-input {
+    flex: 1; padding: 13px 16px; border: 1.5px solid var(--rule); border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: var(--white);
+  }
+  .search-input:focus { outline: none; border-color: var(--gold); }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+  .pill {
+    font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 20px;
+    border: 1.5px solid var(--rule); background: var(--white); color: var(--gray-700);
+    cursor: pointer; white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--gold); }
+  .pill.active { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
+  .category-block { margin-bottom: 36px; }
+  .category-label {
+    font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--rule);
+  }
+
+  .tool-card {
+    background: var(--white); border: 1px solid var(--rule); border-left: 4px solid var(--gold);
+    border-radius: 6px; padding: 18px 20px; margin-bottom: 12px;
+  }
+  .tool-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .tool-name { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .tool-desc { font-size: 13.5px; color: var(--gray-500); max-width: 620px; }
+  .tool-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+  .btn-open {
+    font-size: 12.5px; font-weight: 700; color: var(--white);
+    background: var(--navy); border: none; border-radius: 6px;
+    padding: 8px 14px; cursor: pointer; text-decoration: none; white-space: nowrap;
+  }
+  .btn-open:hover { background: var(--navy-mid); }
+  .btn-pin-reveal {
+    font-size: 12.5px; font-weight: 700; color: var(--navy);
+    background: none; border: 1.5px solid var(--rule); border-radius: 6px;
+    padding: 7px 13px; cursor: pointer; white-space: nowrap;
+  }
+  .btn-pin-reveal:hover { border-color: var(--gold); }
+  .pin-value { font-family: monospace; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .no-results { text-align: center; padding: 50px 20px; color: var(--gray-500); font-size: 14px; }
+
+  .pin-btn {
+    background: none; border: none; font-size: 20px; line-height: 1;
+    cursor: pointer; color: var(--gray-300); padding: 4px;
+  }
+  .pin-btn.pinned { color: var(--gold); }
+  .pin-section { margin-bottom: 28px; }
+  .pin-section .category-label { color: var(--gold); }
+
+  .new-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
+    background: #A32D2D; padding: 2px 7px; border-radius: 3px;
+    margin-left: 8px; vertical-align: middle; letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-brand">Agent<span>HubTX</span> Tools</div>
+    <div class="header-sub">Search or browse everything available to you.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="loading-state" id="loadingState" style="text-align:center; padding:60px 20px; color:var(--gray-500);">Signing you in...</div>
+
+  <div class="denied-state" id="deniedState" style="display:none; text-align:center; padding:60px 20px;">
+    <h2 style="color:var(--navy); margin-bottom:10px;">Not signed in</h2>
+    <p><a href="login.html" style="color:var(--navy);">Sign in to AgentHubTX</a>.</p>
+  </div>
+
+  <div id="toolsMain" style="display:none;">
+    <div class="search-row">
+      <input type="text" class="search-input" id="search" placeholder="Search tools — e.g. &quot;MLS&quot; or &quot;e-sign&quot;" oninput="renderTools()">
+    </div>
+    <div class="pills" id="pills"></div>
+    <div id="results"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://tjdxnmukjraljvjprolk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5";
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Pulls from AgentHubTX's own `tools` table/RPC (get_tools) -- a separate
+// table in AgentHubTX's own Supabase project, unrelated to Agent Shield's
+// Resources data.
+let TOOLS = [];
+let CATEGORIES = [];
+let activeCategory = "All";
+let currentUser = null;
+
+async function loadTools() {
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '<div class="no-results">Loading...</div>';
+  try {
+    const { data, error } = await sbClient.rpc('get_tools');
+    if (error) throw error;
+    TOOLS = data || [];
+    CATEGORIES = [...new Set(TOOLS.map(t => t.category || 'General'))].sort((a, b) => a.localeCompare(b));
+  } catch (err) {
+    resultsEl.innerHTML = '<div class="no-results">Could not load tools right now. Try refreshing the page.</div>';
+    TOOLS = [];
+  }
+}
+
+function renderPills() {
+  const pillsEl = document.getElementById('pills');
+  const cats = ["All", ...CATEGORIES];
+  pillsEl.innerHTML = cats.map(c =>
+    `<button class="pill ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${c.replace(/'/g, "\\'")}')">${c}</button>`
+  ).join('');
+}
+
+function setCategory(c) {
+  activeCategory = c;
+  renderPills();
+  renderTools();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function isRecent(dateVal) {
+  if (!dateVal) return false;
+  const days = (Date.now() - new Date(dateVal).getTime()) / (1000 * 60 * 60 * 24);
+  return days <= 7;
+}
+
+function renderToolCard(t) {
+  const isPinned = getPinnedIds().includes(t.id);
+  const newBadge = isRecent(t.created_at) ? '<span class="new-badge">NEW</span>' : '';
+  const pinArea = t.pin
+    ? `<span class="pin-reveal-wrap" data-pin="${escapeHtml(t.pin)}"><button type="button" class="btn-pin-reveal" onclick="revealPin(this)">Show PIN</button></span>`
+    : '';
+
+  return `
+    <div class="tool-card">
+      <div class="tool-head">
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" onclick="toggleToolPin('${t.id}')" title="${isPinned ? 'Unpin' : 'Pin to hub'}">${isPinned ? '★' : '☆'}</button>
+          <div>
+            <div class="tool-name">${escapeHtml(t.title)}${newBadge}</div>
+            <div class="tool-desc">${escapeHtml(t.description || '')}</div>
+          </div>
+        </div>
+        <div class="tool-actions">
+          ${pinArea}
+          <a href="${escapeHtml(t.url)}" class="btn-open" target="_blank">Open →</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+function revealPin(btn) {
+  const wrap = btn.closest('.pin-reveal-wrap');
+  const pin = wrap.getAttribute('data-pin');
+  wrap.innerHTML = `<span class="pin-value">${escapeHtml(pin)}</span>`;
+}
+
+function renderTools() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('results');
+
+  const filtered = TOOLS.filter(t => {
+    const catMatch = activeCategory === 'All' || (t.category || 'General') === activeCategory;
+    const haystack = (t.title + ' ' + (t.description || '') + ' ' + (t.category || '')).toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    return catMatch && matchesQuery;
+  });
+
+  if (filtered.length === 0) {
+    resultsEl.innerHTML = `<div class="no-results">No tools match that search. Try a different word, or clear the search box.</div>`;
+    return;
+  }
+
+  const pinnedIds = getPinnedIds();
+  const pinned = filtered.filter(t => pinnedIds.includes(t.id));
+
+  const pinnedHtml = pinned.length ? `
+    <div class="pin-section">
+      <div class="category-label">⭐ Pinned</div>
+      ${pinned.map(renderToolCard).join('')}
+    </div>` : '';
+
+  const grouped = {};
+  filtered.forEach(t => {
+    const cat = t.category || 'General';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(t);
+  });
+
+  resultsEl.innerHTML = pinnedHtml + Object.keys(grouped).sort((a, b) => a.localeCompare(b)).map(cat => `
+    <div class="category-block">
+      <div class="category-label">${escapeHtml(cat)}</div>
+      ${grouped[cat].map(renderToolCard).join('')}
+    </div>
+  `).join('');
+}
+
+// Pins are stored per-user, keyed by the real Supabase Auth user id
+// (not email/localStorage-session like Agent Shield's version).
+function pinStorageKey(userId) { return `agenthubtx_pins_${userId}`; }
+function getPinnedIds() {
+  try { return JSON.parse(localStorage.getItem(pinStorageKey(currentUser.id)) || '[]'); }
+  catch { return []; }
+}
+function toggleToolPin(toolId) {
+  const pins = getPinnedIds();
+  const idx = pins.indexOf(toolId);
+  if (idx >= 0) pins.splice(idx, 1); else pins.push(toolId);
+  localStorage.setItem(pinStorageKey(currentUser.id), JSON.stringify(pins));
+  renderTools();
+}
+
+async function init() {
+  const { data: { session } } = await sbClient.auth.getSession();
+
+  if (!session) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('deniedState').style.display = 'block';
+    return;
+  }
+
+  currentUser = session.user;
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('toolsMain').style.display = 'block';
+
+  await loadTools();
+  renderPills();
+  renderTools();
+}
+
+init();
+</script>
+
+</body>
+</html>
