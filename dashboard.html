@@ -12,12 +12,14 @@
     --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); min-height: 100vh; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: radial-gradient(circle at 15% 0%, rgba(200,146,42,0.15), transparent 45%), var(--off); color: var(--gray-700); min-height: 100vh; }
 
-  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
   .brand { color: var(--white); font-size: 18px; font-weight: 700; }
   .brand span { color: var(--gold); }
-  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .header-widget { font-size: 12.5px; color: var(--gray-300); display: flex; align-items: center; gap: 6px; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 14px; }
+  .header-widget .val { color: var(--gold); font-weight: 700; }
   .header-email { color: var(--gray-300); font-size: 13px; }
   .signout-btn { background: none; border: 1px solid var(--gray-300); color: var(--white); border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
   .signout-btn:hover { border-color: var(--gold); color: var(--gold); }
@@ -25,7 +27,7 @@
   .wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 70px; }
 
   h1 { font-size: 22px; color: var(--navy); margin-bottom: 4px; }
-  .sub-date { font-size: 13px; color: var(--gray-500); margin-bottom: 26px; }
+  .sub-date { font-size: 13px; color: var(--gray-500); margin-bottom: 22px; }
 
   .section-label { font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin: 26px 0 12px; }
 
@@ -45,6 +47,19 @@
   .edit-link { display: inline-block; margin-top: 26px; font-size: 13px; color: var(--gray-500); text-decoration: none; }
   .edit-link:hover { color: var(--navy); }
 
+  .trivia-banner { background: var(--white); border-left: 4px solid var(--gold); border-radius: 8px; padding: 12px 16px; margin: 22px 0; font-size: 13px; color: var(--gray-700); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .trivia-banner strong { color: var(--navy); }
+
+  .res-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .res-header h2 { margin: 0; font-size: 18px; color: var(--navy); }
+  .browse-link { font-size: 13px; font-weight: 700; color: var(--navy); background: var(--off); border: 1.5px solid var(--gold); border-radius: 20px; padding: 8px 16px; text-decoration: none; white-space: nowrap; }
+  .res-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .res-card { background: var(--white); border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .res-card a { text-decoration: none; color: inherit; display: block; }
+  .res-title { font-size: 14.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .res-desc { font-size: 12.5px; color: var(--gray-500); line-height: 1.5; }
+  .res-empty { background: var(--white); border: 1px dashed var(--gray-300); border-radius: 10px; padding: 20px; text-align: center; color: var(--gray-500); font-size: 13.5px; }
+
   #loadingState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
 </style>
 </head>
@@ -56,6 +71,9 @@
   <header>
     <div class="brand">Agent<span>HubTX</span></div>
     <div class="header-right">
+      <span class="header-widget" id="clockWidget"></span>
+      <span class="header-widget" id="weatherWidget"></span>
+      <span class="header-widget" id="mortgageWidget" style="border-right:none; padding-right:0;"></span>
       <span class="header-email" id="headerEmail"></span>
       <button class="signout-btn" onclick="signOut()">Sign out</button>
     </div>
@@ -64,6 +82,8 @@
   <div class="wrap">
     <h1 id="greeting">Welcome</h1>
     <div class="sub-date" id="todayDate"></div>
+
+    <div id="triviaBanner"></div>
 
     <div class="section-label">Your Daily Tools</div>
     <div class="tools-grid" id="toolsGrid"></div>
@@ -78,6 +98,14 @@
       <a class="quicklink" href="tools-directory.html" target="_blank">🔍 Browse All Tools</a>
     </div>
 
+    <div style="margin-top:28px;">
+      <div class="res-header">
+        <h2>⭐ Pinned Tools</h2>
+        <a class="browse-link" href="tools-directory.html">🔍 Browse All Tools →</a>
+      </div>
+      <div id="pinnedToolsGrid"></div>
+    </div>
+
     <a class="edit-link" href="setup.html">✏️ Edit your daily tools</a>
   </div>
 </div>
@@ -87,9 +115,6 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Known URLs for common tools -- anything not in this list falls back to
-  // a plain Google search link, so the tile is still useful even for a
-  // tool we don't have a direct URL for yet.
   const TOOL_URLS = {
     'Amarillo MLS (AARMLS)': 'https://www.idxbroker.com/mls/amarillo-mls-aarmls',
     'Bright MLS (BMLS)': 'https://brightmls.com/',
@@ -121,7 +146,127 @@
     return (name || '?').trim().charAt(0).toUpperCase();
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function timeOfDayGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function updateClock() {
+    const el = document.getElementById('clockWidget');
+    if (!el) return;
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' });
+    el.innerHTML = `<span class="val">${time}</span> CT`;
+  }
+
+  const WEATHER_CODES = {
+    0: 'Clear', 1: 'Mostly Clear', 2: 'Partly Cloudy', 3: 'Cloudy',
+    45: 'Fog', 48: 'Fog', 51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
+    61: 'Light Rain', 63: 'Rain', 65: 'Heavy Rain',
+    71: 'Snow', 73: 'Snow', 75: 'Heavy Snow',
+    80: 'Showers', 81: 'Showers', 82: 'Heavy Showers',
+    95: 'Storms', 96: 'Storms', 99: 'Storms',
+  };
+
+  async function loadWeather() {
+    const el = document.getElementById('weatherWidget');
+    if (!el) return;
+    try {
+      const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=30.2672&longitude=-97.7431&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America%2FChicago');
+      const data = await resp.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const label = WEATHER_CODES[data.current.weather_code] || '';
+      el.innerHTML = `${label} <span class="val">${temp}°F</span> · Austin`;
+    } catch (err) {
+      el.style.display = 'none';
+    }
+  }
+
+  const MORTGAGE_API_KEY = '92H2QyOXbSoFAL1LxSTUl0EnTZdiAyAgCmhl6vLZ';
+
+  async function loadMortgageRate() {
+    const el = document.getElementById('mortgageWidget');
+    if (!el) return;
+    try {
+      const resp = await fetch('https://api.api-ninjas.com/v2/mortgagerate', { headers: { 'X-Api-Key': MORTGAGE_API_KEY } });
+      const data = await resp.json();
+      const latest = Array.isArray(data) ? data[0] : data;
+      if (!latest || !latest.frm_30) { el.style.display = 'none'; return; }
+      el.innerHTML = `30yr <span class="val">${latest.frm_30}%</span>`;
+    } catch (err) {
+      el.style.display = 'none';
+    }
+  }
+
+  const TX_TRIVIA = [
+    "TREC's current promulgated contract forms are updated periodically by the Texas Real Estate Broker-Lawyer Committee — a mix of brokers, attorneys, and public members.",
+    "Texas is a community property state, which affects how married couples hold title.",
+    "The six-year statute of limitations for most real estate contract disputes in Texas starts from the date of breach, not discovery.",
+    "TREC license renewal requires 18 hours of continuing education every two years for sales agents.",
+    "Texas doesn't require attorneys to be present at closing — title companies typically handle it.",
+    "The Texas Real Estate Commission is funded entirely by license fees, not taxpayer dollars.",
+    "Texas homestead exemptions can protect a primary residence from most creditors — one of the strongest homestead laws in the country.",
+    "A Texas real estate license must be renewed even if an agent isn't actively practicing, or it goes inactive.",
+    "TREC Rule 537.11 governs how showing agreements must be handled between brokers.",
+  ];
+
+  function renderTrivia() {
+    const el = document.getElementById('triviaBanner');
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const fact = TX_TRIVIA[dayOfYear % TX_TRIVIA.length];
+    el.innerHTML = `<div class="trivia-banner">💡 <strong>Did you know?</strong> ${escapeHtml(fact)}</div>`;
+  }
+
+  function pinStorageKey(userId) { return `agenthubtx_pins_${userId}`; }
+  function getPinnedIds(userId) {
+    try { return JSON.parse(localStorage.getItem(pinStorageKey(userId)) || '[]'); }
+    catch { return []; }
+  }
+
+  async function loadPinnedTools(userId) {
+    const grid = document.getElementById('pinnedToolsGrid');
+    const pinnedIds = getPinnedIds(userId);
+
+    if (pinnedIds.length === 0) {
+      grid.innerHTML = `<div class="res-empty">No pinned tools yet. <a href="tools-directory.html" style="color:var(--navy); font-weight:600;">Browse all tools</a> and star your favorites — they'll show up here.</div>`;
+      return;
+    }
+
+    try {
+      const { data, error } = await sb.rpc('get_tools');
+      if (error) throw error;
+      const pinned = (data || []).filter(t => pinnedIds.includes(t.id));
+      if (pinned.length === 0) {
+        grid.innerHTML = `<div class="res-empty">No pinned tools yet. <a href="tools-directory.html" style="color:var(--navy); font-weight:600;">Browse all tools</a> and star your favorites — they'll show up here.</div>`;
+        return;
+      }
+      grid.innerHTML = `<div class="res-grid">${pinned.map(t => `
+        <div class="res-card">
+          <a href="${escapeHtml(t.url)}" target="_blank">
+            <div class="res-title">${escapeHtml(t.title)}</div>
+            <div class="res-desc">${escapeHtml(t.description || '')}</div>
+          </a>
+        </div>`).join('')}</div>`;
+    } catch (err) {
+      grid.innerHTML = `<div class="res-empty">Could not load pinned tools right now.</div>`;
+    }
+  }
+
   async function init() {
+    updateClock();
+    setInterval(updateClock, 30000);
+    loadWeather();
+    loadMortgageRate();
+    renderTrivia();
+
     const { data: { session } } = await sb.auth.getSession();
 
     if (!session) {
@@ -139,7 +284,7 @@
       .maybeSingle();
 
     const fullName = (profile && profile.full_name) || user.user_metadata?.full_name || '';
-    document.getElementById('greeting').textContent = fullName ? `Welcome, ${fullName.split(' ')[0]}` : 'Welcome';
+    document.getElementById('greeting').textContent = fullName ? `${timeOfDayGreeting()}, ${fullName.split(' ')[0]}` : timeOfDayGreeting();
     document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric'
     });
@@ -163,6 +308,8 @@
     } else {
       document.getElementById('emptyToolsState').style.display = 'block';
     }
+
+    loadPinnedTools(user.id);
 
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('dashboardContent').style.display = 'block';
