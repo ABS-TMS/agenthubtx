@@ -28,27 +28,51 @@
   .btn:hover { opacity: 0.92; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  .btn-text { width: 100%; background: none; border: none; color: var(--navy); font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 6px; text-align: center; text-decoration: underline; }
+
   .msg { font-size: 13.5px; margin-top: 12px; text-align: center; display: none; }
   .msg.show { display: block; }
+  .msg.ok { color: #1a7a3c; }
   .msg.err { color: var(--red); }
 
   .switch-link { text-align: center; font-size: 13.5px; color: var(--gray-500); margin-top: 18px; }
   .switch-link a { color: var(--navy); font-weight: 600; text-decoration: none; }
+
+  .forgot-link { text-align: right; font-size: 12.5px; margin-top: -6px; margin-bottom: 16px; }
+  .forgot-link a { color: var(--gray-500); text-decoration: none; }
+  .forgot-link a:hover { color: var(--navy); }
+
+  #resetView { display: none; }
 </style>
 </head>
 <body>
 
 <div class="card">
   <div class="brand">Agent<span>HubTX</span></div>
-  <div class="sub">Sign in to your account</div>
 
-  <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@email.com"></div>
-  <div class="field"><label>Password</label><input type="password" id="password" placeholder="Your password"></div>
+  <!-- Sign in view -->
+  <div id="loginView">
+    <div class="sub">Sign in to your account</div>
 
-  <button class="btn" id="submitBtn" onclick="logIn()">Sign In</button>
-  <div class="msg" id="msg"></div>
+    <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@email.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="password" placeholder="Your password"></div>
+    <div class="forgot-link"><a href="#" onclick="showResetView(); return false;">Forgot password?</a></div>
 
-  <div class="switch-link">Don't have an account? <a href="signup.html">Sign up</a></div>
+    <button class="btn" id="submitBtn" onclick="logIn()">Sign In</button>
+    <div class="msg" id="msg"></div>
+
+    <div class="switch-link">Don't have an account? <a href="signup.html">Sign up</a></div>
+  </div>
+
+  <!-- Forgot password view -->
+  <div id="resetView">
+    <div class="sub">Reset your password</div>
+    <div class="field"><label>Email</label><input type="email" id="resetEmail" placeholder="you@email.com"></div>
+
+    <button class="btn" id="resetBtn" onclick="sendReset()">Send reset link</button>
+    <button class="btn-text" onclick="showLoginView()">Back to sign in</button>
+    <div class="msg" id="resetMsg"></div>
+  </div>
 </div>
 
 <script>
@@ -60,6 +84,16 @@
     const el = document.getElementById('msg');
     el.textContent = text;
     el.className = 'msg show err';
+  }
+
+  function showResetView() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('resetView').style.display = 'block';
+  }
+
+  function showLoginView() {
+    document.getElementById('resetView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
   }
 
   async function logIn() {
@@ -76,6 +110,32 @@
       window.location.href = 'dashboard.html';
     } catch (err) {
       showMsg(err.message || 'Could not sign in. Please try again.');
+    }
+    btn.disabled = false;
+  }
+
+  async function sendReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const btn = document.getElementById('resetBtn');
+    const el = document.getElementById('resetMsg');
+
+    if (!email) {
+      el.textContent = 'Please enter your email.';
+      el.className = 'msg show err';
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://agenthubtx.com/reset-password.html'
+      });
+      if (error) throw error;
+      el.textContent = 'Check your email for a reset link.';
+      el.className = 'msg show ok';
+    } catch (err) {
+      el.textContent = err.message || 'Something went wrong. Please try again.';
+      el.className = 'msg show err';
     }
     btn.disabled = false;
   }
