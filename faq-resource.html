@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FAQ Resource — AgentHubTX</title>
+<meta name="robots" content="noindex, nofollow" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0C3057;
+    --gold: #C8922A;
+    --cream: #F4F1EA;
+    --white: #FFFFFF;
+    --ink: #1E293B;
+    --ink-soft: #54627A;
+    --line: #E4DFD3;
+    --font-serif: Georgia, 'Times New Roman', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  body {
+    font-family: var(--font-serif);
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .loading-state, .denied-state { text-align: center; padding: 90px 20px; color: var(--ink-soft); font-family: var(--font-sans); }
+  .denied-state h2 { color: var(--navy); margin-bottom: 10px; font-family: var(--font-serif); }
+
+  nav {
+    background: var(--navy);
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo { font-family: var(--font-sans); font-size: 15px; font-weight: 700; color: var(--white); text-decoration: none; }
+  .nav-logo span { color: #C8922A; }
+  .nav-back { font-family: var(--font-sans); font-size: 13px; color: #93C5FD; text-decoration: none; }
+  .nav-back:hover { color: var(--white); }
+
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 2rem;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin-bottom: 0.85rem;
+  }
+  .hero-sub {
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .hero-meta {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: #8A8270;
+    margin-top: 1rem;
+    font-style: italic;
+  }
+
+  .search-wrap {
+    max-width: 640px;
+    margin: 1.75rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .search-box {
+    width: 100%;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: 13px 18px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--gold); }
+  .search-box::placeholder { color: #A8A296; }
+
+  .toc {
+    max-width: 760px;
+    margin: 1.75rem auto 0;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .toc-pill {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toc-pill:hover { background: #FFF8EC; border-color: var(--gold); }
+
+  main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  .category { margin-bottom: 2.75rem; scroll-margin-top: 24px; }
+  .category-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .category-num {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+  .category h2 {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.2px;
+  }
+
+  .qa { margin-bottom: 1.5rem; }
+  .qa:last-child { margin-bottom: 0; }
+  .qa-q {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.4;
+    margin-bottom: 0.4rem;
+  }
+  .qa-a {
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.65;
+    margin-bottom: 0.4rem;
+  }
+  .qa-cite {
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    font-style: italic;
+    color: #9A9282;
+  }
+
+  .qa.hidden { display: none; }
+  .category.hidden { display: none; }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 3rem 1rem;
+    font-family: var(--font-sans);
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .no-results.visible { display: block; }
+
+  .footer-note {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+  }
+  .footer-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .footer-card strong { color: var(--navy); }
+
+  @media (max-width: 580px) {
+    h1 { font-size: 27px; }
+    .toc { gap: 6px; }
+    .toc-pill { font-size: 11.5px; padding: 6px 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-state" id="loadingState">Signing you in&hellip;</div>
+
+<div class="denied-state" id="deniedState" style="display:none;">
+  <h2>Not signed in</h2>
+  <p><a href="login.html" style="color:var(--navy);">Sign in to AgentHubTX</a>.</p>
+</div>
+
+<div id="pageContent" style="display:none;">
+
+<nav>
+  <a class="nav-logo" href="/">Broker<span>Connect</span>Texas</a>
+  <a class="nav-back" href="dashboard.html">&larr; Back to AgentHubTX</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Agent Resource</div>
+  <h1>FAQ Resource</h1>
+  <p class="hero-sub">Common compliance questions, answered straight from TREC's own published guidance — organized so you can find what you need without digging through the full rulebook.</p>
+  <p class="hero-meta">Sourced entirely from TREC's public FAQ · Not legal advice · Ask your broker on anything transaction-specific</p>
+</div>
+
+<div class="search-wrap">
+  <input type="text" class="search-box" id="search" placeholder="Search a question or topic…" autocomplete="off" />
+</div>
+
+<div class="toc" id="toc">
+  <a class="toc-pill" href="#cat-1">Broker Supervision</a>
+  <a class="toc-pill" href="#cat-2">Forms & Contracts</a>
+  <a class="toc-pill" href="#cat-3">Advertising</a>
+  <a class="toc-pill" href="#cat-4">Agency Disclosure</a>
+  <a class="toc-pill" href="#cat-5">Inspections</a>
+</div>
+
+<main>
+
+  <div class="category" id="cat-1">
+    <div class="category-head">
+      <span class="category-num">01</span>
+      <h2>Broker Supervision &amp; Sponsorship</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Does my broker have to personally supervise everything I do day to day?</div>
+      <div class="qa-a">No. A broker can delegate supervisory responsibility to someone else with the right experience and expertise. That said, the broker still remains responsible for their agents' authorized acts, and a complaint against a sponsored agent is also treated as a complaint against the broker for purposes of evaluating whether proper supervision was in place.</div>
+      <div class="qa-cite">Source: TREC Rule 535.2(e); TRELA §1101.803; Rule 535.141(c)–(d)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can I work out of a different office location than my sponsoring broker's main office?</div>
+      <div class="qa-a">Yes — but you must still be associated with, and acting for, your actual sponsoring broker at all times. You can't do brokerage work for a different broker or out of a different broker's office while sponsored elsewhere.</div>
+      <div class="qa-cite">Source: TRELA §1101.803; Rule 535.2(a); TRELA §1101.351(c)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">If I switch sponsoring brokers, do I get to take my listings or buyer clients with me?</div>
+      <div class="qa-a">No. Listing agreements and buyer representation agreements are private contracts between the client and the broker — not the individual agent. The client stays with your previous broker unless they're released from that agreement.</div>
+      <div class="qa-cite">Source: TREC FAQ, brokerage relationships</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can I receive a commission through my old broker after I've moved my sponsorship?</div>
+      <div class="qa-a">Yes. You can be paid through your current sponsoring broker, or through the broker who sponsored you at the time you actually earned the right to that compensation.</div>
+      <div class="qa-cite">Source: TREC Rule 535.3</div>
+    </div>
+  </div>
+
+  <div class="category" id="cat-2">
+    <div class="category-head">
+      <span class="category-num">02</span>
+      <h2>Forms &amp; Contracts</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Does TREC have a promulgated listing agreement or buyer representation agreement form?</div>
+      <div class="qa-a">No to both. These are private contracts between the broker and the client, not regulated or supplied by TREC. ABS's default is TXR 1101 paragraph 5A as the standard listing agreement — check with your broker before deviating from that.</div>
+      <div class="qa-cite">Source: TREC FAQ, forms; ABS internal policy</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Am I required to use TREC's adopted contract forms?</div>
+      <div class="qa-a">Yes, with limited exceptions outlined in Rule 537.11(a). TREC can and does discipline agents who fail to use an adopted form when required. You're also prohibited from adding anything beyond factual matters or business details to a TREC-mandated form.</div>
+      <div class="qa-cite">Source: TRELA §1101.155; Rule 537.11</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">How are days counted in a TREC contract?</div>
+      <div class="qa-a">Counting starts the day after the contract's effective date, and every day counts as a calendar day — not a business day, unless the specific provision says otherwise.</div>
+      <div class="qa-cite">Source: TREC FAQ, contracts</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can a non-license holder use TREC's promulgated forms?</div>
+      <div class="qa-a">Yes, they're available for public use — but they're built for use by trained, licensed agents. Anyone using one without that training assumes the risk of a mistake that could create financial loss or an unenforceable contract.</div>
+      <div class="qa-cite">Source: TREC FAQ, forms</div>
+    </div>
+  </div>
+
+  <div class="category" id="cat-3">
+    <div class="category-head">
+      <span class="category-num">03</span>
+      <h2>Advertising</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">If my name or team name appears on a sign, does the broker's name have to be there too?</div>
+      <div class="qa-a">Yes — and the broker's name must appear at least half the size of the largest contact information on the sign or ad. This applies to building signs, promotional items, and sponsorships, not just yard signs.</div>
+      <div class="qa-cite">Source: TREC Rule 535.155(b)(1) and (b)(3)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can I advertise under a name like "Sarah's Spectacular Properties" instead of my own licensed name?</div>
+      <div class="qa-a">Not without registering it properly. An individual sales agent generally can't use an assumed business name — anything other than your licensed name or a registered alternate name counts as a "team name" and has to meet TREC's team name requirements, including the broker's name appearing alongside it.</div>
+      <div class="qa-cite">Source: TRELA §1101.652(b)(23); Rule 535.154(a)(5)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Does TREC review my advertising before I post it?</div>
+      <div class="qa-a">No. TREC only discusses advertising compliance with the broker directly — your sponsoring broker is responsible for reviewing your advertising and maintaining written policies to ensure it complies with TREC's rules. Both you and your broker can be disciplined if it doesn't.</div>
+      <div class="qa-cite">Source: TREC Rules 535.2(g), (i)(6), 535.154, 535.155; TRELA §1101.652(b)(23)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Does putting my email or website URL in an ad count as advertising on its own?</div>
+      <div class="qa-a">Not by itself. But if that URL or email implies you're personally responsible for a brokerage (when you're a sales agent, not the broker), or if it otherwise makes the ad misleading, it becomes a violation.</div>
+      <div class="qa-cite">Source: TREC Rule 535.155(d)(4) and (b)(4); TRELA §1101.652(b)(23)</div>
+    </div>
+  </div>
+
+  <div class="category" id="cat-4">
+    <div class="category-head">
+      <span class="category-num">04</span>
+      <h2>Agency Disclosure &amp; IABS</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Do I have to give the IABS form to everyone I meet, including at an open house?</div>
+      <div class="qa-a">No. The IABS disclosure isn't required at an open house (for that same property), for a residential lease under one year where a sale isn't being considered, or when meeting someone you already know is represented by another agent.</div>
+      <div class="qa-cite">Source: TRELA §1101.558(c)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Is putting a link to the IABS form in my email signature enough to satisfy the disclosure requirement?</div>
+      <div class="qa-a">No. A link in a footer or signature block alone doesn't count. The IABS form has to be delivered in person, by mail, in the body of an email, or as an attachment/link with a specific reference to it in the body of the email.</div>
+      <div class="qa-cite">Source: TREC Rule 531.20(d)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">If I'm representing the buyer, does the listing agent have to tell me they represent the seller?</div>
+      <div class="qa-a">Yes — on the first contact between you, the listing agent has to disclose that they represent the seller, the same way you're required to disclose your own representation when setting up a showing.</div>
+      <div class="qa-cite">Source: TRELA §1101.558(b)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">If I'm buying, selling, or leasing property for a family member, do I have to disclose that I'm licensed?</div>
+      <div class="qa-a">Yes, and it has to be in writing. You can't use your license expertise to the disadvantage of the person you're dealing with, even if it's a relative.</div>
+      <div class="qa-cite">Source: TREC Rule 535.144(c)</div>
+    </div>
+  </div>
+
+  <div class="category" id="cat-5">
+    <div class="category-head">
+      <span class="category-num">05</span>
+      <h2>Inspections &amp; Disclosure</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">If an inspector misses something, does the buyer have any recourse against the inspector?</div>
+      <div class="qa-a">Usually not. Inspectors follow the Standards of Practice, which only require a visual inspection — they're not required to dig up buried lines, predict the lifespan of mechanical components, or catch every possible future failure.</div>
+      <div class="qa-cite">Source: TREC Rule 535.227(b)(3)(C)(i); TREC FAQ, inspections</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can a license holder be disciplined for knowingly failing to disclose a defect to a buyer?</div>
+      <div class="qa-a">Yes. A license holder who makes a knowing misrepresentation or fails to disclose a known latent defect can face Commission discipline — this applies even if it's the seller, not the agent, who withheld the information from the agent in the first place, once the agent independently knows about it.</div>
+      <div class="qa-cite">Source: TRELA §1101.652(b)(3)</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Can I act as both the inspector and the agent on the same transaction?</div>
+      <div class="qa-a">No. An inspector cannot act in the dual capacity of inspector and broker/sales agent (or an undisclosed principal) on the same deal — this is a violation regardless of how the relationship is structured.</div>
+      <div class="qa-cite">Source: Texas Occupations Code §1102.303</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Does TREC require inspectors to use a pre-inspection contract?</div>
+      <div class="qa-a">No. Inspectors aren't required to sign a contract before performing an inspection. Some choose to use one anyway, often drafted by a private attorney or provided by an inspector trade association.</div>
+      <div class="qa-cite">Source: TREC FAQ, inspections</div>
+    </div>
+  </div>
+
+  <div class="no-results" id="no-results">No questions match that search. Try a different word, or check with your broker directly.</div>
+
+</main>
+
+<div class="footer-note">
+  <div class="footer-card">
+    <strong>About this page.</strong> Every answer here is paraphrased from TREC's publicly published FAQ (trec.texas.gov) — nothing on this page comes from Texas REALTORS&reg; member content. This is informational only, not legal advice, and not a substitute for asking your broker about anything transaction-specific. For situations not covered here, reach out to your designated supervisor first.
+  </div>
+</div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('deniedState').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'block';
+
+    initSearch();
+  }
+
+  function initSearch() {
+    const search = document.getElementById('search');
+    const categories = document.querySelectorAll('.category');
+    const noResults = document.getElementById('no-results');
+    const toc = document.getElementById('toc');
+
+    search.addEventListener('input', () => {
+      const term = search.value.trim().toLowerCase();
+      let anyVisible = false;
+
+      categories.forEach(cat => {
+        let catHasVisible = false;
+        cat.querySelectorAll('.qa').forEach(qa => {
+          const text = qa.textContent.toLowerCase();
+          const match = term === '' || text.includes(term);
+          qa.classList.toggle('hidden', !match);
+          if (match) catHasVisible = true;
+        });
+        cat.classList.toggle('hidden', !catHasVisible);
+        if (catHasVisible) anyVisible = true;
+      });
+
+      toc.style.display = term === '' ? 'flex' : 'none';
+      noResults.classList.toggle('visible', !anyVisible);
+    });
+  }
+
+  init();
+</script>
+
+</body>
+</html>
