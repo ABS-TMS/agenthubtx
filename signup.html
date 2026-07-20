@@ -46,6 +46,7 @@
   <div class="field"><label>Full Name</label><input type="text" id="fullName" placeholder="Jane Smith"></div>
   <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@email.com"></div>
   <div class="field"><label>Password</label><input type="password" id="password" placeholder="At least 6 characters"></div>
+  <div class="field"><label>Access Code</label><input type="text" id="accessCode" placeholder="Provided by Mike"></div>
 
   <button class="btn" id="submitBtn" onclick="signUp()">Create Account</button>
   <div class="msg" id="msg"></div>
@@ -68,10 +69,15 @@
     const fullName = document.getElementById('fullName').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    const accessCode = document.getElementById('accessCode').value.trim();
     const btn = document.getElementById('submitBtn');
 
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !accessCode) {
       showMsg('Please fill in all fields.', true);
+      return;
+    }
+    if (accessCode !== '3575') {
+      showMsg('That access code is not valid. Contact Mike for the current code.', true);
       return;
     }
     if (password.length < 6) {
