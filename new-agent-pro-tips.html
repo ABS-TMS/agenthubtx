@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Agent & Pro Tips | AgentHubTX</title>
+<title>TREC Addenda Reference Library | AgentHubTX</title>
 <style>
   :root {
     --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
@@ -15,39 +15,54 @@
   body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.6; }
 
   header { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 20px 24px; }
-  .header-inner { max-width: 860px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .header-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
   .header-brand { color: var(--white); font-size: 20px; font-weight: 700; }
   .header-brand span { color: var(--gold); }
   .header-sub { color: var(--gray-300); font-size: 13.5px; margin-top: 4px; }
   .back-link { color: var(--white); font-size: 13.5px; text-decoration: none; }
   .back-link:hover { color: var(--gold); }
 
-  .wrap { max-width: 860px; margin: 0 auto; padding: 30px 20px 70px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 30px 20px 70px; }
 
-  .article-card {
+  .caveat {
+    background: var(--white); border-left: 4px solid var(--gold); border-radius: 6px;
+    padding: 16px 20px; margin-bottom: 26px; font-size: 13.5px; color: var(--gray-700);
+  }
+  .caveat strong { color: var(--navy); }
+
+  .toc { background: var(--white); border: 1px solid var(--rule); border-radius: 8px; padding: 20px 24px; margin-bottom: 30px; }
+  .toc h2 { font-size: 15px; color: var(--navy); margin: 0 0 10px; }
+  .toc-group { margin-bottom: 14px; }
+  .toc-group:last-child { margin-bottom: 0; }
+  .toc-group-label { font-size: 11.5px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .toc-group ul { margin: 0; padding-left: 18px; }
+  .toc-group li { font-size: 13.5px; margin-bottom: 4px; }
+  .toc-group a { color: var(--navy); text-decoration: none; }
+  .toc-group a:hover { color: var(--gold); text-decoration: underline; }
+
+  .section-label {
+    font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 34px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--rule);
+  }
+  .section-label:first-of-type { margin-top: 0; }
+
+  .addendum-card {
     background: var(--white); border: 1px solid var(--rule); border-left: 4px solid var(--gold);
-    border-radius: 8px; padding: 26px 28px; margin-bottom: 22px;
+    border-radius: 8px; padding: 22px 24px; margin-bottom: 16px; scroll-margin-top: 16px;
   }
-  .article-title { font-size: 19px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+  .addendum-title { font-size: 16.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .addendum-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+  .addendum-meta a { color: var(--gray-500); }
+  .addendum-purpose { font-size: 14px; margin-bottom: 14px; }
 
-  .layer { margin-bottom: 16px; }
-  .layer:last-child { margin-bottom: 0; }
-  .layer-label { font-size: 12px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .layer-label.new-agent::before { content: "🆕 "; }
-  .layer-label.pro-tip::before { content: "💡 "; }
-  .layer-body { font-size: 14.5px; color: var(--gray-700); }
-  .layer-body ol, .layer-body ul { margin: 8px 0; padding-left: 20px; }
-  .layer-body li { margin-bottom: 6px; }
+  .obligations { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .obligations { grid-template-columns: 1fr; } }
+  .oblig-block { background: var(--off); border-radius: 6px; padding: 12px 14px; }
+  .oblig-label { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .oblig-block p { font-size: 13px; margin: 0; }
 
-  .signoff { font-size: 13px; color: var(--gray-500); font-style: italic; margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 12px; }
-
-  .disclaimer { max-width: 860px; margin: 40px auto 0; padding: 20px 20px 0; border-top: 1px solid var(--rule); font-size: 11.5px; color: var(--gray-500); line-height: 1.5; }
-
-  @media print {
-    header .back-link { display: none; }
-    body { background: var(--white); }
-    .article-card { break-inside: avoid; }
-  }
+  .top-link { display: inline-block; font-size: 12px; color: var(--gray-500); text-decoration: none; margin-top: 30px; }
+  .top-link:hover { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -55,8 +70,8 @@
 <header>
   <div class="header-inner">
     <div>
-      <div class="header-brand">Agent <span>Shield</span></div>
-      <div class="header-sub">New Agent & Pro Tips</div>
+      <div class="header-brand">Agent<span>HubTX</span></div>
+      <div class="header-sub">TREC Addenda Reference Library</div>
     </div>
     <a class="back-link" href="dashboard.html">← Back to Hub</a>
   </div>
@@ -64,101 +79,451 @@
 
 <div class="wrap">
 
-  <div class="article-card">
-    <div class="article-title">Smart Buyer Negotiation Strategies</div>
-    <div class="layer">
-      <div class="layer-label new-agent">New Agent Take</div>
-      <div class="layer-body">
-        Buyers today have more leverage than they think, but most don't know how to use it. A few tools worth having ready:
-        <ol>
-          <li><strong>Get your buyer a fully underwritten pre-approval</strong>, not just a pre-qualification. A real underwriter has already verified income, assets, and credit — that's a much stronger offer in a competitive situation, and it closes faster.</li>
-          <li><strong>Push for seller concessions over price cuts.</strong> A price drop barely moves the monthly payment; a seller credit applied to closing costs or a rate buydown can meaningfully change what the buyer pays every month. Just know lenders cap concessions — typically 3-6% of the loan depending on the program — so it's not unlimited.</li>
-          <li><strong>If a buyer wants an escalation clause, don't write it yourself.</strong> TREC Rule 537.11(b)(5) prohibits license holders from drafting escalation clauses — doing so is considered unauthorized practice of law, with real penalties attached. If a buyer asks for one, tell them to have their own attorney draft it. Some markets barely use them anyway (Austin's a good example, where they can work against a buyer since local listing agents expect standard terms), so this often isn't even the strongest play to begin with.</li>
-          <li><strong>Don't waive inspection — scope it instead.</strong> A repair threshold ("no requests under $X") or a "major issues only" contingency keeps the offer strong while still protecting the buyer from a real problem.</li>
-          <li><strong>Point buyers toward stale listings and back-on-market properties.</strong> Sellers in those situations are often more flexible on price, terms, or concessions — less competition, more room to negotiate.</li>
-        </ol>
-      </div>
-    </div>
-    <div class="layer">
-      <div class="layer-label pro-tip">Pro Tip</div>
-      <div class="layer-body">
-        Be careful with the two flashiest tools — rate buydowns and assumable mortgages — because they're easy to oversell. A permanent rate buydown only pays off if the buyer keeps the loan long enough to recoup the upfront cost, usually 5-7 years; if they refinance or sell early, that money's gone. And an assumable mortgage sounds great until the buyer realizes they still have to cover the <em>equity gap</em> between the loan balance and the purchase price, usually in cash — that gap is often the real dealbreaker, not the assumption itself. Set expectations honestly on all three of these, and your buyers will trust your advice a lot more the next time you make a recommendation.
-      </div>
-    </div>
-    <div class="signoff">— From the desk of Mike Jurecka</div>
+  <div class="caveat">
+    <strong>How to use this page:</strong> Each entry below covers what an addendum is for and what it actually obligates each party to do, based on the current form language and the underlying Texas statute where one applies. This is a working reference, not legal advice — always confirm you're using the current, TREC-effective version of a form before attaching it to a contract, and route anything genuinely complex to John or outside counsel.
   </div>
 
-  <div class="article-card">
-    <div class="article-title">The Best-Kept Secret in Real Estate</div>
-    <div class="layer">
-      <div class="layer-label new-agent">New Agent Take</div>
-      <div class="layer-body">
-        Here's something worth knowing early: most agents spend their marketing dollars chasing brand-new strangers — Zillow leads, Facebook ads, portal placements — when the highest-converting, cheapest-to-reach business is almost always sitting right in front of them: people who already trust you. A past client, a neighbor from a subdivision you farmed, someone from your own sphere. Staying visibly in front of people who already know you beats almost anything you can buy.
-        <br><br>
-        This connects directly to a stat worth remembering: 72% of sellers only contact one agent before deciding who to list with, and buyers and sellers find their agent through referral more often than any other source — more than social media, more than direct mail. The agents doing best aren't necessarily the best marketers. They're the ones who never let a past client forget they exist.
-      </div>
+  <div class="toc" id="top">
+    <h2>Table of Contents</h2>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Financing &amp; Loan-Related</div>
+      <ul>
+        <li><a href="#third-party-financing">Third Party Financing Addendum (40-11)</a></li>
+        <li><a href="#lender-appraisal">Right to Terminate Due to Lender's Appraisal (49-1)</a></li>
+        <li><a href="#loan-assumption">Loan Assumption Addendum (41-3)</a></li>
+        <li><a href="#release-liability-va">Release of Liability on Assumed Loan / VA Entitlement (12-3)</a></li>
+        <li><a href="#seller-financing">Seller Financing Addendum (26-8)</a></li>
+        <li><a href="#short-sale">Short Sale Addendum (45-2)</a></li>
+      </ul>
     </div>
-    <div class="layer">
-      <div class="layer-label pro-tip">Pro Tip</div>
-      <div class="layer-body">
-        This is also why the subdivision farming approach and personal follow-up matter more than they might seem to at first — a market update, a "congrats on your sale" note to a neighbor, staying visible in a community — none of that is really about winning strangers. It's about making sure you're already the answer before the question ever gets asked. If you're deciding where to put your time and money, put it toward the people who already know your name before you spend a dollar chasing the ones who don't.
-      </div>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Contingencies</div>
+      <ul>
+        <li><a href="#backup-contract">Addendum for "Back-Up" Contract (11-9)</a></li>
+        <li><a href="#sale-other-property">Sale of Other Property by Buyer (10-6)</a></li>
+        <li><a href="#1031-exchange">Section 1031 Exchange (60-0)</a></li>
+      </ul>
     </div>
-    <div class="signoff">— From the desk of Mike Jurecka</div>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Property-Specific Disclosures</div>
+      <ul>
+        <li><a href="#coastal-area">Coastal Area Property (33-2)</a></li>
+        <li><a href="#gulf-waterway">Seaward of the Gulf Intracoastal Waterway (34-4)</a></li>
+        <li><a href="#propane-gas">Property in a Propane Gas System Service Area (47-0)</a></li>
+        <li><a href="#environmental">Environmental Assessment, Endangered Species, and Wetlands (28-2)</a></li>
+        <li><a href="#lead-paint">Seller's Disclosure of Lead-Based Paint (OP-L)</a></li>
+        <li><a href="#mineral-reservation">Reservation of Oil, Gas, and Other Minerals (44-3)</a></li>
+        <li><a href="#improvement-district">Notice of Obligation to Pay Improvement District Assessment (53-0)</a></li>
+        <li><a href="#poa">Mandatory Membership in a Property Owners Association (36-11)</a></li>
+      </ul>
+    </div>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Leases &amp; Occupancy</div>
+      <ul>
+        <li><a href="#residential-leases">Addendum Regarding Residential Leases (51-1)</a></li>
+        <li><a href="#fixture-leases">Addendum Regarding Fixture Leases (52-1)</a></li>
+        <li><a href="#buyer-temp-lease">Buyer's Temporary Residential Lease (16-7)</a></li>
+        <li><a href="#seller-temp-lease">Seller's Temporary Residential Lease (15-7)</a></li>
+      </ul>
+    </div>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Other</div>
+      <ul>
+        <li><a href="#hydrostatic">Addendum for Authorizing Hydrostatic Testing (48-1)</a></li>
+        <li><a href="#non-realty">Non-Realty Items Addendum (57-0)</a></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="article-card">
-    <div class="article-title">Manufactured Urgency — And Why It Cuts Both Ways</div>
-    <div class="layer">
-      <div class="layer-label new-agent">New Agent Take</div>
-      <div class="layer-body">
-        Multiple offers by Friday. "The sellers want to decide fast." "We already have another showing lined up right after yours." Every agent has heard these lines, and most have said a version of them. Some of it is genuinely true. A real hot market really does move fast. But a meaningful share of the urgency buyers and sellers feel in a transaction isn't the market — it's negotiating theater, and everyone in the industry quietly knows it.
-        <br><br>
-        <strong>What real urgency looks like:</strong> a property genuinely getting multiple showings a day, a seller with a documented reason to move fast, rate-lock or contract deadlines that are objectively real.
-        <br><br>
-        <strong>What manufactured urgency looks like:</strong> vague claims of "another offer coming" with nothing behind them, artificially short response windows, pressure applied right when a buyer would otherwise ask a clarifying question.
+  <!-- ============ FINANCING & LOAN-RELATED ============ -->
+  <div class="section-label">Financing &amp; Loan-Related</div>
+
+  <div class="addendum-card" id="third-party-financing">
+    <div class="addendum-title">Third Party Financing Addendum</div>
+    <div class="addendum-meta">Form ID: 40-11 · Effective 01/03/2025 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Governs how a buyer's financing works in the contract and controls the seller's biggest risk in a financed deal — whether the buyer can actually close. Splits financing risk into two separate approval types, each with its own deadline.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must promptly apply for financing and give timely notice if unable to obtain <strong>Buyer Approval</strong> (their own qualification: income, credit, assets) or if the property fails <strong>Property Approval</strong> (lender underwriting, appraisal, required repairs) — missing either deadline forfeits that termination right.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must allow the financing and appraisal process to run its course within the agreed timelines; cannot force the buyer past a legitimate financing failure without exposing the deal to termination under this addendum.</p>
       </div>
     </div>
-    <div class="layer">
-      <div class="layer-label pro-tip">Pro Tip</div>
-      <div class="layer-body">
-        Using pace as a tool is fine — a seller who lets an offer sit for two weeks often gets a worse outcome than one who sets a clear response deadline. Using invented pressure to stop a client from making a clear-headed decision isn't fine, and buyers increasingly know the difference, which means overplaying it can cost you credibility and the deal. The agents who are trusted long-term are usually the ones who tell a client "take the night to think about it" when that's genuinely the right advice, even if it means losing a little leverage in the moment. Slowing down when you can afford to almost always produces a better outcome than reacting to pressure, real or invented.
-      </div>
-    </div>
-    <div class="signoff">— From the desk of Mike Jurecka</div>
   </div>
 
-  <div class="article-card">
-    <div class="article-title">The Best-Kept Secret in Real Estate — Buyers Can Ask for This</div>
-    <div class="layer">
-      <div class="layer-label new-agent">New Agent Take</div>
-      <div class="layer-body">
-        Most buyers have no idea this exists, and most agents don't explain it clearly enough. If you're buying a home, you can ask the seller to cover your buyer-agent commission as a concession at closing — and since the 2024 industry rule changes (and TREC's contract restructuring that took effect July 1, 2026), this has become the standard way buyer-agent fees actually get paid.
-        <br><br>
-        Here's how it works under the current contract: buyers sign an agreement stating exactly what their agent is owed, then in the offer itself, the buyer requests that the seller cover that amount. Under the current <strong>Paragraph 12B</strong>, the seller has the option to contribute to the buyer's broker compensation in <strong>12B(1)</strong> — and notably, the reverse is now also built into the form: the buyer has the option to contribute to the seller's broker compensation in <strong>12B(2)</strong>, a reciprocal option that didn't exist before this round of changes. The seller can accept, counter, or decline the request, just like any other term in the offer.
-        <br><br>
-        This isn't a loophole or a gray area — it's simply a negotiated term of the sale, the same as asking for repairs or a lower price.
+  <div class="addendum-card" id="lender-appraisal">
+    <div class="addendum-title">Addendum Concerning Right to Terminate Due to Lender's Appraisal</div>
+    <div class="addendum-meta">Form ID: 49-1 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used only alongside the Third Party Financing Addendum — <strong>not used in cash, FHA, or VA transactions.</strong> Offers a full waiver, partial waiver, or an additional termination right tied to how the property appraises.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must act within whichever appraisal-related termination right the parties selected on the form — a full waiver removes the buyer's ability to walk away over a low appraisal entirely.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>None beyond honoring whichever option is checked; sellers often request this addendum specifically to get a buyer to waive appraisal contingency rights in a competitive offer.</p>
       </div>
     </div>
-    <div class="layer">
-      <div class="layer-label pro-tip">Pro Tip</div>
-      <div class="layer-body">
-        There's a genuinely favorable technical detail buried in the mortgage rules: seller-paid buyer-agent commissions typically don't count against the usual seller-concession caps that apply to closing costs, as long as it's properly documented in the contract. If a buyer nobody's explained this to assumes they have to pay their agent out of pocket, they may be leaving real money on the table.
-        <br><br>
-        <strong>A note for using this with clients:</strong> TREC's contract language around broker compensation has changed multiple times in the past year — confirm you're referencing the current live form before citing specific paragraph numbers. The 12A(1)(b) reference that was accurate as of January 2026 became obsolete when 12B took over as the mandatory standard on July 1, 2026.
+  </div>
+
+  <div class="addendum-card" id="loan-assumption">
+    <div class="addendum-title">Loan Assumption Addendum</div>
+    <div class="addendum-meta">Form ID: 41-3 · Effective 02/01/2023 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used when a buyer assumes the seller's existing loan. Often a companion to the Release of Liability/VA Entitlement addendum (12-3) — unless that release happens, a vendor's lien and deed of trust get created to secure the assumption.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must deliver credit documentation (credit report, employment/income verification, funds on deposit) within the stated window; seller can terminate if it's not delivered on time. Buyer also bears responsibility if the actual assumed loan balance varies from the stated figure by more than $500 at closing, unless someone agrees to cover the difference.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Remains liable on the underlying note unless separately released via the 12-3 addendum — meaning the seller carries real ongoing risk on this loan even after the sale unless that release is obtained.</p>
       </div>
     </div>
-    <div class="signoff">— From the desk of Mike Jurecka</div>
   </div>
 
-  <div class="disclaimer">
-    This content is provided for general informational and training purposes only and does not constitute legal advice. Real estate laws, TREC contract forms, and market practices change over time — always confirm current requirements before relying on this content with a client, and consult a licensed attorney for guidance specific to any transaction. AgentHubTX makes no warranty as to completeness or accuracy and assumes no liability for reliance on this content.
+  <div class="addendum-card" id="release-liability-va">
+    <div class="addendum-title">Addendum for Release of Liability on Assumed Loan and/or Restoration of Seller's VA Entitlement</div>
+    <div class="addendum-meta">Form ID: 12-3 · Effective 12/05/2011 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used alongside the Loan Assumption Addendum specifically to release the seller from liability on the assumed loan and/or restore the seller's VA entitlement for future use.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must cooperate with whatever the lender/VA requires to process the release or entitlement restoration — the deal can terminate if that approval doesn't come through by closing.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Is the direct beneficiary of this addendum — it's what actually gets the seller off the hook for the assumed loan and/or frees up their VA entitlement for a future purchase.</p>
+      </div>
+    </div>
   </div>
 
-  <!--
-    To add a new article, copy one of the .article-card blocks above and
-    edit the title, New Agent Take, and Pro Tip content.
-  -->
+  <div class="addendum-card" id="seller-financing">
+    <div class="addendum-title">Seller Financing Addendum</div>
+    <div class="addendum-meta">Form ID: 26-8 · Effective 02/01/2023 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used when the seller directly finances the sale. The form itself explicitly warns both parties to consult an attorney and a financial professional before signing — this creates a real promissory note and deed of trust, not just contract terms.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Signs a promissory note and deed of trust and makes payments directly to the seller per the agreed terms; real foreclosure risk if payments default.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>May take on real accounting and tax-reporting obligations as the lender of record, and carries real risk if the buyer defaults — foreclosure is a real, but often slow and costly, remedy.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="short-sale">
+    <div class="addendum-title">Short Sale Addendum</div>
+    <div class="addendum-meta">Form ID: 45-2 · Effective 04/01/2021 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Required when the sale proceeds won't cover what's owed on the property, meaning the seller's lender has to approve the shortfall before the sale can close.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must accept that closing is contingent on third-party lender approval, which can take significantly longer and is less certain than a standard sale.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must actively pursue and obtain lender approval of the short sale — the seller doesn't unilaterally control whether or when this deal can close.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONTINGENCIES ============ -->
+  <div class="section-label">Contingencies</div>
+
+  <div class="addendum-card" id="backup-contract">
+    <div class="addendum-title">Addendum for "Back-Up" Contract</div>
+    <div class="addendum-meta">Form ID: 11-9 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Creates a binding contract that only completes once the primary (first-position) contract fails. Earnest money/option fee timing is tied to that trigger event, not the effective date of this contract itself.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Remains bound in back-up position and must be ready to move forward if the primary contract terminates — timelines for earnest money and option periods generally start once that happens, not before.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must notify the back-up buyer promptly if the primary contract does terminate, so the back-up contract's own clocks can start running correctly.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="sale-other-property">
+    <div class="addendum-title">Addendum for Sale of Other Property by Buyer</div>
+    <div class="addendum-meta">Form ID: 10-6 · Effective 12/05/2011 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Makes the contract contingent on the buyer receiving proceeds from selling their own property. Includes a "kick-out" mechanism if the seller gets a competing offer. Time is explicitly of the essence throughout this addendum.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>If the seller receives another written offer and issues notice, the buyer must waive the contingency (and deposit additional earnest money) within the stated window, or the contract terminates automatically and earnest money is refunded to the buyer.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must properly notify the buyer of both the competing offer's acceptance and the requirement to waive the contingency — the kick-out clock doesn't start without that formal notice.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="1031-exchange">
+    <div class="addendum-title">Addendum for Section 1031 Exchange</div>
+    <div class="addendum-meta">Form ID: 60-0 · Effective 01/03/2025 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Lets either party disclose intent to use the property in a tax-deferred 1031 exchange. Includes a cooperation clause — the other party agrees to reasonably cooperate, explicitly at no additional cost, obligation, or liability to them.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must reasonably cooperate with the seller's exchange paperwork/logistics if the seller is the one exchanging — but owes nothing extra in cost, obligation, or liability to do so.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Same reciprocal cooperation duty if the buyer is the one exchanging. Neither party gives tax advice here — both should be directed to their own qualified tax professional; 1031 exchanges are genuinely complex.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PROPERTY-SPECIFIC DISCLOSURES ============ -->
+  <div class="section-label">Property-Specific Disclosures</div>
+
+  <div class="addendum-card" id="coastal-area">
+    <div class="addendum-title">Addendum for Coastal Area Property</div>
+    <div class="addendum-meta">Form ID: 33-2 · Effective 12/05/2011 · Tex. Nat. Res. Code § 33.135 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Required statutory disclosure for property adjoining tidally-influenced, state-owned submerged land. Warns that the property boundary can shift as tide lines change, and the owner may gain or lose land as a result.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Advised to seek legal counsel on how the shifting-boundary risk affects the specific property before closing.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must provide this disclosure when applicable — it's a statutory notice, not optional once the property qualifies.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="gulf-waterway">
+    <div class="addendum-title">Addendum for Property Located Seaward of the Gulf Intracoastal Waterway</div>
+    <div class="addendum-meta">Form ID: 34-4 · Effective 12/05/2011 · Tex. Nat. Res. Code § 61.025 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Mandatory notice for property seaward of the Gulf Intracoastal Waterway. The State of Texas can order removal of a structure, and any loss from that removal order is solely the purchaser's responsibility.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Should determine the local shoreline erosion rate and seek an attorney's advice before signing. Buyer may terminate the contract based on this notice.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must provide this notice when applicable — failing to do so can be treated as a deceptive act under state law, not just a paperwork miss.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="propane-gas">
+    <div class="addendum-title">Addendum for Property in a Propane Gas System Service Area</div>
+    <div class="addendum-meta">Form ID: 47-0 · Effective 02/01/2014 · Tex. Utilities Code Ch. 141 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Notifies the buyer the property may be served by a propane distribution system, with possible special costs or a construction period before service is established. Covers the service area/infrastructure only — a separately leased tank needs the Fixture Leases addendum (52-1) too.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Should confirm with the propane provider what costs or construction may be needed before service actually starts.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Should have the recorded notice from the propane distribution retailer on hand — it's a real document filed in county real property records, not just a checkbox.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="environmental">
+    <div class="addendum-title">Environmental Assessment, Threatened or Endangered Species, and Wetlands Addendum</div>
+    <div class="addendum-meta">Form ID: 28-2 · Effective 12/05/2011 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Gives the buyer, at their own expense, the option to obtain three separate reports: a general environmental assessment, a threatened/endangered species check, and a wetlands determination.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Pays for any reports obtained. To terminate based on adverse findings, must furnish the seller a copy of the report along with the termination notice within the stated window — earnest money is refunded if done correctly.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must allow reasonable access for these assessments to be performed within the agreed timeframe.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="lead-paint">
+    <div class="addendum-title">Addendum for Seller's Disclosure of Information on Lead-Based Paint and Lead-Based Paint Hazards</div>
+    <div class="addendum-meta">Form ID: OP-L · Federal law: 42 U.S.C. § 4852d · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Required under federal law for residential properties built before 1978. This specific TREC form is voluntary — but the underlying federal disclosure obligation is mandatory for any qualifying property, regardless of which form satisfies it.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Must be given a real opportunity to review known lead paint information and any available records before being bound to the contract, per federal requirements.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must disclose known lead-based paint or hazards, and provide any available records/reports — this obligation exists under federal law even if this exact form isn't the one used.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="mineral-reservation">
+    <div class="addendum-title">Addendum for Reservation of Oil, Gas, and Other Minerals</div>
+    <div class="addendum-meta">Form ID: 44-3 · Effective 02/01/2023 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used only when the seller reserves all or part of the mineral estate. Contains a critical, easy-to-miss element: a separate surface waiver — whether the seller keeps or waives the right to actually use the property's surface to develop those reserved minerals.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Should specifically confirm what the surface waiver says — even if minerals aren't part of the sale, an un-waived surface-use right can mean drilling activity on the buyer's future property.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must clearly state what's being reserved and whether the surface-use right is kept or waived — this isn't automatic and needs to be an active decision on the form.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="improvement-district">
+    <div class="addendum-title">Addendum Containing Notice of Obligation to Pay Improvement District Assessment</div>
+    <div class="addendum-meta">Form ID: 53-0 · Effective 09/01/2021 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Notifies the buyer the property is in a Public Improvement District (PID), subject to special assessments a municipality or county levies for infrastructure like roads, utilities, or landscaping.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Takes on the ongoing PID assessment obligation going forward — payable in full at any time or in annual installments, depending on the district.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must provide this notice when the property is within a PID — it's a required disclosure, not a negotiable term.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="poa">
+    <div class="addendum-title">Addendum for Property Subject to Mandatory Membership in a Property Owners Association</div>
+    <div class="addendum-meta">Form ID: 36-11 · Tex. Prop. Code § 5.012 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Required when HOA/POA membership is mandatory. Includes its own standalone termination right, separate from financing or appraisal contingencies.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Can elect to terminate under this addendum specifically if the POA disclosure/resale certificate reveals something unacceptable, within the stated window.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must disclose the mandatory membership and associated assessment obligations to the buyer per statute.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LEASES & OCCUPANCY ============ -->
+  <div class="section-label">Leases &amp; Occupancy</div>
+
+  <div class="addendum-card" id="residential-leases">
+    <div class="addendum-title">Addendum Regarding Residential Leases</div>
+    <div class="addendum-meta">Form ID: 51-1 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Used when the property is occupied by a tenant at the time of sale. A sale doesn't automatically cancel an existing lease in Texas, so this addendum clarifies what happens to possession, rent, and security deposits after closing.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>May be accepting an existing tenant through the remainder of the lease term rather than getting the property vacant at closing — depends on what the parties agree to here.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must accurately disclose the lease terms and either deliver the property vacant or properly transfer the tenant relationship and security deposit to the buyer, per what's agreed.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="fixture-leases">
+    <div class="addendum-title">Addendum Regarding Fixture Leases</div>
+    <div class="addendum-meta">Form ID: 52-1 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Covers leased equipment that stays with the property but isn't owned outright — solar panels, propane tanks, water softeners, security systems. Specifies which leases the buyer assumes.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Assumes the checked fixture leases at closing (unless excluded) and must sign whatever documents the lessor requires to complete the assignment.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must deliver a copy of the actual lease within 5 days of the effective date. If they don't, the buyer gets a 7-day window after eventually receiving it to terminate and get earnest money back — and if it's never delivered, the buyer can declare the seller in default any time before closing.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="buyer-temp-lease">
+    <div class="addendum-title">Buyer's Temporary Residential Lease</div>
+    <div class="addendum-meta">Form ID: 16-7 · Effective 01/05/2026 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Lets the buyer move into the property before closing (occupancy capped at 90 days prior to closing), paying a daily rental rate and a deposit. Creates a real landlord-tenant relationship layered on top of the pending sale.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Becomes a tenant with real obligations — pays rent, a deposit, and is responsible for the property during occupancy, separate from their obligations under the purchase contract itself.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Takes on real risk as landlord: if the sale falls through, the seller has an occupant who may need to be formally evicted — a process that can take weeks to months in Texas. Worth thinking hard about before agreeing to this.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="seller-temp-lease">
+    <div class="addendum-title">Seller's Temporary Residential Lease</div>
+    <div class="addendum-meta">Form ID: 15-7 · Effective 01/05/2026 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">A leaseback — lets the seller stay in the home after closing as a short-term tenant, capped at 90 days under this form, paying rent to the new buyer-owner until they move out.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Becomes the landlord immediately at closing, with the seller as tenant — must handle the arrangement like any short-term lease, including what happens if the seller doesn't vacate on time.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Pays rent and must vacate by the lease's end date; remains responsible for the property as a tenant during this period even though they no longer own it.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OTHER ============ -->
+  <div class="section-label">Other</div>
+
+  <div class="addendum-card" id="hydrostatic">
+    <div class="addendum-title">Addendum for Authorizing Hydrostatic Testing</div>
+    <div class="addendum-meta">Form ID: 48-1 · Effective 03/01/2020 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Addresses who pays for and is responsible for damages from a hydrostatic test (pressure-testing plumbing or sewer lines), if the parties agree to have one performed.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Typically arranges and pays for the test if they're the one requesting it, per what the addendum specifies.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must allow access for the test and is typically responsible for any damage the test itself causes to existing plumbing/sewer lines, per the addendum's terms.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="addendum-card" id="non-realty">
+    <div class="addendum-title">Non-Realty Items Addendum</div>
+    <div class="addendum-meta">Form ID: 57-0 · Effective 09/03/2025 · <a href="https://www.trec.texas.gov/agency-information/contracts" target="_blank">trec.texas.gov</a></div>
+    <div class="addendum-purpose">Covers anything sold as part of the deal that isn't real property — a titled vehicle (tractor, ATV) or non-fixture items (flowerpots) the seller wants to include in the price.</div>
+    <div class="obligations">
+      <div class="oblig-block">
+        <div class="oblig-label">Buyer Obligation</div>
+        <p>Receives the listed non-realty items as part of the deal — worth confirming exactly what's included, since these items are legally separate from the real property itself.</p>
+      </div>
+      <div class="oblig-block">
+        <div class="oblig-label">Seller Obligation</div>
+        <p>Must clearly itemize what's included so there's no ambiguity between what's real property versus separately-sold personal property.</p>
+      </div>
+    </div>
+  </div>
+
+  <a class="top-link" href="#top">↑ Back to Table of Contents</a>
 
 </div>
 
