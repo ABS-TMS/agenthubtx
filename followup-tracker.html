@@ -287,6 +287,7 @@
             <button class="btn-copy" data-action="mark-sent" data-lead-id="${lead.lead_id}" data-touch="${lead.next_touch_number}">Mark Sent</button>
           ` : ""}
           ${!lead.paused ? `<button class="btn-pause" data-action="pause" data-lead-id="${lead.lead_id}">Pause</button>` : ""}
+          <button class="btn-pause" data-action="delete" data-lead-id="${lead.lead_id}">Delete</button>
           <span class="copied-flash" style="display:none;">Copied!</span>
         </div>
       </div>
@@ -361,6 +362,19 @@
       }
       loadLeads();
       showToast("Lead paused");
+    }
+
+    if (action === "delete") {
+      const leadId = e.target.getAttribute("data-lead-id");
+      if (!confirm("Delete this lead permanently? This can't be undone.")) return;
+      const { error } = await sb.rpc("delete_lead", { p_lead_id: leadId });
+      if (error) {
+        alert("Could not delete: " + error.message);
+        console.error(error);
+        return;
+      }
+      loadLeads();
+      showToast("Lead deleted");
     }
   });
 
