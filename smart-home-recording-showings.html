@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Home Devices & Recording During Showings — AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --red: #A33B2C; --red-light: #FDECEA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.6; }
+
+  header { background: var(--navy); padding: 40px 24px; text-align: center; border-bottom: 3px solid var(--gold); }
+  header .eyebrow { color: var(--gold); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+  header h1 { color: var(--white); font-size: 27px; margin-top: 8px; }
+  header p { color: #C8C5BC; font-size: 14px; margin-top: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+  .wrap { max-width: 800px; margin: 0 auto; padding: 32px 20px 70px; }
+
+  .disclaimer { background: var(--white); border-left: 4px solid var(--gold); border-radius: 6px; padding: 14px 18px; margin-bottom: 28px; font-size: 13px; color: var(--gray-700); font-style: italic; }
+  .legal-warning { background: var(--red-light); border: 2px solid var(--red); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 13.5px; color: var(--navy); }
+  .legal-warning .warn-label { color: var(--red); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+
+  .section { margin-bottom: 30px; }
+  .section-label { font-size: 12.5px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .section-title { font-size: 20px; color: var(--navy); font-weight: 700; margin-bottom: 14px; }
+
+  .item { background: var(--white); border-radius: 8px; padding: 14px 18px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .item .lead { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 3px; }
+  .item p { font-size: 13.5px; color: var(--gray-700); }
+
+  .warn-item { background: var(--red-light); border-left: 4px solid var(--red); }
+  .warn-item .lead { color: var(--red); }
+
+  .good-item { background: var(--teal-light); border-left: 4px solid var(--teal); }
+  .good-item .lead { color: var(--teal); }
+
+  .script-box { background: var(--navy); border-radius: 8px; padding: 20px 24px; margin-bottom: 10px; }
+  .script-box .script-label { color: var(--gold); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+  .script-box p { color: var(--white); font-size: 14.5px; font-style: italic; }
+
+  .device-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+  .device-card { background: var(--white); border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .device-card .name { font-weight: 700; color: var(--navy); font-size: 13.5px; margin-bottom: 4px; }
+  .device-card p { font-size: 12.5px; color: var(--gray-700); }
+
+  footer { text-align: center; padding: 24px; font-size: 11.5px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">AgentHubTX · Practice Aid</div>
+  <h1>Smart Home Devices &amp; Recording During Showings</h1>
+  <p>Ring, Nest, and similar devices are in most homes now — here's what the law actually says, and what to check before every showing.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="legal-warning">
+    <div class="warn-label">⚠️ Not Legal Advice</div>
+    This page is a practice aid only and is not intended as, and should not be relied on as, legal advice. Unlawful interception under Tex. Penal Code §16.02 is a felony (second-degree generally; state jail felony for certain subsections) — 2 to 20 years and a fine up to $10,000. Separately, Tex. Civ. Prac. &amp; Rem. Code §123.004 entitles a victim to sue for statutory damages of $10,000 per occurrence <em>as a floor, not a cap</em> — plus actual damages above that, punitive damages, and attorney's fees and court costs. If a specific situation has already happened, or you're unsure how this applies to a real transaction, contact your broker or a licensed attorney before taking any action — do not rely on this guide alone.
+  </div>
+
+  <div class="section">
+    <div class="section-label">Owning the Device Doesn't Make You a Party to the Conversation</div>
+    <div class="section-title">Why This Matters</div>
+    <div class="item"><div class="lead">Texas is "one-party consent"</div><p>Recording is legal if you're actually part of the conversation, or someone in it consented. It has nothing to do with who owns the recording device.</p></div>
+    <div class="item warn-item"><div class="lead">A seller's own camera doesn't get a pass</div><p>A Ring doorbell capturing a buyer's private conversation with their own agent isn't legal just because the seller owns the hardware — neither the buyer nor their agent consented, and the seller isn't part of that conversation at all.</p></div>
+    <div class="item"><div class="lead">Video-only is a different, legal category</div><p>Plain video surveillance of your own property (no audio) is well-established and legal — the same as any homeowner's security camera. Audio is what changes the legal picture, because private conversation carries an expectation of privacy that being seen doesn't.</p></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">This Protects You, Not Just the Buyer</div>
+    <div class="section-title">Why Accurate MLS Disclosure Matters to the Seller</div>
+    <div class="item good-item"><div class="lead">Accurate disclosure can support implied consent</div><p>If the MLS field correctly discloses audio recording and that reaches the buyer through their agent, a buyer who proceeds anyway has a real argument for implied consent — which can shift recording from illegal interception to legal.</p></div>
+    <div class="item warn-item"><div class="lead">A blank or inaccurate field next to an active device is worse than having no device at all</div><p>It reads less like an oversight and more like concealment — a materially different, weaker legal position than simply disclosing and moving forward.</p></div>
+    <div class="item"><div class="lead">Disclosure is a backstop, not a substitute for disabling audio</div><p>It only works if the disclosure genuinely reaches the buyer — not just exists in an MLS field their agent glanced past. Courts haven't clearly settled that a buried field alone is adequate notice. Disable audio during showings regardless of what's disclosed.</p></div>
+    <div class="item"><div class="lead">The listing agent's real job here is accuracy, not just asking once</div><p>Confirm the MLS field matches reality at listing time — and again if the seller adds a device later in the listing period.</p></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Before Every Listing Goes Live</div>
+    <div class="section-title">What to Ask Every Seller</div>
+    <div class="item"><div class="lead">Ask directly, don't assume</div><p>Ring, Nest, Google Home/Alexa devices, and video doorbells are common enough now that this should be a standard listing-prep question, not a special case.</p></div>
+    <div class="item"><div class="lead">Ask about every room, not just the front door</div><p>Smart speakers and cameras show up in living rooms, kitchens, and home offices — not just entryways.</p></div>
+    <div class="item"><div class="lead">If the seller adds a new device later</div><p>Confirm the field again — a listing that was accurate at intake can become inaccurate mid-listing if a seller adds a doorbell camera or wired system after going live.</p></div>
+    <div class="item"><div class="lead">Wired installs require a licensed installer</div><p>If a seller hires a professional to install a wired surveillance system, Texas law requires that installer to hold a license through the Texas DPS Private Security Bureau. Worth knowing before casually recommending a handyman for the job.</p></div>
+    <div class="item good-item"><div class="lead">Professional installs are usually already safe — DIY is where the real risk sits</div><p>Most professional installers already know this law, avoid audio recording, and are hesitant to place cameras anywhere but a foyer. The real question worth asking a seller is whether they set up the system themselves — that's where an accidental audio-recording problem is most likely to actually exist.</p></div>
+
+    <div class="script-box">
+      <div class="script-label">Sample Script</div>
+      <p>"Before we start showing the home, I need to ask — do you have any Ring, Nest, smart speakers, or other devices that could record audio anywhere inside? We'll need those switched to video-only or turned off before any showing, so buyers can speak freely with their own agent."</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Disable Audio, Not Necessarily Video</div>
+    <div class="section-title">The Fix</div>
+    <div class="item good-item"><div class="lead">Most devices let you turn off audio while keeping video</div><p>This preserves the legitimate security benefit (who's coming and going) without capturing conversations.</p></div>
+    <div class="item"><div class="lead">If audio can't be disabled separately, turn the device off entirely during the showing window</div><p>Better to lose video coverage for a few hours than leave an active microphone running.</p></div>
+    <div class="item warn-item"><div class="lead">Never run video and audio together during a showing</div><p>Even where silent video alone would be fine, combining it with audio recording during an active showing is exactly the setup that turns a legal security camera into an illegal recording — per Texas REALTORS®' own guidance to sellers.</p></div>
+
+    <div class="device-grid">
+      <div class="device-card"><div class="name">Ring</div><p>Settings → Video Settings → toggle off "Record Audio" per device, or "Do Not Disturb" mode during showings.</p></div>
+      <div class="device-card"><div class="name">Google Nest</div><p>Settings → Home info → Audio toggle off per camera in the Google Home app.</p></div>
+      <div class="device-card"><div class="name">Amazon Alexa / Echo</div><p>Mute button (physical, on the device) disables the microphone entirely — the simplest option.</p></div>
+      <div class="device-card"><div class="name">Video doorbells (generic)</div><p>Check for an audio-specific toggle before assuming "off" means the whole device is off.</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Protecting Your Own Client</div>
+    <div class="section-title">For Buyer's Agents Too</div>
+    <div class="item"><div class="lead">Ask before entering any occupied showing</div><p>This is now standard practice industry-wide, not overcautious — smart devices are common enough that assuming a home is "unmiked" is no longer safe.</p></div>
+    <div class="item"><div class="lead">If in doubt, save candid conversation for outside</div><p>Discuss real reactions, strategy, and offer thinking once you're back in the car — not inside a home that might still be listening.</p></div>
+  </div>
+
+</div>
+
+<footer>AgentHubTX</footer>
+
+</body>
+</html>
