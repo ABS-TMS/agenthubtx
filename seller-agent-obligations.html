@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seller's Agent Obligations — TREC 20-19 | AgentHubTX</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Iowan Old Style', serif;
+    background: #F4F1EA;
+    color: #2b2b2b;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .hero {
+    background: #0C3057;
+    color: white;
+    padding: 32px 32px 26px;
+    border-top: 4px solid #C8922A;
+  }
+  .brand {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .brand .gold { color: #e0b563; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    color: #cfd9e8;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+  .source-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #9fb0c6;
+    margin-top: 10px;
+  }
+  .back-link {
+    display: inline-block;
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    color: #e0b563;
+    text-decoration: none;
+    margin-top: 14px;
+  }
+  .back-link:hover { text-decoration: underline; }
+  .content { padding: 30px 32px 60px; }
+  .section { margin-bottom: 30px; }
+  .section-title {
+    font-size: 21px;
+    font-weight: 700;
+    color: #0C3057;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8e2d2;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .compare-card {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .compare-card h4 {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0C3057;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .compare-card ul { margin: 0; padding-left: 18px; }
+  .compare-card li { font-size: 13.5px; margin-bottom: 6px; }
+  .duty-item {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .duty-item .cite {
+    flex-shrink: 0;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #C8922A;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .duty-item p { margin: 0; font-size: 14.5px; }
+  .duties-bar {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .duty-letter {
+    background: #0C3057;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .duty-letter .letter {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #e0b563;
+  }
+  .duty-letter .word {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .deadline-header {
+    background: #0C3057;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 8px 8px 0 0;
+    margin-top: 22px;
+  }
+  .deadline-header .sub {
+    font-weight: 400;
+    color: #cfd9e8;
+    margin-left: 8px;
+  }
+  .warning-box {
+    background: #fbe9e7;
+    border-left: 4px solid #b3261e;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    color: #6b1f17;
+  }
+  .warning-box strong { color: #b3261e; }
+  .one-line-test {
+    background: #0C3057;
+    color: white;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin: 24px 0;
+    text-align: center;
+  }
+  .one-line-test .eyebrow {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e0b563;
+    margin-bottom: 6px;
+  }
+  .one-line-test .statement {
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .recap-list {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 4px 18px;
+  }
+  .recap-list li { font-size: 14.5px; padding: 10px 0; border-bottom: 1px solid #f0ebe0; list-style: none; padding-left: 24px; position: relative; }
+  .recap-list li:last-child { border-bottom: none; }
+  .recap-list li:before { content: "\2713"; position: absolute; left: 0; color: #C8922A; font-weight: 700; }
+  .footer-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #6b6b6b;
+    text-align: center;
+    padding: 20px 32px 10px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="brand">
+      <span style="color: white;">ATTORNEY </span>
+      <span class="gold">BROKER</span>
+      <span style="color: white;"> SERVICES</span>
+    </div>
+    <h1>The Seller's Agent's Duty</h1>
+    <div class="subtitle">Your Obligations to the Seller Under the TREC 20-19 Contract</div>
+    <div class="source-note">Companion to the Seller Obligations Checklist &middot; Based on TREC Form 20-19 (effective 05-04-2026) and Texas Occupations Code Ch. 1101 (TRELA)</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+
+  <div class="content">
+
+    <div class="section">
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>The Seller's Obligations</h4>
+          <ul>
+            <li>Come from the contract itself</li>
+            <li>Deadlines: utilities, disclosures, survey, repairs, possession items</li>
+            <li>If missed: buyer remedies, termination rights, or post-closing liability</li>
+            <li>Tracked on the Seller Obligations Checklist</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Your Obligations</h4>
+          <ul>
+            <li>Come from statute and your listing agreement</li>
+            <li>Fiduciary duties: care, obedience, loyalty, disclosure, confidentiality, accounting</li>
+            <li>If missed: license discipline, E&amp;O exposure, DTPA / fraud claims naming the brokerage</li>
+            <li>Mapped to every deadline in this module</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Where Your Duties Come From</div>
+      <p style="font-size:14.5px;margin-bottom:14px;">Four legal sources establish what you owe a seller client — and one of them works very differently than it does on the buyer side.</p>
+      <div class="duty-item"><span class="cite">TRELA &sect;1101.557</span><p>A broker who represents a party owes that party the duties of a fiduciary.</p></div>
+      <div class="duty-item"><span class="cite">Prop. Code &sect;5.008</span><p>The disclosure duty is the seller's statutory burden — not the agent's. Your duty is narrower and explained next.</p></div>
+      <div class="duty-item"><span class="cite">TRELA — Known Material Facts</span><p>You must disclose known structural defects and material facts — regardless of what the seller chooses to disclose.</p></div>
+      <div class="duty-item"><span class="cite">TRELA &sect;1101.558</span><p>You must disclose, on first contact, that you represent the seller.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Whose Disclosure Duty Is It?</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>The Seller Completes It</h4>
+          <ul>
+            <li>Texas Property Code &sect;5.008 places the disclosure burden on the seller, not you</li>
+            <li>Courts have held agents are not liable for a seller's inaccurate disclosure unless the agent had reason to know it was false</li>
+            <li>Never fill out the Seller's Disclosure Notice for your client — doing so increases your liability and theirs</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Your Duty Is Narrower</h4>
+          <ul>
+            <li>Disclose known structural defects and material facts you are personally aware of</li>
+            <li>Step in if you have reason to believe the seller's disclosure is false or incomplete</li>
+            <li>Confirm the notice was delivered on or before the effective date — a late delivery gives the buyer a 7-day walk right</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The Six Fiduciary Duties</div>
+      <p style="font-size:14.5px;margin-bottom:14px;">Every obligation in this module traces back to one of these six duties.</p>
+      <div class="duties-bar">
+        <div class="duty-letter"><div class="letter">C</div><div class="word">Care</div></div>
+        <div class="duty-letter"><div class="letter">O</div><div class="word">Obedience</div></div>
+        <div class="duty-letter"><div class="letter">L</div><div class="word">Loyalty</div></div>
+        <div class="duty-letter"><div class="letter">D</div><div class="word">Disclosure</div></div>
+        <div class="duty-letter"><div class="letter">C</div><div class="word">Confidentiality</div></div>
+        <div class="duty-letter"><div class="letter">A</div><div class="word">Accounting</div></div>
+      </div>
+
+      <div class="deadline-header">DAY 0 — EFFECTIVE DATE <span class="sub">At Signing</span></div>
+      <div class="duty-item" style="border-radius:0 0 8px 8px;margin-top:0;"><span class="cite">Execution Page — Care</span><p>Confirm the effective date is correctly entered (date of final acceptance) before circulating the contract.</p></div>
+      <div class="duty-item"><span class="cite">Para 7A</span><p>Confirm the seller has turned on all utilities and remind them to keep them on for the duration of the contract.</p></div>
+      <div class="duty-item"><span class="cite">Para 8 — Disclosure</span><p>Disclose, in writing, any personal or business interest you or your brokerage have in the transaction.</p></div>
+
+      <div class="deadline-header">WITHIN 3 DAYS <span class="sub">Earnest Money, Option Fee &amp; Leases</span></div>
+      <div class="warning-box" style="border-radius:0;margin-top:0;"><strong>Confirm — in writing — that escrow actually received funds.</strong> "The buyer said they sent it" is not confirmation.</div>
+      <div class="duty-item"><span class="cite">Para 5A / Care</span><p>Confirm with escrow that earnest money and option fee were actually received.</p></div>
+      <div class="duty-item"><span class="cite">Para 4C(2)</span><p>If Natural Resource Leases apply (Para 4C(2)), deliver copies to the buyer within 3 days.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Routing the Disclosures &amp; Survey</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>Disclosure Duties</h4>
+          <ul>
+            <li>Confirm the Seller's Disclosure Notice goes out by the effective date — late delivery gives the buyer a 7-day walk right</li>
+            <li>Same urgency for the Water Disclosure if 7I(2) is checked</li>
+            <li>Never complete the form for your seller — review it, don't author it</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Survey Duties</h4>
+          <ul>
+            <li>If 6C(1) is checked, confirm the existing survey and T-47 affidavit go to both buyer and title company</li>
+            <li>If 6C(3) is checked, confirm the seller has ordered and paid for a new survey</li>
+            <li>Calendar both deadlines the day the contract is signed — don't wait for title company reminders</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="deadline-header">WITHIN 20 DAYS <span class="sub">Title Company Authorization</span></div>
+      <div class="warning-box" style="border-radius:0;margin-top:0;background:#F3E3BC;border-left-color:#C8922A;color:#6B4E00;"><strong>Authorize the title company</strong> to deliver the title commitment and exception documents to the buyer within 20 days of receiving the contract — a delay here stalls the buyer's entire objection timeline.</div>
+      <div class="duty-item"><span class="cite">Para 6B</span><p>Confirm the title company received the contract and started the clock.</p></div>
+      <div class="duty-item"><span class="cite">Para 6B</span><p>Follow up directly if the commitment hasn't gone out by day 15 — don't wait until day 20.</p></div>
+      <div class="duty-item"><span class="cite">Care</span><p>A late commitment compresses the buyer's objection window and increases dispute risk for your seller.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Protecting Access and Property Rights</div>
+      <div class="duty-item"><span class="cite">Care</span><p>Coordinate reasonable property access for the buyer and buyer's inspectors — balance the seller's privacy with the buyer's contractual right.</p></div>
+      <div class="duty-item"><span class="cite">Care / Disclosure</span><p>Confirm any hydrostatic testing is authorized separately, in writing, before it happens.</p></div>
+      <div class="duty-item"><span class="cite">Para 4</span><p>Advise the seller not to sign any new lease, amend an existing lease, or convey any interest in the property without the buyer's written consent.</p></div>
+
+      <div class="deadline-header">CURE PERIOD — 15 DAYS <span class="sub">Title &amp; Survey Objections</span></div>
+      <div class="warning-box" style="border-radius:0;margin-top:0;"><strong>Your seller has 15 days to cure</strong> timely buyer objections — but is not obligated to incur expense beyond reasonable effort (Para 6D).</div>
+      <div class="duty-item"><span class="cite">Para 6D</span><p>Calendar the 15-day cure period the moment the buyer's written objection is received.</p></div>
+      <div class="duty-item"><span class="cite">Loyalty</span><p>Help the seller distinguish "reasonable effort" from costly cures they are not contractually required to make.</p></div>
+      <div class="duty-item"><span class="cite">Accounting</span><p>Document every step taken to cure — or the reasoning for declining — in case of dispute later.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Repairs, Removals &amp; Restoration</div>
+      <div class="duty-item"><span class="cite">Para 7F</span><p>Confirm all agreed repairs use licensed or commercially engaged contractors — not a handyman favor.</p></div>
+      <div class="duty-item"><span class="cite">Para 7F</span><p>Confirm required permits were pulled for completed repairs.</p></div>
+      <div class="duty-item"><span class="cite">Para 7F — Accounting</span><p>Collect documentation: scope of work and proof of payment for every repair, before closing.</p></div>
+      <div class="duty-item"><span class="cite">Para 2D / 7F</span><p>Confirm excluded items (Para 2D) are removed and any transferable warranties are assigned to the buyer.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Casualty Damage &amp; Mold History</div>
+      <div class="warning-box"><strong>If fire or casualty damages the property</strong> after the effective date, the seller must restore it before closing — flag this to your seller and their insurer immediately.</div>
+      <div class="duty-item"><span class="cite">Para 14</span><p>Confirm restoration is complete and documented before the closing date.</p></div>
+      <div class="duty-item"><span class="cite">Para 6E(11)</span><p>If the property was mold-remediated in the prior 5 years, confirm certificates are ready to hand the buyer.</p></div>
+      <div class="duty-item"><span class="cite">Care</span><p>Missing remediation certificates at closing creates last-minute delays — request them early.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Getting the Seller to the Table Clean</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>Documents &amp; Taxes</h4>
+          <ul>
+            <li>Confirm the general warranty deed has no exceptions beyond Para 6</li>
+            <li>Confirm tax statements/certificates show no delinquent taxes</li>
+            <li>Review all notices, releases, affidavits, and loan documents with the seller before signing</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Fees &amp; Withholding</h4>
+          <ul>
+            <li>Confirm private transfer fees are paid per the contract (Para 9B(5))</li>
+            <li>Confirm any residential service contract reimbursement to the buyer is calculated correctly (Para 7H)</li>
+            <li>Confirm a FIRPTA affidavit is ready — if the seller is a foreign person, the buyer must withhold from proceeds (Para 20A)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The Smart Home Handoff</div>
+      <div class="warning-box"><strong>A new compliance category</strong> under the 05-04-2026 form. Don't let this slip — it's an easy, avoidable post-closing dispute.</div>
+      <div class="duty-item"><span class="cite">Para 10A</span><p>Confirm property is delivered in present or required condition, ordinary wear and tear excepted.</p></div>
+      <div class="duty-item"><span class="cite">Para 10B(1)</span><p>Help the seller compile a written list of every access code, username, password, and app for smart devices.</p></div>
+      <div class="duty-item"><span class="cite">Para 10B(2)</span><p>Confirm the seller has terminated and removed all personal device connections to smart devices before handoff.</p></div>
+    </div>
+
+    <div class="one-line-test">
+      <div class="eyebrow">The One-Line Test</div>
+      <div class="statement">It's Their Disclosure. Your Diligence.</div>
+    </div>
+
+    <div class="section">
+      <p style="font-size:14.5px;margin-bottom:16px;">The seller owns the disclosure obligation — but you own making sure every deadline is met, every document is routed on time, and every claim the seller makes has nothing in your file contradicting it.</p>
+      <ul class="recap-list">
+        <li>Calendar every deadline the day the contract is signed — not the day before it's due.</li>
+        <li>Confirm escrow receipt, title company authorization, and survey delivery in writing.</li>
+        <li>Never complete the Seller's Disclosure Notice yourself — review it, don't author it.</li>
+        <li>Document repairs, certificates, and the smart-home handoff before closing day.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Use this module alongside the Seller Obligations Checklist for every TREC 20-19 transaction. Always consult your broker or attorney on specific transactions.<br>
+    This document is for informational and training purposes only and does not constitute legal advice. TREC rules prohibit real estate brokers and sales agents from giving legal advice.<br><br>
+    &copy; 2026 AgentHubTX. All rights reserved.
+  </div>
+</div>
+</body>
+</html>
