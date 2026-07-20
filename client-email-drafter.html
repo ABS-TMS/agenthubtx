@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Email Drafter | AgentHubTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Cambria:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: hsl(220, 67%, 11%);
+  --navy-dark: hsl(220, 67%, 7%);
+  --gold: hsl(42, 70%, 55%);
+  --gold-light: #F3E3BC;
+  --cream: #F7F5EF;
+  --white: #FFFFFF;
+  --ink: #1C2230;
+  --muted: #5F5E5A;
+  --border: #E5E3DA;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+body { font-family: var(--font); background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+header { background: var(--navy); padding: 24px; border-bottom: 3px solid var(--gold); }
+.header-inner { max-width: 700px; margin: 0 auto; }
+.brand { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.06em; margin-bottom: 10px; }
+.brand span { color: var(--gold); }
+.tool-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.tool-title { font-family: 'Cambria', Georgia, serif; font-size: 26px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.tool-desc { font-size: 13.5px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+.back-link { display: inline-block; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; }
+.back-link:hover { color: var(--white); }
+
+.main { max-width: 700px; margin: 0 auto; padding: 28px 16px 60px; }
+
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 10px 13px; background: var(--cream);
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 13.5px; color: var(--ink); font-family: inherit; transition: border-color 0.15s;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--gold); background: var(--white); }
+.form-row input::placeholder, .form-row textarea::placeholder { color: #B4B2A9; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.btn-submit { width: 100%; padding: 13px; background: var(--navy); color: white; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.btn-submit:hover { background: var(--navy-dark); }
+.btn-submit:disabled { background: #B4B2A9; cursor: not-allowed; }
+.btn-copy { padding: 7px 16px; background: transparent; color: var(--navy); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-copy:hover { border-color: var(--gold); background: var(--gold-light); }
+.btn-clear { padding: 7px 16px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+.result-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: none; }
+.result-card.visible { display: block; }
+.result-header { padding: 12px 18px; background: var(--cream); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.result-title { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.result-actions { display: flex; gap: 8px; }
+.result-body { padding: 18px; font-size: 13.5px; color: var(--ink); line-height: 1.75; white-space: pre-wrap; }
+.result-body.loading { color: var(--muted); font-style: italic; }
+
+footer { background: var(--navy); padding: 1.2rem; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 1.5rem; }
+
+@media (max-width: 600px) {
+  .main { padding: 18px 12px 50px; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .tool-title { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <div class="tool-eyebrow">Communication</div>
+    <div class="tool-title">Client Email Drafter</div>
+    <div class="tool-desc">Select the situation, fill in the specifics, and get a professional client-ready email in seconds. Edit to match your voice before sending.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+</header>
+
+<div class="main">
+  <div class="form-card">
+    <div class="form-row">
+      <label>Situation</label>
+      <select id="e-situation">
+        <option value="">Select the situation...</option>
+        <option value="option_period">Explaining the option period to a buyer</option>
+        <option value="inspection_results">Sharing inspection results with buyer</option>
+        <option value="low_appraisal">Low appraisal — explaining options</option>
+        <option value="multiple_offers">Multiple offers — what it means for the buyer</option>
+        <option value="closing_delay">Closing delay explanation</option>
+        <option value="offer_rejected">Offer rejected — next steps</option>
+        <option value="contract_executed">Contract executed — what happens now</option>
+        <option value="final_walkthrough">Final walkthrough reminder</option>
+        <option value="price_reduction">Discussing a price adjustment with seller</option>
+        <option value="listing_expired">Listing expired — conversation with seller</option>
+      </select>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Client first name</label><input type="text" id="e-client" placeholder="Sarah"></div>
+      <div class="form-row"><label>Property address (optional)</label><input type="text" id="e-address" placeholder="123 Main St, Denton"></div>
+    </div>
+    <div class="form-row"><label>Key details to include</label><textarea id="e-details" rows="3" placeholder="Option period ends Friday at 5pm. Inspector found minor items — HVAC service needed, one window seal broken. Seller agreed to $500 credit..."></textarea></div>
+    <div class="form-row">
+      <label>Tone</label>
+      <select id="e-tone">
+        <option value="warm">Warm and reassuring</option>
+        <option value="professional">Professional and direct</option>
+        <option value="urgent">Urgent — time sensitive</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="generateEmail()">Draft Email &rarr;</button>
+  </div>
+  <div class="result-card" id="result-email">
+    <div class="result-header">
+      <div class="result-title">Your client email</div>
+      <div class="result-actions">
+        <button class="btn-copy" onclick="copyResult('result-email-body')">Copy email</button>
+        <button class="btn-clear" onclick="clearResult('result-email')">Clear</button>
+      </div>
+    </div>
+    <div class="result-body" id="result-email-body"></div>
+  </div>
+</div>
+
+<footer>&copy; 2026 AgentHubTX</footer>
+
+<script>
+function setLoading(btnEl, resultId, bodyId) {
+  btnEl.disabled = true;
+  btnEl.textContent = 'Generating...';
+  const card = document.getElementById(resultId);
+  const body = document.getElementById(bodyId);
+  card.classList.add('visible');
+  body.classList.add('loading');
+  body.textContent = 'Crafting your content...';
+}
+
+function setResult(btnEl, originalText, resultId, bodyId, text) {
+  btnEl.disabled = false;
+  btnEl.textContent = originalText;
+  const body = document.getElementById(bodyId);
+  body.classList.remove('loading');
+  body.textContent = text;
+}
+
+function copyResult(bodyId) {
+  const text = document.getElementById(bodyId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(b => { const orig = b.textContent; b.textContent = 'Copied!'; setTimeout(() => b.textContent = orig, 2000); });
+  });
+}
+
+function clearResult(resultId) {
+  document.getElementById(resultId).classList.remove('visible');
+}
+
+async function callClaude(prompt) {
+  const response = await fetch('/.netlify/functions/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  return data.content;
+}
+
+async function generateEmail() {
+  const situation = document.getElementById('e-situation').value;
+  const client = document.getElementById('e-client').value;
+  const address = document.getElementById('e-address').value;
+  const details = document.getElementById('e-details').value;
+  const tone = document.getElementById('e-tone').value;
+
+  if (!situation || !client) { alert('Please select a situation and enter the client name.'); return; }
+
+  const situations = {
+    option_period: 'explaining what the option period is, what it means for the buyer, what they need to do, and key deadlines',
+    inspection_results: 'sharing inspection results, explaining what was found, and what is serious vs minor, so the buyer and their agent can decide together what to do next',
+    low_appraisal: 'explaining a low appraisal and laying out the options available (renegotiate price, buyer pays the difference, or cancel) so the buyer can discuss them with their agent and decide together',
+    multiple_offers: 'informing the buyer they are in a multiple offer situation, explaining what that generally means for timing and terms, and setting expectations — without telling them what to bid',
+    closing_delay: 'explaining a closing delay, the reason, the new timeline, and what the client needs to do',
+    offer_rejected: 'informing the buyer their offer was rejected, explaining what happened, and outlining the typical next steps to discuss with their agent',
+    contract_executed: 'explaining to a buyer what happens now that the contract is executed — option period, earnest money, inspection, financing timeline',
+    final_walkthrough: 'reminding the buyer about their final walkthrough, what to look for, and what to do if they find issues',
+    price_reduction: 'raising the idea of a price adjustment with a seller, summarizing relevant market activity (days on market, comparable activity) neutrally, and inviting a conversation about whether to adjust',
+    listing_expired: 'reaching out to a seller whose listing expired, empathizing, and discussing what to do differently'
+  };
+
+  const btn = event.target;
+  setLoading(btn, 'result-email', 'result-email-body');
+
+  const prompt = `You are a professional Texas real estate agent writing a client email. Write a ${tone} email for this situation:
+
+Situation: ${situations[situation]}
+Client name: ${client}
+Property: ${address || 'not specified'}
+Specific details to include: ${details || 'Use professional judgment for typical scenario'}
+Tone: ${tone === 'warm' ? 'Warm, empathetic, and reassuring — make them feel supported' : tone === 'professional' ? 'Professional, clear, and direct — get to the point efficiently' : 'Urgent but calm — convey time sensitivity without causing panic'}
+
+Write a complete email with:
+- Subject line
+- Greeting
+- Body (clear, helpful, specific)
+- Clear next steps or call to action
+- Professional sign-off
+
+Present information and options neutrally. Where a decision involves the client's money or strategy, invite a conversation rather than telling them what to do. Do NOT include placeholders like [Your Name] — use "Mike" as the agent name. Keep it under 250 words. No generic real estate clichés.`;
+
+  try {
+    const result = await callClaude(prompt);
+    setResult(btn, 'Draft Email →', 'result-email', 'result-email-body', result);
+  } catch(err) {
+    setResult(btn, 'Draft Email →', 'result-email', 'result-email-body', 'Error generating email. Please try again.');
+  }
+}
+</script>
+</body>
+</html>
