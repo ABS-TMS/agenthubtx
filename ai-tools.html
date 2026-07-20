@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tools | AgentHubTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Cambria:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: hsl(220, 67%, 11%);
+  --navy-dark: hsl(220, 67%, 7%);
+  --gold: hsl(42, 70%, 55%);
+  --gold-light: #F3E3BC;
+  --cream: #F7F5EF;
+  --white: #FFFFFF;
+  --ink: #1C2230;
+  --muted: #5F5E5A;
+  --border: #E5E3DA;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+body { font-family: var(--font); background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+header { background: var(--navy); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--gold); }
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-badge { width: 32px; height: 32px; border-radius: 8px; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--navy); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.logo-text { font-size: 14px; font-weight: 600; color: var(--white); }
+.logo-text span { color: var(--gold); }
+.header-sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+.back-link { font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; }
+.back-link:hover { color: var(--white); }
+
+.tabs-wrapper { background: var(--navy-dark); padding: 0 24px; overflow-x: auto; }
+.tabs { display: flex; gap: 0; }
+.tab { padding: 13px 18px; font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,0.55); cursor: pointer; border: none; background: none; font-family: inherit; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+.tab:hover { color: var(--white); }
+.tab.active { color: var(--white); border-bottom-color: var(--gold); }
+
+.main { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
+.tool-panel { display: none; }
+.tool-panel.active { display: block; }
+
+.tool-header { margin-bottom: 22px; }
+.tool-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.tool-title { font-family: 'Cambria', Georgia, serif; font-size: 26px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.tool-desc { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 10px 13px; background: var(--cream);
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 13.5px; color: var(--ink); font-family: inherit; transition: border-color 0.15s;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--gold); background: var(--white); }
+.form-row input::placeholder, .form-row textarea::placeholder { color: #B4B2A9; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 12px; }
+
+.btn-submit { width: 100%; padding: 13px; background: var(--navy); color: white; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.btn-submit:hover { background: var(--navy-dark); }
+.btn-submit:disabled { background: #B4B2A9; cursor: not-allowed; }
+.btn-copy { padding: 7px 16px; background: transparent; color: var(--navy); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-copy:hover { border-color: var(--gold); background: var(--gold-light); }
+.btn-clear { padding: 7px 16px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+.result-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: none; }
+.result-card.visible { display: block; }
+.result-header { padding: 12px 18px; background: var(--cream); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.result-title { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.result-actions { display: flex; gap: 8px; }
+.result-body { padding: 18px; font-size: 13.5px; color: var(--ink); line-height: 1.75; white-space: pre-wrap; }
+.result-body.loading { color: var(--muted); font-style: italic; }
+
+.tool-disclaimer { background: var(--gold-light); border: 1px solid #E8D098; border-radius: 8px; padding: 10px 14px; font-size: 11.5px; color: #6B4E00; line-height: 1.5; margin-bottom: 14px; }
+
+footer { background: var(--navy); padding: 1.2rem; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 1.5rem; }
+footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
+
+@media (max-width: 600px) {
+  .tabs-wrapper { padding: 0 14px; }
+  .main { padding: 18px 12px 50px; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .tool-title { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-badge">A</div>
+    <div>
+      <div class="logo-text">Agent<span>HubTX</span> AI Tools</div>
+      <div class="header-sub">AI-Powered · Texas Agents</div>
+    </div>
+  </div>
+  <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+</header>
+
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="showTool('listing')">Listing Description</button>
+    <button class="tab" onclick="showTool('email')">Client Email</button>
+    <button class="tab" onclick="showTool('offer')">Offer Strength</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TOOL: LISTING DESCRIPTION -->
+  <div class="tool-panel active" id="tool-listing">
+    <div class="tool-header">
+      <div class="tool-eyebrow">Marketing</div>
+      <div class="tool-title">Listing Description Generator</div>
+      <div class="tool-desc">Fill in the property details and get three professional listing descriptions — formal, conversational, and SEO-optimized — in seconds.</div>
+    </div>
+    <div class="form-card">
+      <div class="form-grid-3">
+        <div class="form-row"><label>Bedrooms</label><input type="number" id="l-beds" placeholder="4"></div>
+        <div class="form-row"><label>Bathrooms</label><input type="number" id="l-baths" placeholder="3"></div>
+        <div class="form-row"><label>Square Feet</label><input type="text" id="l-sqft" placeholder="2,450"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>City / Area</label><input type="text" id="l-city" placeholder="Krum, TX"></div>
+        <div class="form-row"><label>Price</label><input type="text" id="l-price" placeholder="$385,000"></div>
+      </div>
+      <div class="form-row"><label>Year built</label><input type="text" id="l-year" placeholder="2018"></div>
+      <div class="form-row"><label>Key features (list the best ones)</label><textarea id="l-features" rows="3" placeholder="Pool, 3-car garage, updated kitchen with quartz countertops, open floor plan, large master suite, backing to greenbelt..."></textarea></div>
+      <div class="form-row"><label>Neighborhood highlights</label><input type="text" id="l-neighborhood" placeholder="Northwest ISD, quiet cul-de-sac, close to 35W..."></div>
+      <button class="btn-submit" onclick="generateListing()">Generate Descriptions &rarr;</button>
+    </div>
+    <div class="result-card" id="result-listing">
+      <div class="result-header">
+        <div class="result-title">Your listing descriptions</div>
+        <div class="result-actions">
+          <button class="btn-copy" onclick="copyResult('result-listing-body')">Copy all</button>
+          <button class="btn-clear" onclick="clearResult('result-listing')">Clear</button>
+        </div>
+      </div>
+      <div class="result-body" id="result-listing-body"></div>
+    </div>
+  </div>
+
+  <!-- TOOL: CLIENT EMAIL -->
+  <div class="tool-panel" id="tool-email">
+    <div class="tool-header">
+      <div class="tool-eyebrow">Communication</div>
+      <div class="tool-title">Client Email Drafter</div>
+      <div class="tool-desc">Select the situation, fill in the specifics, and get a professional client-ready email in seconds. Edit to match your voice before sending.</div>
+    </div>
+    <div class="form-card">
+      <div class="form-row">
+        <label>Situation</label>
+        <select id="e-situation">
+          <option value="">Select the situation...</option>
+          <option value="option_period">Explaining the option period to a buyer</option>
+          <option value="inspection_results">Sharing inspection results with buyer</option>
+          <option value="low_appraisal">Low appraisal — explaining options</option>
+          <option value="multiple_offers">Multiple offers — what it means for the buyer</option>
+          <option value="closing_delay">Closing delay explanation</option>
+          <option value="offer_rejected">Offer rejected — next steps</option>
+          <option value="contract_executed">Contract executed — what happens now</option>
+          <option value="final_walkthrough">Final walkthrough reminder</option>
+          <option value="price_reduction">Discussing a price adjustment with seller</option>
+          <option value="listing_expired">Listing expired — conversation with seller</option>
+        </select>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Client first name</label><input type="text" id="e-client" placeholder="Sarah"></div>
+        <div class="form-row"><label>Property address (optional)</label><input type="text" id="e-address" placeholder="123 Main St, Denton"></div>
+      </div>
+      <div class="form-row"><label>Key details to include</label><textarea id="e-details" rows="3" placeholder="Option period ends Friday at 5pm. Inspector found minor items — HVAC service needed, one window seal broken. Seller agreed to $500 credit..."></textarea></div>
+      <div class="form-row">
+        <label>Tone</label>
+        <select id="e-tone">
+          <option value="warm">Warm and reassuring</option>
+          <option value="professional">Professional and direct</option>
+          <option value="urgent">Urgent — time sensitive</option>
+        </select>
+      </div>
+      <button class="btn-submit" onclick="generateEmail()">Draft Email &rarr;</button>
+    </div>
+    <div class="result-card" id="result-email">
+      <div class="result-header">
+        <div class="result-title">Your client email</div>
+        <div class="result-actions">
+          <button class="btn-copy" onclick="copyResult('result-email-body')">Copy email</button>
+          <button class="btn-clear" onclick="clearResult('result-email')">Clear</button>
+        </div>
+      </div>
+      <div class="result-body" id="result-email-body"></div>
+    </div>
+  </div>
+
+  <!-- TOOL: OFFER STRENGTH -->
+  <div class="tool-panel" id="tool-offer">
+    <div class="tool-header">
+      <div class="tool-eyebrow">Analysis</div>
+      <div class="tool-title">Offer Strength Analyzer</div>
+      <div class="tool-desc">Input the listing details and your offer terms. Get a straightforward breakdown of how the offer stacks up on paper, based only on the numbers you enter.</div>
+    </div>
+    <div class="tool-disclaimer">This tool summarizes the numbers you provide — it is not market analysis, an appraisal, or professional advice. Review the analysis with your client and your broker before relying on it.</div>
+    <div class="form-card">
+      <div class="form-section-label">The Listing</div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>List price</label><input type="text" id="o-listprice" placeholder="$425,000"></div>
+        <div class="form-row"><label>Days on market</label><input type="number" id="o-dom" placeholder="4"></div>
+        <div class="form-row"><label>Known offers</label><input type="number" id="o-offers" placeholder="3"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>City / area</label><input type="text" id="o-city" placeholder="Southlake, TX"></div>
+        <div class="form-row"><label>Property type</label>
+          <select id="o-type">
+            <option>Single family residential</option>
+            <option>Townhome / condo</option>
+            <option>New construction</option>
+            <option>Farm &amp; ranch</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-section-label" style="margin-top:16px;">Your Offer</div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>Offer price</label><input type="text" id="o-offerprice" placeholder="$435,000"></div>
+        <div class="form-row"><label>Option period (days)</label><input type="number" id="o-option" placeholder="7"></div>
+        <div class="form-row"><label>Option fee ($)</label><input type="text" id="o-optionfee" placeholder="250"></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>Earnest money ($)</label><input type="text" id="o-earnest" placeholder="5,000"></div>
+        <div class="form-row"><label>Finance type</label>
+          <select id="o-finance">
+            <option>Conventional</option>
+            <option>Cash</option>
+            <option>FHA</option>
+            <option>VA</option>
+            <option>USDA</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Closing date</label><input type="text" id="o-closing" placeholder="30 days"></div>
+      </div>
+      <div class="form-row"><label>Concessions or special terms</label><input type="text" id="o-concessions" placeholder="Asking for $3k closing costs, leaseback needed, etc. Or leave blank."></div>
+      <button class="btn-submit" onclick="analyzeOffer()">Analyze My Offer &rarr;</button>
+    </div>
+    <div class="result-card" id="result-offer">
+      <div class="result-header">
+        <div class="result-title">Offer strength analysis</div>
+        <div class="result-actions">
+          <button class="btn-copy" onclick="copyResult('result-offer-body')">Copy analysis</button>
+          <button class="btn-clear" onclick="clearResult('result-offer')">Clear</button>
+        </div>
+      </div>
+      <div class="result-body" id="result-offer-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>&copy; 2026 AgentHubTX</footer>
+
+<script>
+function showTool(name) {
+  document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('tool-' + name);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => {
+    const onclick = t.getAttribute('onclick') || '';
+    if (onclick.includes(`showTool('${name}')`)) t.classList.add('active');
+  });
+}
+
+// ── HELPERS ──
+function setLoading(btnEl, resultId, bodyId) {
+  btnEl.disabled = true;
+  btnEl.textContent = 'Generating...';
+  const card = document.getElementById(resultId);
+  const body = document.getElementById(bodyId);
+  card.classList.add('visible');
+  body.classList.add('loading');
+  body.textContent = 'Crafting your content...';
+}
+
+function setResult(btnEl, originalText, resultId, bodyId, text) {
+  btnEl.disabled = false;
+  btnEl.textContent = originalText;
+  const body = document.getElementById(bodyId);
+  body.classList.remove('loading');
+  body.textContent = text;
+}
+
+function copyResult(bodyId) {
+  const text = document.getElementById(bodyId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(b => { if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(bodyId)) { const orig = b.textContent; b.textContent = 'Copied!'; setTimeout(() => b.textContent = orig, 2000); }});
+  });
+}
+
+function clearResult(resultId) {
+  document.getElementById(resultId).classList.remove('visible');
+}
+
+// This calls a Netlify serverless function that must be deployed alongside
+// this site at /.netlify/functions/api -- see the accompanying function
+// source file for the AgentHubTX Netlify site.
+async function callClaude(prompt) {
+  const response = await fetch('/.netlify/functions/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  return data.content;
+}
+
+// ── TOOL: LISTING DESCRIPTION ──
+async function generateListing() {
+  const beds = document.getElementById('l-beds').value;
+  const baths = document.getElementById('l-baths').value;
+  const sqft = document.getElementById('l-sqft').value;
+  const city = document.getElementById('l-city').value;
+  const price = document.getElementById('l-price').value;
+  const year = document.getElementById('l-year').value;
+  const features = document.getElementById('l-features').value;
+  const neighborhood = document.getElementById('l-neighborhood').value;
+
+  if (!beds || !city || !features) { alert('Please fill in bedrooms, city, and key features.'); return; }
+
+  const btn = event.target;
+  setLoading(btn, 'result-listing', 'result-listing-body');
+
+  const prompt = `You are a top Texas real estate agent writing listing descriptions. Write THREE versions of a listing description for this property:
+
+Property: ${beds} bed / ${baths} bath, ${sqft} sq ft, built ${year}
+Location: ${city}
+Price: ${price}
+Key features: ${features}
+Neighborhood: ${neighborhood}
+
+Write exactly three versions labeled:
+VERSION 1 — FORMAL & PROFESSIONAL (150-180 words, sophisticated tone, highlights investment value)
+VERSION 2 — WARM & CONVERSATIONAL (150-180 words, inviting tone, paints a lifestyle picture)
+VERSION 3 — SEO OPTIMIZED (150-180 words, naturally includes searchable terms like city name, bed/bath count, key features)
+
+Each version should be distinct, compelling, and ready to post. No generic filler phrases like "won't last long" or "priced to sell".`;
+
+  try {
+    const result = await callClaude(prompt);
+    setResult(btn, 'Generate Descriptions →', 'result-listing', 'result-listing-body', result);
+  } catch(err) {
+    setResult(btn, 'Generate Descriptions →', 'result-listing', 'result-listing-body', 'Error generating content. Please try again.');
+  }
+}
+
+// ── TOOL: CLIENT EMAIL ──
+async function generateEmail() {
+  const situation = document.getElementById('e-situation').value;
+  const client = document.getElementById('e-client').value;
+  const address = document.getElementById('e-address').value;
+  const details = document.getElementById('e-details').value;
+  const tone = document.getElementById('e-tone').value;
+
+  if (!situation || !client) { alert('Please select a situation and enter the client name.'); return; }
+
+  const situations = {
+    option_period: 'explaining what the option period is, what it means for the buyer, what they need to do, and key deadlines',
+    inspection_results: 'sharing inspection results, explaining what was found, and what is serious vs minor, so the buyer and their agent can decide together what to do next',
+    low_appraisal: 'explaining a low appraisal and laying out the options available (renegotiate price, buyer pays the difference, or cancel) so the buyer can discuss them with their agent and decide together',
+    multiple_offers: 'informing the buyer they are in a multiple offer situation, explaining what that generally means for timing and terms, and setting expectations — without telling them what to bid',
+    closing_delay: 'explaining a closing delay, the reason, the new timeline, and what the client needs to do',
+    offer_rejected: 'informing the buyer their offer was rejected, explaining what happened, and outlining the typical next steps to discuss with their agent',
+    contract_executed: 'explaining to a buyer what happens now that the contract is executed — option period, earnest money, inspection, financing timeline',
+    final_walkthrough: 'reminding the buyer about their final walkthrough, what to look for, and what to do if they find issues',
+    price_reduction: 'raising the idea of a price adjustment with a seller, summarizing relevant market activity (days on market, comparable activity) neutrally, and inviting a conversation about whether to adjust',
+    listing_expired: 'reaching out to a seller whose listing expired, empathizing, and discussing what to do differently'
+  };
+
+  const btn = event.target;
+  setLoading(btn, 'result-email', 'result-email-body');
+
+  const prompt = `You are a professional Texas real estate agent writing a client email. Write a ${tone} email for this situation:
+
+Situation: ${situations[situation]}
+Client name: ${client}
+Property: ${address || 'not specified'}
+Specific details to include: ${details || 'Use professional judgment for typical scenario'}
+Tone: ${tone === 'warm' ? 'Warm, empathetic, and reassuring — make them feel supported' : tone === 'professional' ? 'Professional, clear, and direct — get to the point efficiently' : 'Urgent but calm — convey time sensitivity without causing panic'}
+
+Write a complete email with:
+- Subject line
+- Greeting
+- Body (clear, helpful, specific)
+- Clear next steps or call to action
+- Professional sign-off
+
+Present information and options neutrally. Where a decision involves the client's money or strategy, invite a conversation rather than telling them what to do. Do NOT include placeholders like [Your Name] — use "Mike" as the agent name. Keep it under 250 words. No generic real estate clichés.`;
+
+  try {
+    const result = await callClaude(prompt);
+    setResult(btn, 'Draft Email →', 'result-email', 'result-email-body', result);
+  } catch(err) {
+    setResult(btn, 'Draft Email →', 'result-email', 'result-email-body', 'Error generating email. Please try again.');
+  }
+}
+
+// ── TOOL: OFFER STRENGTH ──
+async function analyzeOffer() {
+  const listprice = document.getElementById('o-listprice').value;
+  const offerprice = document.getElementById('o-offerprice').value;
+  const dom = document.getElementById('o-dom').value;
+  const offers = document.getElementById('o-offers').value;
+  const city = document.getElementById('o-city').value;
+  const option = document.getElementById('o-option').value;
+  const optionfee = document.getElementById('o-optionfee').value;
+  const earnest = document.getElementById('o-earnest').value;
+  const finance = document.getElementById('o-finance').value;
+  const closing = document.getElementById('o-closing').value;
+  const concessions = document.getElementById('o-concessions').value;
+  const type = document.getElementById('o-type').value;
+
+  if (!listprice || !offerprice) { alert('Please enter list price and offer price.'); return; }
+
+  const btn = event.target;
+  setLoading(btn, 'result-offer', 'result-offer-body');
+
+  const prompt = `Analyze this real estate offer for competitiveness based on the data provided. Be direct and specific, grounded only in the numbers given.
+
+LISTING DETAILS:
+- Property type: ${type}
+- List price: ${listprice}
+- Days on market: ${dom || 'unknown'}
+- Known competing offers: ${offers || 'unknown'}
+- Market area: ${city || 'DFW Texas'}
+
+OFFER DETAILS:
+- Offer price: ${offerprice}
+- Finance type: ${finance}
+- Option period: ${option} days
+- Option fee: $${optionfee}
+- Earnest money: $${earnest}
+- Closing timeline: ${closing}
+- Concessions/special terms: ${concessions || 'none'}
+
+Provide:
+1. OVERALL STRENGTH RATING: Weak / Moderate / Strong / Very Strong — with one sentence explanation based on the numbers above
+2. WHAT'S WORKING: 2-3 specific strengths of this offer, based only on the data given
+3. WHAT'S HURTING YOU: 2-3 specific weaknesses or risks, based only on the data given
+4. THINGS TO CONSIDER: 3 specific factors the agent and client may want to discuss to strengthen this offer
+
+Be specific and practical. Do not claim personal experience, tenure, or transaction history. Base every point strictly on the inputs provided, and note where local market knowledge beyond these numbers would be needed to go further.`;
+
+  try {
+    const result = await callClaude(prompt);
+    setResult(btn, 'Analyze My Offer →', 'result-offer', 'result-offer-body', result);
+  } catch(err) {
+    setResult(btn, 'Analyze My Offer →', 'result-offer', 'result-offer-body', 'Error analyzing offer. Please try again.');
+  }
+}
+</script>
+</body>
+</html>
