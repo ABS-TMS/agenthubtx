@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Working Numbers | AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057;
+    --navy-deep: #07203D;
+    --gold: #C8922A;
+    --gold-bright: #E0AC4A;
+    --cream: #F4F1EA;
+    --cream-dim: #E8E2D4;
+    --ink: #1B2430;
+    --paper: #FFFDF8;
+    --green-ok: #3E6B4F;
+    --red-flag: #8C2F2F;
+    --rule: #D8D0BC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.5;
+  }
+
+  .mono {
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 26px 24px 20px;
+    border-bottom: 4px solid var(--gold);
+  }
+
+  .header-inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: normal;
+  }
+
+  header h1 span { color: var(--gold-bright); }
+
+  .subhead {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: var(--cream-dim);
+    font-style: italic;
+  }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 32px;
+  }
+
+  /* ---------- Drawer nav ---------- */
+  .drawer-nav {
+    border-right: 1px solid var(--rule);
+    padding-right: 20px;
+  }
+
+  .drawer-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8A8270;
+    margin-bottom: 14px;
+  }
+
+  .drawer-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    padding: 10px 0 10px 14px;
+    margin-bottom: 2px;
+    font-family: Georgia, serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .drawer-item:hover {
+    background: var(--cream-dim);
+  }
+
+  .drawer-item.active {
+    border-left-color: var(--gold);
+    background: var(--paper);
+    color: var(--navy);
+    font-weight: bold;
+  }
+
+  .drawer-item .tag {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    color: #8A8270;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .drawer-item.active .tag { color: var(--gold); }
+
+  /* ---------- Calculator panel ---------- */
+  .panel-wrap {
+    min-width: 0;
+  }
+
+  .calc-panel {
+    display: none;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 5px solid var(--gold);
+    box-shadow: 0 2px 0 rgba(12,48,87,0.05), 0 8px 24px rgba(12,48,87,0.06);
+    padding: 28px 30px 30px;
+  }
+  .calc-panel.active {
+    display: block;
+    animation: settle 0.3s ease-out;
+  }
+  @keyframes settle {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .calc-eyebrow {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--navy);
+    background: var(--cream-dim);
+    border: 1px solid var(--rule);
+    padding: 3px 10px;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+
+  .calc-panel h2 {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+    color: var(--navy);
+    font-weight: normal;
+  }
+
+  .calc-purpose {
+    margin: 0 0 24px;
+    font-size: 0.92rem;
+    color: #6B6354;
+    font-style: italic;
+  }
+
+  /* ---------- Form fields ---------- */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-bottom: 8px;
+  }
+
+  .field {
+    margin-bottom: 4px;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  .field label {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-prefix, .input-suffix {
+    position: absolute;
+    top: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    color: #8A8270;
+    pointer-events: none;
+  }
+  .input-prefix { left: 12px; }
+  .input-suffix { right: 12px; }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+    border: 1px solid #C9BFA6;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .input-wrap input[type="number"].has-prefix { padding-left: 26px; }
+  .input-wrap input[type="number"].has-suffix { padding-right: 36px; }
+
+  input:focus, select:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230C3057' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+
+  /* ---------- Results ---------- */
+  .results {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 7px 0;
+  }
+
+  .result-row .rlabel {
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+
+  .result-row .rvalue {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    color: var(--navy);
+    white-space: nowrap;
+    padding-left: 16px;
+  }
+
+  .result-row.headline {
+    border: none;
+    margin: 4px 0 14px;
+    padding: 14px 16px;
+    background: var(--cream-dim);
+  }
+  .result-row.headline .rlabel {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+  .result-row.headline .rvalue {
+    font-size: 1.55rem;
+    font-weight: bold;
+    color: var(--navy);
+  }
+  .result-row.headline .rvalue.negative { color: var(--red-flag); }
+  .result-row.headline .rvalue.positive { color: var(--green-ok); }
+
+  .result-note {
+    margin-top: 14px;
+    font-size: 0.84rem;
+    color: #6B6354;
+    font-style: italic;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.78rem;
+    color: #8A8270;
+    font-style: italic;
+  }
+
+  @media (max-width: 720px) {
+    .shell {
+      grid-template-columns: 1fr;
+    }
+    .drawer-nav {
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding-right: 0;
+      padding-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .drawer-item {
+      border-left: none;
+      border-bottom: 3px solid transparent;
+      padding: 8px 12px;
+      width: auto;
+    }
+    .drawer-item.active {
+      border-bottom-color: var(--gold);
+      border-left-color: transparent;
+    }
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
+    .calc-panel { padding: 22px 18px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>The Working <span>Numbers</span></h1>
+    <p class="subhead">A working set of calculators &mdash; AgentHubTX</p>
+    <p style="margin-top:10px;"><a href="dashboard.html" style="color:var(--cream-dim); font-size:0.8rem; text-decoration:none;">&larr; Back to AgentHubTX</a></p>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="drawer-nav" id="drawerNav">
+    <div class="drawer-label">In this drawer</div>
+    <!-- populated by JS -->
+  </nav>
+
+  <div class="panel-wrap" id="panelWrap">
+
+    <!-- MORTGAGE PAYMENT -->
+    <div class="calc-panel" id="panel-mortgage">
+      <span class="calc-eyebrow">Affordability</span>
+      <h2>Mortgage Payment</h2>
+      <p class="calc-purpose">What a monthly payment looks like at a given price, rate, and down payment &mdash; principal, interest, taxes, and insurance.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="m-price">Home price</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="m-price" class="has-prefix" value="350000"></div>
+        </div>
+        <div class="field">
+          <label for="m-down">Down payment</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="m-down" class="has-prefix" value="70000"></div>
+        </div>
+        <div class="field">
+          <label for="m-rate">Interest rate</label>
+          <div class="input-wrap"><input type="number" id="m-rate" class="has-suffix" value="6.75" step="0.01"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="m-term">Loan term</label>
+          <select id="m-term">
+            <option value="30">30 years</option>
+            <option value="20">20 years</option>
+            <option value="15">15 years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="m-tax">Annual property tax</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="m-tax" class="has-prefix" value="7000"></div>
+        </div>
+        <div class="field">
+          <label for="m-ins">Annual homeowner's insurance</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="m-ins" class="has-prefix" value="2400"></div>
+        </div>
+        <div class="field full">
+          <label for="m-hoa">Monthly HOA dues (if any)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="m-hoa" class="has-prefix" value="0"></div>
+        </div>
+      </div>
+
+      <div class="results" id="m-results"></div>
+      <p class="result-note">PMI is not included here. If the down payment is under 20%, expect an additional 0.5&ndash;1.5% of the loan annually until removed.</p>
+    </div>
+
+    <!-- SELLER NET PROCEEDS -->
+    <div class="calc-panel" id="panel-netproceeds">
+      <span class="calc-eyebrow">Listing side</span>
+      <h2>Seller Net Proceeds</h2>
+      <p class="calc-purpose">What a seller actually walks away with, after the loan payoff, commissions, and closing costs come out of the sale price.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="n-price">Expected sale price</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="n-price" class="has-prefix" value="400000"></div>
+        </div>
+        <div class="field">
+          <label for="n-payoff">Existing loan payoff</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="n-payoff" class="has-prefix" value="210000"></div>
+        </div>
+        <div class="field">
+          <label for="n-commission">Total commission</label>
+          <div class="input-wrap"><input type="number" id="n-commission" class="has-suffix" value="6" step="0.1"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="n-titlefees">Title &amp; closing fees</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="n-titlefees" class="has-prefix" value="3200"></div>
+        </div>
+        <div class="field">
+          <label for="n-concessions">Buyer concessions / repairs credit</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="n-concessions" class="has-prefix" value="0"></div>
+        </div>
+        <div class="field">
+          <label for="n-other">Other payoffs (liens, HOA, taxes owed)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="n-other" class="has-prefix" value="0"></div>
+        </div>
+      </div>
+
+      <div class="results" id="n-results"></div>
+      <p class="result-note">This is a working estimate for conversation with a seller &mdash; the title company's closing disclosure is the actual number.</p>
+    </div>
+
+    <!-- COMMISSION SPLIT -->
+    <div class="calc-panel" id="panel-commission">
+      <span class="calc-eyebrow">Office math</span>
+      <h2>Commission Split</h2>
+      <p class="calc-purpose">What actually lands in an agent's pocket after the brokerage split and any transaction or franchise fees.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="c-price">Sale price</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="c-price" class="has-prefix" value="400000"></div>
+        </div>
+        <div class="field">
+          <label for="c-side">Commission on this side</label>
+          <div class="input-wrap"><input type="number" id="c-side" class="has-suffix" value="3" step="0.1"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="c-splitpct">Agent split</label>
+          <div class="input-wrap"><input type="number" id="c-splitpct" class="has-suffix" value="80" step="1"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="c-txnfee">Transaction / E&amp;O fee</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="c-txnfee" class="has-prefix" value="0"></div>
+        </div>
+        <div class="field full">
+          <label for="c-referral">Referral fee owed (if any)</label>
+          <div class="input-wrap"><input type="number" id="c-referral" class="has-suffix" value="0" step="0.1"><span class="input-suffix">%</span></div>
+        </div>
+      </div>
+
+      <div class="results" id="c-results"></div>
+      <p class="result-note">"Agent split" is the agent's percentage of gross commission &mdash; e.g. an 80/20 split means the agent keeps 80%.</p>
+    </div>
+
+    <!-- RENT VS BUY -->
+    <div class="calc-panel" id="panel-rentvbuy">
+      <span class="calc-eyebrow">Buyer decision</span>
+      <h2>Rent vs. Buy</h2>
+      <p class="calc-purpose">A side-by-side of monthly housing cost, so a buyer can see the real gap (or lack of one) between renting and owning.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="r-rent">Current/comparable rent</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-rent" class="has-prefix" value="2200"></div>
+        </div>
+        <div class="field">
+          <label for="r-price">Home price being considered</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-price" class="has-prefix" value="350000"></div>
+        </div>
+        <div class="field">
+          <label for="r-down">Down payment</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-down" class="has-prefix" value="35000"></div>
+        </div>
+        <div class="field">
+          <label for="r-rate">Interest rate</label>
+          <div class="input-wrap"><input type="number" id="r-rate" class="has-suffix" value="6.75" step="0.01"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="r-tax">Annual property tax</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-tax" class="has-prefix" value="6500"></div>
+        </div>
+        <div class="field">
+          <label for="r-ins">Annual insurance</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-ins" class="has-prefix" value="2200"></div>
+        </div>
+        <div class="field">
+          <label for="r-maint">Monthly maintenance reserve</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-maint" class="has-prefix" value="150"></div>
+        </div>
+        <div class="field">
+          <label for="r-hoa">Monthly HOA (if any)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="r-hoa" class="has-prefix" value="0"></div>
+        </div>
+      </div>
+
+      <div class="results" id="r-results"></div>
+      <p class="result-note">Doesn't account for appreciation, tax deductions, or rent increases over time &mdash; it's a snapshot of month one, side by side.</p>
+    </div>
+
+    <!-- CLOSING COSTS -->
+    <div class="calc-panel" id="panel-closingcosts">
+      <span class="calc-eyebrow">Buyer side</span>
+      <h2>Closing Costs</h2>
+      <p class="calc-purpose">A rough total of what a buyer should expect to bring beyond the down payment &mdash; lender fees, title, taxes, and prepaids.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="cc-price">Purchase price</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-price" class="has-prefix" value="350000"></div>
+        </div>
+        <div class="field">
+          <label for="cc-loan">Loan amount</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-loan" class="has-prefix" value="280000"></div>
+        </div>
+        <div class="field">
+          <label for="cc-lenderpct">Lender fees</label>
+          <div class="input-wrap"><input type="number" id="cc-lenderpct" class="has-suffix" value="1" step="0.1"><span class="input-suffix">% of loan</span></div>
+        </div>
+        <div class="field">
+          <label for="cc-title">Title insurance &amp; escrow fees</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-title" class="has-prefix" value="2800"></div>
+        </div>
+        <div class="field">
+          <label for="cc-prepaid">Prepaid taxes &amp; insurance reserves</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-prepaid" class="has-prefix" value="3500"></div>
+        </div>
+        <div class="field">
+          <label for="cc-other">Inspection, survey, recording, misc.</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-other" class="has-prefix" value="900"></div>
+        </div>
+        <div class="field full">
+          <label for="cc-seller">Seller-paid closing cost credit (if any)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cc-seller" class="has-prefix" value="0"></div>
+        </div>
+      </div>
+
+      <div class="results" id="cc-results"></div>
+      <p class="result-note">Closing costs typically run 2&ndash;5% of the loan amount in Texas &mdash; actual figures come from the lender's Loan Estimate.</p>
+    </div>
+
+    <!-- CAP RATE / ROI -->
+    <div class="calc-panel" id="panel-caprate">
+      <span class="calc-eyebrow">Investor</span>
+      <h2>Cap Rate / ROI</h2>
+      <p class="calc-purpose">For an investor client &mdash; what a rental property actually returns, on the purchase price and on cash invested.</p>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="cr-price">Purchase price</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cr-price" class="has-prefix" value="280000"></div>
+        </div>
+        <div class="field">
+          <label for="cr-down">Cash invested (down + closing)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cr-down" class="has-prefix" value="70000"></div>
+        </div>
+        <div class="field">
+          <label for="cr-rent">Monthly rent</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cr-rent" class="has-prefix" value="2300"></div>
+        </div>
+        <div class="field">
+          <label for="cr-vacancy">Vacancy reserve</label>
+          <div class="input-wrap"><input type="number" id="cr-vacancy" class="has-suffix" value="5" step="0.5"><span class="input-suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label for="cr-opex">Operating expenses (monthly)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cr-opex" class="has-prefix" value="450"></div>
+        </div>
+        <div class="field">
+          <label for="cr-mortgage">Monthly mortgage payment</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="cr-mortgage" class="has-prefix" value="1380"></div>
+        </div>
+      </div>
+
+      <div class="results" id="cr-results"></div>
+      <p class="result-note">Operating expenses should include taxes, insurance, maintenance, and management &mdash; but not the mortgage itself, which is factored separately for cash-on-cash return.</p>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Estimates only &mdash; not a substitute for a lender's, title company's, or accountant's figures. &copy; 2026 AgentHubTX.
+</footer>
+
+<script>
+// Shared helpers
+function fmtMoney(n, decimals = 0) {
+  if (!isFinite(n)) return '—';
+  const sign = n < 0 ? '-' : '';
+  return sign + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function fmtPercent(n, decimals = 2) {
+  if (!isFinite(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
+}
+function num(id) {
+  const el = document.getElementById(id);
+  const v = parseFloat(el.value);
+  return isFinite(v) ? v : 0;
+}
+
+// ---------- Calculator registry ----------
+const CALCULATORS = [
+  { id: 'mortgage', label: 'Mortgage Payment', tag: 'Affordability' },
+  { id: 'netproceeds', label: 'Seller Net Proceeds', tag: 'Listing side' },
+  { id: 'commission', label: 'Commission Split', tag: 'Office math' },
+  { id: 'rentvbuy', label: 'Rent vs. Buy', tag: 'Buyer decision' },
+  { id: 'closingcosts', label: 'Closing Costs', tag: 'Buyer side' },
+  { id: 'caprate', label: 'Cap Rate / ROI', tag: 'Investor' },
+];
+
+function renderNav() {
+  const nav = document.getElementById('drawerNav');
+  const label = nav.querySelector('.drawer-label');
+  nav.innerHTML = '';
+  nav.appendChild(label);
+  CALCULATORS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'drawer-item';
+    btn.dataset.calc = c.id;
+    btn.innerHTML = `${c.label}<span class="tag">${c.tag}</span>`;
+    btn.addEventListener('click', () => switchCalc(c.id));
+    nav.appendChild(btn);
+  });
+}
+
+function switchCalc(id) {
+  document.querySelectorAll('.drawer-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.calc === id);
+  });
+  document.querySelectorAll('.calc-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + id);
+  });
+  try { localStorage.setItem('working_numbers_last', id); } catch (e) {}
+}
+
+renderNav();
+
+// ---------- MORTGAGE PAYMENT ----------
+function calcMortgage() {
+  const price = num('m-price');
+  const down = num('m-down');
+  const rate = num('m-rate');
+  const termYears = parseInt(document.getElementById('m-term').value, 10);
+  const annualTax = num('m-tax');
+  const annualIns = num('m-ins');
+  const hoa = num('m-hoa');
+
+  const loanAmount = Math.max(price - down, 0);
+  const monthlyRate = (rate / 100) / 12;
+  const numPayments = termYears * 12;
+
+  let principalAndInterest = 0;
+  if (loanAmount > 0 && monthlyRate > 0) {
+    principalAndInterest = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+  } else if (loanAmount > 0) {
+    principalAndInterest = loanAmount / numPayments;
+  }
+
+  const monthlyTax = annualTax / 12;
+  const monthlyIns = annualIns / 12;
+  const totalMonthly = principalAndInterest + monthlyTax + monthlyIns + hoa;
+  const downPct = price > 0 ? (down / price) * 100 : 0;
+
+  const results = document.getElementById('m-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">Estimated total monthly payment</span>
+      <span class="rvalue">${fmtMoney(totalMonthly)}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Principal &amp; interest</span><span class="rvalue">${fmtMoney(principalAndInterest)}</span></div>
+    <div class="result-row"><span class="rlabel">Property tax (monthly)</span><span class="rvalue">${fmtMoney(monthlyTax)}</span></div>
+    <div class="result-row"><span class="rlabel">Homeowner's insurance (monthly)</span><span class="rvalue">${fmtMoney(monthlyIns)}</span></div>
+    ${hoa > 0 ? `<div class="result-row"><span class="rlabel">HOA dues</span><span class="rvalue">${fmtMoney(hoa)}</span></div>` : ''}
+    <div class="result-row"><span class="rlabel">Loan amount</span><span class="rvalue">${fmtMoney(loanAmount)}</span></div>
+    <div class="result-row"><span class="rlabel">Down payment</span><span class="rvalue">${fmtMoney(down)} (${fmtPercent(downPct, 1)})</span></div>
+  `;
+}
+['m-price','m-down','m-rate','m-term','m-tax','m-ins','m-hoa'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcMortgage);
+});
+calcMortgage();
+
+// ---------- SELLER NET PROCEEDS ----------
+function calcNetProceeds() {
+  const price = num('n-price');
+  const payoff = num('n-payoff');
+  const commissionPct = num('n-commission');
+  const titleFees = num('n-titlefees');
+  const concessions = num('n-concessions');
+  const otherPayoffs = num('n-other');
+
+  const commissionAmount = price * (commissionPct / 100);
+  const totalDeductions = payoff + commissionAmount + titleFees + concessions + otherPayoffs;
+  const netProceeds = price - totalDeductions;
+
+  const results = document.getElementById('n-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">Estimated net to seller</span>
+      <span class="rvalue ${netProceeds < 0 ? 'negative' : 'positive'}">${fmtMoney(netProceeds)}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Sale price</span><span class="rvalue">${fmtMoney(price)}</span></div>
+    <div class="result-row"><span class="rlabel">Loan payoff</span><span class="rvalue">-${fmtMoney(payoff)}</span></div>
+    <div class="result-row"><span class="rlabel">Commission (${fmtPercent(commissionPct, 1)})</span><span class="rvalue">-${fmtMoney(commissionAmount)}</span></div>
+    <div class="result-row"><span class="rlabel">Title &amp; closing fees</span><span class="rvalue">-${fmtMoney(titleFees)}</span></div>
+    ${concessions > 0 ? `<div class="result-row"><span class="rlabel">Buyer concessions</span><span class="rvalue">-${fmtMoney(concessions)}</span></div>` : ''}
+    ${otherPayoffs > 0 ? `<div class="result-row"><span class="rlabel">Other payoffs</span><span class="rvalue">-${fmtMoney(otherPayoffs)}</span></div>` : ''}
+  `;
+}
+['n-price','n-payoff','n-commission','n-titlefees','n-concessions','n-other'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcNetProceeds);
+});
+calcNetProceeds();
+
+// ---------- COMMISSION SPLIT ----------
+function calcCommission() {
+  const price = num('c-price');
+  const sidePct = num('c-side');
+  const splitPct = num('c-splitpct');
+  const txnFee = num('c-txnfee');
+  const referralPct = num('c-referral');
+
+  const grossCommission = price * (sidePct / 100);
+  const referralAmount = grossCommission * (referralPct / 100);
+  const afterReferral = grossCommission - referralAmount;
+  const agentGross = afterReferral * (splitPct / 100);
+  const brokerageGross = afterReferral - agentGross;
+  const agentNet = agentGross - txnFee;
+
+  const results = document.getElementById('c-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">Agent take-home (this side)</span>
+      <span class="rvalue positive">${fmtMoney(agentNet)}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Gross commission (${fmtPercent(sidePct, 1)} of price)</span><span class="rvalue">${fmtMoney(grossCommission)}</span></div>
+    ${referralAmount > 0 ? `<div class="result-row"><span class="rlabel">Referral fee (${fmtPercent(referralPct, 1)})</span><span class="rvalue">-${fmtMoney(referralAmount)}</span></div>` : ''}
+    <div class="result-row"><span class="rlabel">Agent share (${fmtPercent(splitPct, 1)} split)</span><span class="rvalue">${fmtMoney(agentGross)}</span></div>
+    <div class="result-row"><span class="rlabel">Brokerage share</span><span class="rvalue">${fmtMoney(brokerageGross)}</span></div>
+    ${txnFee > 0 ? `<div class="result-row"><span class="rlabel">Transaction / E&amp;O fee</span><span class="rvalue">-${fmtMoney(txnFee)}</span></div>` : ''}
+  `;
+}
+['c-price','c-side','c-splitpct','c-txnfee','c-referral'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcCommission);
+});
+calcCommission();
+
+// ---------- RENT VS BUY ----------
+function calcRentVBuy() {
+  const rent = num('r-rent');
+  const price = num('r-price');
+  const down = num('r-down');
+  const rate = num('r-rate');
+  const annualTax = num('r-tax');
+  const annualIns = num('r-ins');
+  const maint = num('r-maint');
+  const hoa = num('r-hoa');
+
+  const loanAmount = Math.max(price - down, 0);
+  const monthlyRate = (rate / 100) / 12;
+  const numPayments = 30 * 12;
+  let principalAndInterest = 0;
+  if (loanAmount > 0 && monthlyRate > 0) {
+    principalAndInterest = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+  }
+  const monthlyOwnCost = principalAndInterest + (annualTax / 12) + (annualIns / 12) + maint + hoa;
+  const gap = monthlyOwnCost - rent;
+
+  const results = document.getElementById('r-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">${gap >= 0 ? 'Owning costs more, per month' : 'Owning costs less, per month'}</span>
+      <span class="rvalue ${gap >= 0 ? 'negative' : 'positive'}">${fmtMoney(Math.abs(gap))}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Renting (monthly)</span><span class="rvalue">${fmtMoney(rent)}</span></div>
+    <div class="result-row"><span class="rlabel">Owning &mdash; total monthly cost</span><span class="rvalue">${fmtMoney(monthlyOwnCost)}</span></div>
+    <div class="result-row"><span class="rlabel">&nbsp;&nbsp;Principal &amp; interest (30-yr)</span><span class="rvalue">${fmtMoney(principalAndInterest)}</span></div>
+    <div class="result-row"><span class="rlabel">&nbsp;&nbsp;Taxes &amp; insurance (monthly)</span><span class="rvalue">${fmtMoney((annualTax/12) + (annualIns/12))}</span></div>
+    <div class="result-row"><span class="rlabel">&nbsp;&nbsp;Maintenance reserve</span><span class="rvalue">${fmtMoney(maint)}</span></div>
+    ${hoa > 0 ? `<div class="result-row"><span class="rlabel">&nbsp;&nbsp;HOA dues</span><span class="rvalue">${fmtMoney(hoa)}</span></div>` : ''}
+  `;
+}
+['r-rent','r-price','r-down','r-rate','r-tax','r-ins','r-maint','r-hoa'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcRentVBuy);
+});
+calcRentVBuy();
+
+// ---------- CLOSING COSTS ----------
+function calcClosingCosts() {
+  const price = num('cc-price');
+  const loan = num('cc-loan');
+  const lenderPct = num('cc-lenderpct');
+  const title = num('cc-title');
+  const prepaid = num('cc-prepaid');
+  const other = num('cc-other');
+  const sellerCredit = num('cc-seller');
+
+  const lenderFees = loan * (lenderPct / 100);
+  const totalBeforeCredit = lenderFees + title + prepaid + other;
+  const netCashNeeded = totalBeforeCredit - sellerCredit;
+  const pctOfLoan = loan > 0 ? (totalBeforeCredit / loan) * 100 : 0;
+
+  const results = document.getElementById('cc-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">Estimated cash needed at closing</span>
+      <span class="rvalue">${fmtMoney(Math.max(netCashNeeded, 0))}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Lender fees (${fmtPercent(lenderPct, 1)} of loan)</span><span class="rvalue">${fmtMoney(lenderFees)}</span></div>
+    <div class="result-row"><span class="rlabel">Title insurance &amp; escrow</span><span class="rvalue">${fmtMoney(title)}</span></div>
+    <div class="result-row"><span class="rlabel">Prepaid taxes &amp; insurance</span><span class="rvalue">${fmtMoney(prepaid)}</span></div>
+    <div class="result-row"><span class="rlabel">Inspection, survey, recording, misc.</span><span class="rvalue">${fmtMoney(other)}</span></div>
+    ${sellerCredit > 0 ? `<div class="result-row"><span class="rlabel">Seller-paid credit</span><span class="rvalue">-${fmtMoney(sellerCredit)}</span></div>` : ''}
+    <div class="result-row"><span class="rlabel">As a share of the loan</span><span class="rvalue">${fmtPercent(pctOfLoan, 1)}</span></div>
+  `;
+}
+['cc-price','cc-loan','cc-lenderpct','cc-title','cc-prepaid','cc-other','cc-seller'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcClosingCosts);
+});
+calcClosingCosts();
+
+// ---------- CAP RATE / ROI ----------
+function calcCapRate() {
+  const price = num('cr-price');
+  const cashInvested = num('cr-down');
+  const rent = num('cr-rent');
+  const vacancyPct = num('cr-vacancy');
+  const opex = num('cr-opex');
+  const mortgage = num('cr-mortgage');
+
+  const grossAnnualRent = rent * 12;
+  const vacancyLoss = grossAnnualRent * (vacancyPct / 100);
+  const effectiveGrossIncome = grossAnnualRent - vacancyLoss;
+  const annualOpex = opex * 12;
+  const noi = effectiveGrossIncome - annualOpex;
+  const capRate = price > 0 ? (noi / price) * 100 : 0;
+
+  const annualMortgage = mortgage * 12;
+  const annualCashFlow = noi - annualMortgage;
+  const cashOnCash = cashInvested > 0 ? (annualCashFlow / cashInvested) * 100 : 0;
+
+  const results = document.getElementById('cr-results');
+  results.innerHTML = `
+    <div class="result-row headline">
+      <span class="rlabel">Cap rate</span>
+      <span class="rvalue">${fmtPercent(capRate, 2)}</span>
+    </div>
+    <div class="result-row headline">
+      <span class="rlabel">Cash-on-cash return</span>
+      <span class="rvalue ${cashOnCash < 0 ? 'negative' : 'positive'}">${fmtPercent(cashOnCash, 2)}</span>
+    </div>
+    <div class="result-row"><span class="rlabel">Gross annual rent</span><span class="rvalue">${fmtMoney(grossAnnualRent)}</span></div>
+    <div class="result-row"><span class="rlabel">Vacancy reserve (${fmtPercent(vacancyPct, 1)})</span><span class="rvalue">-${fmtMoney(vacancyLoss)}</span></div>
+    <div class="result-row"><span class="rlabel">Operating expenses (annual)</span><span class="rvalue">-${fmtMoney(annualOpex)}</span></div>
+    <div class="result-row"><span class="rlabel">Net operating income</span><span class="rvalue">${fmtMoney(noi)}</span></div>
+    <div class="result-row"><span class="rlabel">Annual mortgage payments</span><span class="rvalue">-${fmtMoney(annualMortgage)}</span></div>
+    <div class="result-row"><span class="rlabel">Annual cash flow</span><span class="rvalue ${annualCashFlow < 0 ? 'negative' : 'positive'}">${fmtMoney(annualCashFlow)}</span></div>
+  `;
+}
+['cr-price','cr-down','cr-rent','cr-vacancy','cr-opex','cr-mortgage'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcCapRate);
+});
+calcCapRate();
+
+// ---------- INIT: pick starting panel ----------
+let startingCalc = CALCULATORS[0].id;
+try {
+  const last = localStorage.getItem('working_numbers_last');
+  if (last && CALCULATORS.some(c => c.id === last)) startingCalc = last;
+} catch (e) {}
+switchCalc(startingCalc);
+</script>
+
+</body>
+</html>
