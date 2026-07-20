@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My IABS | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --red: #A32D2D; --red-light: #FCEBEB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+  input, button { font-family: inherit; }
+
+  header { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .header-brand { font-size: 16px; font-weight: 700; color: var(--white); }
+  .header-brand span { color: var(--gold); }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .header-email { font-size: 12.5px; color: var(--gray-300); }
+  .header-back, .signout-btn { font-size: 12px; color: var(--gray-300); background: none; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; text-decoration: none; }
+  .header-back:hover, .signout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  #loadingState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+
+  .tabs { display: flex; gap: 8px; padding: 0 0 0 0; }
+  .tab { padding: 8px 16px; border-radius: 7px; font-size: 12.5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: var(--white); font-weight: 400; }
+  .tab.active { border: none; background: var(--gold); color: var(--navy); font-weight: 600; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 60px; }
+  .grid { display: grid; grid-template-columns: 360px 1fr; gap: 28px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; gap: 20px; } }
+
+  .card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 14px; margin-bottom: 12px; }
+  .field-row { margin-bottom: 8px; }
+  .field-row label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .field-row input { width: 100%; padding: 8px 10px; border-radius: 7px; border: 1px solid #D3D1C7; font-size: 13px; }
+  .field-two { display: flex; gap: 8px; }
+  .field-two > div { flex: 1; }
+
+  .btn-primary { width: 100%; padding: 12px; border-radius: 9px; border: none; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 14px; cursor: pointer; }
+  .btn-primary:disabled { opacity: 0.6; cursor: default; }
+  .btn-secondary { width: 100%; padding: 9px; border-radius: 8px; border: 1px solid #D3D1C7; background: var(--white); font-size: 12.5px; cursor: pointer; margin-top: 8px; }
+  .link-btn { background: none; border: none; color: var(--teal); text-decoration: underline; font-size: 12px; cursor: pointer; padding: 0; }
+
+  .note-blue { background: #E6F1FB; border: 1px solid #B5D4F4; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #0C447C; margin-bottom: 18px; }
+  .note-green { background: var(--teal-light); border: 1px solid #9FE1CB; border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: #085041; margin-bottom: 18px; }
+  .note-red { font-size: 12px; color: var(--red); margin-top: 8px; text-align: center; }
+  .note-ok { font-size: 11.5px; color: var(--teal); margin-top: 4px; text-align: center; }
+
+  .delivery-option { display: block; width: 100%; text-align: left; padding: 12px 14px; border-radius: 9px; cursor: pointer; margin-bottom: 8px; border: 1px solid; background: none; }
+  .delivery-option .title { font-weight: 600; display: block; }
+  .delivery-option .desc { display: block; font-size: 11.5px; color: var(--gray-500); margin-top: 2px; }
+  .opt-email { border-color: #185FA5; background: #E8F1FB; }
+  .opt-link { border-color: var(--teal); background: var(--teal-light); }
+  .opt-person { border-color: #6B3FA0; background: #F2EAFB; }
+  .back-choice { background: none; border: none; color: var(--gray-500); font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; margin-bottom: 12px; display: block; }
+
+  .form-canvas-wrap { position: relative; width: 1275px; max-width: 100%; margin: 0 auto; border: 1px solid #E5E3DA; border-radius: 4px; overflow: hidden; background: white; }
+  .form-canvas-wrap img { display: block; width: 100%; height: auto; }
+  .overlay { position: absolute; top: 0; left: 0; width: 1275px; height: 1650px; transform-origin: top left; }
+  .field-fill { position: absolute; border: none; background: rgba(15,110,86,0.10); font: 22px/1.1 'Segoe UI', sans-serif; color: var(--navy); padding: 0 4px; overflow: hidden; white-space: nowrap; }
+
+  .sig-pad-wrap { text-align: center; }
+  #sigCanvas { border: 1px dashed var(--gray-300); border-radius: 8px; touch-action: none; background: white; width: 100%; max-width: 400px; height: 140px; }
+  .sig-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .sig-actions button { padding: 6px 14px; font-size: 12px; border-radius: 6px; border: 1px solid #D3D1C7; background: white; cursor: pointer; }
+
+  .history-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #FAFAF8; border-radius: 8px; font-size: 12.5px; margin-bottom: 8px; }
+  .history-row .method { font-size: 11px; color: var(--gray-500); text-transform: capitalize; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">Agent<span>HubTX</span> · My IABS</div>
+  <div class="header-right">
+    <span class="header-email" id="headerEmail"></span>
+    <a class="header-back" href="dashboard.html">Back to hub</a>
+  </div>
+</header>
+
+<div id="loadingState"><p>Loading your IABS profile...</p></div>
+<div id="deniedState" style="display:none; text-align:center; padding:80px 20px;">
+  <h2 style="color:var(--navy); margin-bottom:10px;">Not signed in</h2>
+  <p><a href="login.html" style="color:var(--navy);">Sign in to AgentHubTX</a>.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div style="background:var(--navy); padding:14px 24px;">
+    <div class="tabs">
+      <button class="tab active" id="tabSetup" onclick="showMode('setup')">Broker/agent setup</button>
+      <button class="tab" id="tabClient" onclick="showMode('client')">New client</button>
+      <button class="tab" id="tabHistory" onclick="showMode('history')">My history</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="modeSetup">
+      <div class="note-blue">Fill this out once. It's saved to your AgentHubTX account and reused for every client, on any device you sign in on.</div>
+      <div id="profileRows"></div>
+      <button class="btn-primary" id="saveProfileBtn" onclick="saveProfile()">Save profile</button>
+      <div class="note-ok" id="profileSavedMsg" style="display:none;">Saved to your account</div>
+    </div>
+
+    <div id="modeClient" style="display:none;">
+      <div class="grid">
+        <div>
+          <div class="note-green">
+            <strong>Your profile:</strong> <span id="profileSummary"></span>
+            <br><button class="link-btn" style="margin-top:6px;" onclick="showMode('setup')">Edit broker/agent info</button>
+          </div>
+
+          <div class="card">
+            <h2>New client</h2>
+            <div class="field-row">
+              <label>Buyer / tenant / seller / landlord name</label>
+              <input type="text" id="clientName" placeholder="Full name">
+            </div>
+            <div class="field-row">
+              <label>Date</label>
+              <input type="text" id="clientDate" placeholder="MM/DD/YYYY">
+            </div>
+            <div class="field-row">
+              <label>Initials — have the client sign below</label>
+              <div class="sig-pad-wrap">
+                <canvas id="sigCanvas" width="400" height="140"></canvas>
+                <div class="sig-actions">
+                  <button onclick="clearSignature()">Clear</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn-primary" id="generateBtn" onclick="handleGenerate()" style="margin-top:10px;">Generate filled IABS PDF</button>
+            <div class="note-red" id="genError" style="display:none;"></div>
+            <div class="note-ok" id="genSuccess" style="display:none;"></div>
+          </div>
+
+          <div class="card" id="deliveryCard" style="display:none;">
+            <h2>Deliver to client</h2>
+            <p style="font-size:11.5px; color:var(--gray-500); margin-bottom:12px;">TREC requires this form be presented to the consumer. Choose how it's being delivered.</p>
+            <div id="deliveryChoices">
+              <button class="delivery-option opt-email" onclick="showDeliveryDetail('email')">
+                <span class="title">Send via Email</span>
+                <span class="desc">Open Gmail pre-filled to the client's email address.</span>
+              </button>
+              <button class="delivery-option opt-link" onclick="showDeliveryDetail('link')">
+                <span class="title">Copy a Link</span>
+                <span class="desc">Get a link to the signed PDF — paste it into a text or any messaging app yourself.</span>
+              </button>
+              <button class="delivery-option opt-person" onclick="logDelivery('in-person')">
+                <span class="title">Shown In-Person</span>
+                <span class="desc">The form was physically displayed or handed to the client.</span>
+              </button>
+            </div>
+            <div id="deliveryDetailEmail" style="display:none;">
+              <button class="back-choice" onclick="showDeliveryChoices()">&larr; Choose a different method</button>
+              <div class="field-row">
+                <label>Client email</label>
+                <input type="email" id="clientEmailInput" placeholder="client@example.com">
+              </div>
+              <button class="btn-primary" onclick="sendEmail()">Open Gmail to send</button>
+              <div class="note-ok" id="emailSentMsg" style="display:none;">Gmail opened in a new tab. Attach the downloaded PDF before sending.</div>
+            </div>
+            <div id="deliveryDetailLink" style="display:none;">
+              <button class="back-choice" onclick="showDeliveryChoices()">&larr; Choose a different method</button>
+              <div style="background:#FAFAF8; border-radius:8px; padding:9px 12px; font-size:12.5px; word-break:break-all;" id="linkOutput"></div>
+              <button class="btn-secondary" onclick="copyLink()">Copy link</button>
+              <div class="note-ok" id="linkCopiedMsg" style="display:none;">Copied — paste it into a text message or any app to send to your client.</div>
+            </div>
+          </div>
+
+          <button class="btn-secondary" onclick="resetClientForm()">Clear for next client</button>
+        </div>
+
+        <div>
+          <p style="font-size:12px; color:var(--gray-500); margin-bottom:8px;">Broker/agent rows are filled from your saved profile. Only initials and date change per delivery.</p>
+          <div class="form-canvas-wrap" id="formCanvasWrap">
+            <img src="https://tjdxnmukjraljvjprolk.supabase.co/storage/v1/object/public/public-assets/iabs-form.png" alt="TREC IABS form">
+            <div class="overlay" id="overlay"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modeHistory" style="display:none;">
+      <div class="card">
+        <p style="font-weight:600; font-size:14px; margin-bottom:4px;">My past IABS deliveries</p>
+        <p style="font-size:11.5px; color:var(--gray-500); margin-bottom:12px;">Only your own deliveries are shown here.</p>
+        <div id="historyList"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px; padding:14px 18px; border-radius:10px; background:#F7F5EF; border:1px solid #E5E3DA; font-size:12px; line-height:1.6; color:#5F5E5A;">
+      <div style="font-weight:700; color:var(--navy); margin-bottom:6px; font-size:12.5px;">Notes</div>
+      <div><strong>No Legal Advice:</strong> This software tool does not provide legal advice. Using it does not create an attorney-client relationship.</div>
+      <div style="margin-top:4px;"><strong>Right to Counsel:</strong> You may have independent legal counsel review this agreement before use.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const IMG_W = 1275, IMG_H = 1650;
+const FIELD_MAP = {
+  firm:       { line_y: 1310, name: [60,420], lic: [438,572], email: [591,993], phone: [1014,1210] },
+  broker:     { line_y: 1384, name: [60,420], lic: [438,572], email: [591,993], phone: [1014,1210] },
+  supervisor: { line_y: 1454, name: [60,420], lic: [438,572], email: [591,993], phone: [1014,1210] },
+  agent:      { line_y: 1526, name: [60,420], lic: [438,572], email: [591,993], phone: [1014,1210] },
+};
+const SIGNATURE = { line_y: 1582, initials: [285,722], date: [745,973] };
+
+const BLANK_PROFILE = {
+  firm_name:'', firm_license:'', firm_email:'', firm_phone:'',
+  broker_name:'', broker_license:'', broker_email:'', broker_phone:'',
+  supervisor_enabled:true,
+  supervisor_name:'', supervisor_license:'', supervisor_email:'', supervisor_phone:'',
+  agent_name:'', agent_license:'', agent_phone:'',
+};
+const ROW_DEFS = [
+  { key:'firm', label:'Sponsoring broker firm', sub:'Row 1' },
+  { key:'broker', label:'Designated broker', sub:'Row 2' },
+  { key:'supervisor', label:'Licensed supervisor', sub:'Row 3, if applicable' },
+  { key:'agent', label:'Sales agent / associate', sub:'Row 4 — you' },
+];
+
+let currentUser = null;
+let profile = { ...BLANK_PROFILE };
+let generatedPdfBytes = null;
+let generatedFileName = null;
+let uploadedPublicUrl = null;
+let deliveryRecordId = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+function todayStr() {
+  const d = new Date();
+  return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+// ---------- Auth / init ----------
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('deniedState').style.display = 'block';
+    return;
+  }
+  currentUser = session.user;
+  document.getElementById('headerEmail').textContent = currentUser.email;
+
+  try {
+    const { data, error } = await sb.rpc('get_my_iabs_profile');
+    if (error) throw error;
+    if (data) profile = { ...BLANK_PROFILE, ...data };
+  } catch (err) {
+    console.error('Failed to load profile:', err);
+  }
+
+  renderProfileForm();
+  document.getElementById('clientDate').value = todayStr();
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  showMode((profile.agent_name && profile.firm_name) ? 'client' : 'setup');
+  renderOverlay();
+  setupSignaturePad();
+  resizeOverlay();
+  window.addEventListener('resize', resizeOverlay);
+}
+
+// ---------- Mode switching ----------
+function showMode(mode) {
+  document.getElementById('modeSetup').style.display = mode === 'setup' ? 'block' : 'none';
+  document.getElementById('modeClient').style.display = mode === 'client' ? 'block' : 'none';
+  document.getElementById('modeHistory').style.display = mode === 'history' ? 'block' : 'none';
+  document.getElementById('tabSetup').classList.toggle('active', mode === 'setup');
+  document.getElementById('tabClient').classList.toggle('active', mode === 'client');
+  document.getElementById('tabHistory').classList.toggle('active', mode === 'history');
+  if (mode === 'client') { updateProfileSummary(); renderOverlay(); setTimeout(resizeOverlay, 0); }
+  if (mode === 'history') loadHistory();
+}
+
+// ---------- Profile setup ----------
+function renderProfileForm() {
+  const wrap = document.getElementById('profileRows');
+  wrap.innerHTML = ROW_DEFS.map(row => `
+    <div class="card">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+        <p style="margin:0; font-weight:600; font-size:13.5px;">${row.label}</p>
+        <span style="font-size:11px; color:var(--gray-500);">${row.sub}</span>
+      </div>
+      ${row.key === 'supervisor' ? `
+        <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:10px; cursor:pointer;">
+          <input type="checkbox" id="supervisor_enabled" ${profile.supervisor_enabled ? 'checked' : ''} onchange="profile.supervisor_enabled = this.checked; renderProfileForm();">
+          Include this row
+        </label>` : ''}
+      ${(row.key !== 'supervisor' || profile.supervisor_enabled) ? `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="${row.key}_name" value="${escapeHtml(profile[row.key+'_name'])}" placeholder="Full name" style="padding:8px 10px; border-radius:7px; border:1px solid #D3D1C7; font-size:13px;">
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="${row.key}_license" value="${escapeHtml(profile[row.key+'_license'])}" placeholder="License #" style="flex:1; padding:8px 10px; border-radius:7px; border:1px solid #D3D1C7; font-size:13px;">
+            <input type="text" id="${row.key}_phone" value="${escapeHtml(profile[row.key+'_phone'])}" placeholder="Phone" style="flex:1; padding:8px 10px; border-radius:7px; border:1px solid #D3D1C7; font-size:13px;">
+          </div>
+          ${row.key === 'agent'
+            ? `<div style="padding:8px 10px; border-radius:7px; border:1px solid #D3D1C7; font-size:13px; background:#FAFAF8; color:#5F5E5A;">${currentUser.email} <span style="color:#888780;">· your AgentHubTX login email, used automatically</span></div>`
+            : `<input type="text" id="${row.key}_email" value="${escapeHtml(profile[row.key+'_email'])}" placeholder="Email" style="padding:8px 10px; border-radius:7px; border:1px solid #D3D1C7; font-size:13px;">`
+          }
+        </div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function saveProfile() {
+  ROW_DEFS.forEach(row => {
+    if (row.key === 'supervisor' && !profile.supervisor_enabled) return;
+    profile[row.key+'_name'] = document.getElementById(row.key+'_name')?.value || '';
+    profile[row.key+'_license'] = document.getElementById(row.key+'_license')?.value || '';
+    profile[row.key+'_phone'] = document.getElementById(row.key+'_phone')?.value || '';
+    if (row.key !== 'agent') profile[row.key+'_email'] = document.getElementById(row.key+'_email')?.value || '';
+  });
+
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    const { error } = await sb.rpc('save_my_iabs_profile', {
+      p_firm_name: profile.firm_name, p_firm_license: profile.firm_license, p_firm_email: profile.firm_email, p_firm_phone: profile.firm_phone,
+      p_broker_name: profile.broker_name, p_broker_license: profile.broker_license, p_broker_email: profile.broker_email, p_broker_phone: profile.broker_phone,
+      p_supervisor_enabled: profile.supervisor_enabled,
+      p_supervisor_name: profile.supervisor_name, p_supervisor_license: profile.supervisor_license, p_supervisor_email: profile.supervisor_email, p_supervisor_phone: profile.supervisor_phone,
+      p_agent_name: profile.agent_name, p_agent_license: profile.agent_license, p_agent_phone: profile.agent_phone,
+    });
+    if (error) throw error;
+    document.getElementById('profileSavedMsg').style.display = 'block';
+    setTimeout(() => { document.getElementById('profileSavedMsg').style.display = 'none'; }, 2000);
+    showMode('client');
+  } catch (err) {
+    console.error('Failed to save profile:', err);
+    alert('Could not save your profile. Please check your connection and try again.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Save profile';
+}
+
+function updateProfileSummary() {
+  document.getElementById('profileSummary').textContent =
+    `${profile.agent_name || '(not set)'} · Lic# ${profile.agent_license || '—'} · ${currentUser.email}`;
+}
+
+// ---------- Form overlay preview ----------
+function renderOverlay() {
+  const overlay = document.getElementById('overlay');
+  let html = '';
+  ROW_DEFS.forEach(row => {
+    const pos = FIELD_MAP[row.key];
+    const lineY = pos.line_y - 20;
+    if (row.key === 'supervisor' && !profile.supervisor_enabled) {
+      html += `<div class="field-fill" style="left:${pos.name[0]}px; top:${lineY}px; width:${pos.name[1]-pos.name[0]}px; color:#888780; font-style:italic;">N/A</div>`;
+      return;
+    }
+    const email = row.key === 'agent' ? currentUser.email : profile[row.key+'_email'];
+    html += `<div class="field-fill" style="left:${pos.name[0]}px; top:${lineY}px; width:${pos.name[1]-pos.name[0]}px;">${escapeHtml(profile[row.key+'_name'])}</div>`;
+    html += `<div class="field-fill" style="left:${pos.lic[0]}px; top:${lineY}px; width:${pos.lic[1]-pos.lic[0]}px;">${escapeHtml(profile[row.key+'_license'])}</div>`;
+    html += `<div class="field-fill" style="left:${pos.email[0]}px; top:${lineY}px; width:${pos.email[1]-pos.email[0]}px;">${escapeHtml(email)}</div>`;
+    html += `<div class="field-fill" style="left:${pos.phone[0]}px; top:${lineY}px; width:${pos.phone[1]-pos.phone[0]}px;">${escapeHtml(profile[row.key+'_phone'])}</div>`;
+  });
+  const sigY = SIGNATURE.line_y - 20;
+  const dateVal = document.getElementById('clientDate') ? document.getElementById('clientDate').value : '';
+  html += `<div class="field-fill" id="datePreview" style="left:${SIGNATURE.date[0]}px; top:${sigY}px; width:${SIGNATURE.date[1]-SIGNATURE.date[0]}px;">${escapeHtml(dateVal)}</div>`;
+  overlay.innerHTML = html;
+}
+
+function resizeOverlay() {
+  const wrap = document.getElementById('formCanvasWrap');
+  const overlay = document.getElementById('overlay');
+  const scale = wrap.offsetWidth / IMG_W;
+  overlay.style.transform = `scale(${scale})`;
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target && e.target.id === 'clientDate') renderOverlay();
+});
+
+// ---------- Signature pad ----------
+let sigCtx, sigDrawing = false, sigHasContent = false;
+function setupSignaturePad() {
+  const canvas = document.getElementById('sigCanvas');
+  sigCtx = canvas.getContext('2d');
+  sigCtx.lineWidth = 2.5;
+  sigCtx.lineCap = 'round';
+  sigCtx.strokeStyle = '#0C3057';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const point = e.touches ? e.touches[0] : e;
+    return { x: (point.clientX - rect.left) * scaleX, y: (point.clientY - rect.top) * scaleY };
+  }
+  function start(e) {
+    e.preventDefault();
+    sigDrawing = true;
+    sigHasContent = true;
+    const p = getPos(e);
+    sigCtx.beginPath();
+    sigCtx.moveTo(p.x, p.y);
+  }
+  function move(e) {
+    if (!sigDrawing) return;
+    e.preventDefault();
+    const p = getPos(e);
+    sigCtx.lineTo(p.x, p.y);
+    sigCtx.stroke();
+  }
+  function end() { sigDrawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end);
+}
+function clearSignature() {
+  sigCtx.clearRect(0, 0, 400, 140);
+  sigHasContent = false;
+}
+
+// ---------- Generate PDF ----------
+async function handleGenerate() {
+  const clientName = document.getElementById('clientName').value.trim();
+  const date = document.getElementById('clientDate').value.trim();
+  const errEl = document.getElementById('genError');
+  const okEl = document.getElementById('genSuccess');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (!sigHasContent) {
+    errEl.textContent = 'Have the client sign in the box before generating.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating PDF...';
+
+  try {
+    const sigDataUrl = document.getElementById('sigCanvas').toDataURL('image/png');
+    const bytes = await generateFilledPdf(profile, currentUser.email, date, sigDataUrl);
+    generatedPdfBytes = bytes;
+    const safeName = (clientName || 'client').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+    generatedFileName = `iabs-${safeName}-${Date.now()}.pdf`;
+
+    // Download locally
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = generatedFileName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    okEl.textContent = `Downloaded ${generatedFileName}. Uploading a copy to your account...`;
+    okEl.style.display = 'block';
+
+    // Upload to storage
+    const path = `${currentUser.id}/${generatedFileName}`;
+    const { error: uploadError } = await sb.storage.from('iabs-deliveries').upload(path, bytes, {
+      contentType: 'application/pdf', upsert: false,
+    });
+    if (uploadError) throw uploadError;
+
+    const { data: pub } = sb.storage.from('iabs-deliveries').getPublicUrl(path);
+    uploadedPublicUrl = pub.publicUrl;
+
+    const { data: newId, error: rpcError } = await sb.rpc('insert_my_iabs_delivery', {
+      p_client_name: clientName || null,
+      p_client_initials: null,
+      p_client_email: null,
+      p_agent_name: profile.agent_name || null,
+      p_file_path: path,
+    });
+    if (rpcError) throw rpcError;
+    deliveryRecordId = newId;
+
+    okEl.textContent = `Saved. Choose how to deliver it below.`;
+    document.getElementById('deliveryCard').style.display = 'block';
+  } catch (err) {
+    console.error('Generate/upload failed:', err);
+    errEl.textContent = 'Could not generate or save the PDF. Try again, or check your connection.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Generate filled IABS PDF';
+}
+
+async function generateFilledPdf(profile, agentEmail, date, sigDataUrl) {
+  const { PDFDocument } = PDFLib;
+  const imgResp = await fetch('https://tjdxnmukjraljvjprolk.supabase.co/storage/v1/object/public/public-assets/iabs-form.png');
+  const imgBytes = await imgResp.arrayBuffer();
+
+  const pdfDoc = await PDFDocument.create();
+  const pngImage = await pdfDoc.embedPng(imgBytes);
+  const page = pdfDoc.addPage([IMG_W, IMG_H]);
+  page.drawImage(pngImage, { x: 0, y: 0, width: IMG_W, height: IMG_H });
+
+  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+  const drawText = (text, x0, x1, lineY) => {
+    if (!text) return;
+    page.drawText(text, { x: x0 + 4, y: IMG_H - lineY + 4, size: 13, font, color: PDFLib.rgb(0.047, 0.19, 0.34) });
+  };
+
+  ROW_DEFS.forEach(row => {
+    const pos = FIELD_MAP[row.key];
+    if (row.key === 'supervisor' && !profile.supervisor_enabled) {
+      drawText('N/A', pos.name[0], pos.name[1], pos.line_y);
+      return;
+    }
+    const email = row.key === 'agent' ? agentEmail : profile[row.key+'_email'];
+    drawText(profile[row.key+'_name'], pos.name[0], pos.name[1], pos.line_y);
+    drawText(profile[row.key+'_license'], pos.lic[0], pos.lic[1], pos.line_y);
+    drawText(email, pos.email[0], pos.email[1], pos.line_y);
+    drawText(profile[row.key+'_phone'], pos.phone[0], pos.phone[1], pos.line_y);
+  });
+  drawText(date, SIGNATURE.date[0], SIGNATURE.date[1], SIGNATURE.line_y);
+
+  // Embed the drawn signature image into the initials box
+  const sigPngBytes = await (await fetch(sigDataUrl)).arrayBuffer();
+  const sigImage = await pdfDoc.embedPng(sigPngBytes);
+  const sigBoxW = SIGNATURE.initials[1] - SIGNATURE.initials[0];
+  const sigBoxH = 50;
+  const sigDrawW = sigBoxW * 0.6;
+  const sigDrawH = sigDrawW * (sigImage.height / sigImage.width);
+  page.drawImage(sigImage, {
+    x: SIGNATURE.initials[0] + 6,
+    y: IMG_H - SIGNATURE.line_y + 2,
+    width: sigDrawW,
+    height: Math.min(sigDrawH, sigBoxH),
+  });
+
+  return pdfDoc.save();
+}
+
+// ---------- Delivery ----------
+function showDeliveryChoices() {
+  document.getElementById('deliveryChoices').style.display = 'block';
+  document.getElementById('deliveryDetailEmail').style.display = 'none';
+  document.getElementById('deliveryDetailLink').style.display = 'none';
+}
+function showDeliveryDetail(which) {
+  document.getElementById('deliveryChoices').style.display = 'none';
+  if (which === 'email') {
+    document.getElementById('deliveryDetailEmail').style.display = 'block';
+  } else if (which === 'link') {
+    document.getElementById('deliveryDetailLink').style.display = 'block';
+    document.getElementById('linkOutput').textContent = uploadedPublicUrl || '(link not ready yet)';
+  }
+}
+function copyLink() {
+  navigator.clipboard.writeText(uploadedPublicUrl).then(() => {
+    document.getElementById('linkCopiedMsg').style.display = 'block';
+    logDelivery('link');
+  });
+}
+function sendEmail() {
+  const clientName = document.getElementById('clientName').value.trim();
+  const clientEmail = document.getElementById('clientEmailInput').value.trim();
+  const date = document.getElementById('clientDate').value.trim();
+  const subject = 'Texas Information About Brokerage Services (IABS)';
+  const body = [
+    `Dear ${clientName || 'Prospective Client'},`, '',
+    'As required by the Texas Real Estate Commission, please find your completed',
+    'Information About Brokerage Services (IABS) form attached.', '',
+    `Sponsoring broker firm: ${profile.firm_name || 'N/A'}`,
+    `Designated broker: ${profile.broker_name || 'N/A'} (Lic# ${profile.broker_license || 'N/A'})`,
+    profile.supervisor_enabled ? `Licensed supervisor: ${profile.supervisor_name || 'N/A'} (Lic# ${profile.supervisor_license || 'N/A'})` : 'Licensed supervisor: N/A',
+    `Sales agent: ${profile.agent_name || 'N/A'} (Lic# ${profile.agent_license || 'N/A'})`, '',
+    `Date: ${date}`, '', 'Please reply to confirm receipt for your records.', '', profile.agent_name || '',
+  ].join('\n');
+  const params = new URLSearchParams();
+  params.set('view', 'cm');
+  params.set('to', clientEmail);
+  params.set('cc', currentUser.email);
+  params.set('su', subject);
+  params.set('body', body);
+  window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank');
+  document.getElementById('emailSentMsg').style.display = 'block';
+  logDelivery('email');
+}
+
+async function logDelivery(method) {
+  if (!deliveryRecordId) return;
+  try {
+    const { error } = await sb.rpc('update_my_iabs_delivery_method', { p_delivery_id: deliveryRecordId, p_method: method });
+    if (error) throw error;
+  } catch (err) {
+    console.error('Could not log delivery method:', err);
+  }
+}
+
+function resetClientForm() {
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientDate').value = todayStr();
+  clearSignature();
+  document.getElementById('deliveryCard').style.display = 'none';
+  showDeliveryChoices();
+  document.getElementById('genSuccess').style.display = 'none';
+  document.getElementById('genError').style.display = 'none';
+  generatedPdfBytes = null;
+  generatedFileName = null;
+  uploadedPublicUrl = null;
+  deliveryRecordId = null;
+  renderOverlay();
+}
+
+// ---------- History ----------
+async function loadHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<p style="font-size:12.5px; color:var(--gray-500);">Loading...</p>';
+  try {
+    const { data, error } = await sb.rpc('get_my_iabs_deliveries');
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      list.innerHTML = '<p style="font-size:12.5px; color:var(--gray-500);">No deliveries yet. Generate your first IABS PDF from "New client."</p>';
+      return;
+    }
+    list.innerHTML = data.map(row => `
+      <div class="history-row">
+        <div><strong>${escapeHtml(row.client_name || 'Unnamed client')}</strong>
+          <span style="color:var(--gray-500); margin-left:8px;">${formatDate(row.created_at)}</span>
+        </div>
+        <span class="method">${escapeHtml(row.delivery_method || 'pending')}</span>
+      </div>`).join('');
+  } catch (err) {
+    console.error('Failed to load history:', err);
+    list.innerHTML = '<p style="font-size:12.5px; color:var(--red);">Could not load your history. Try refreshing.</p>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
