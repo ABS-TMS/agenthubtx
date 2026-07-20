@@ -106,6 +106,20 @@
       <div id="pinnedToolsGrid"></div>
     </div>
 
+    <div style="margin-top:28px;">
+      <div class="res-header">
+        <h2>🔗 My Links</h2>
+      </div>
+      <div class="form-card" style="background:var(--white); border-radius:10px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:12px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="newLinkLabel" placeholder="Name (e.g. Lender Portal)" style="flex:1; min-width:140px; padding:9px 12px; border:1px solid var(--gray-300); border-radius:6px; font-size:13.5px; font-family:inherit;">
+          <input type="text" id="newLinkUrl" placeholder="https://..." style="flex:2; min-width:180px; padding:9px 12px; border:1px solid var(--gray-300); border-radius:6px; font-size:13.5px; font-family:inherit;">
+          <button onclick="addCustomLink()" style="background:var(--gold); color:var(--navy); border:none; border-radius:6px; padding:9px 18px; font-size:13.5px; font-weight:700; cursor:pointer;">Add</button>
+        </div>
+      </div>
+      <div id="myLinksGrid"></div>
+    </div>
+
     <a class="edit-link" href="setup.html">✏️ Edit your daily tools</a>
   </div>
 </div>
@@ -114,6 +128,7 @@
   const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let currentUser = null;
 
   const TOOL_URLS = {
     'Amarillo MLS (AARMLS)': 'https://www.idxbroker.com/mls/amarillo-mls-aarmls',
@@ -260,6 +275,64 @@
     }
   }
 
+  // ---- My Links: agent's own custom bookmarks, plain table + RLS -------
+  async function loadCustomLinks() {
+    const grid = document.getElementById('myLinksGrid');
+    try {
+      const { data, error } = await sb.from('custom_links').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      renderCustomLinks(data || []);
+    } catch (err) {
+      grid.innerHTML = `<div class="res-empty">Could not load your links right now.</div>`;
+    }
+  }
+
+  function renderCustomLinks(links) {
+    const grid = document.getElementById('myLinksGrid');
+    if (!links.length) {
+      grid.innerHTML = `<div class="res-empty">No links added yet — save your own sites above so you never need a bookmark again.</div>`;
+      return;
+    }
+    grid.innerHTML = `<div class="res-grid">${links.map(l => `
+      <div class="res-card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <a href="${escapeHtml(l.url)}" target="_blank" style="flex:1; min-width:0;">
+          <div class="res-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(l.label)}</div>
+        </a>
+        <button onclick="deleteCustomLink('${l.id}')" style="background:none; border:none; color:var(--gray-500); font-size:16px; cursor:pointer; flex-shrink:0;" title="Remove">✕</button>
+      </div>`).join('')}</div>`;
+  }
+
+  async function addCustomLink() {
+    const labelEl = document.getElementById('newLinkLabel');
+    const urlEl = document.getElementById('newLinkUrl');
+    const label = labelEl.value.trim();
+    let url = urlEl.value.trim();
+
+    if (!label || !url) { alert('Please enter both a name and a URL.'); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    try {
+      const { error } = await sb.from('custom_links').insert({ agent_id: currentUser.id, label, url });
+      if (error) throw error;
+      labelEl.value = '';
+      urlEl.value = '';
+      loadCustomLinks();
+    } catch (err) {
+      alert('Could not save that link: ' + err.message);
+    }
+  }
+
+  async function deleteCustomLink(id) {
+    if (!confirm('Remove this link?')) return;
+    try {
+      const { error } = await sb.from('custom_links').delete().eq('id', id);
+      if (error) throw error;
+      loadCustomLinks();
+    } catch (err) {
+      alert('Could not remove that link: ' + err.message);
+    }
+  }
+
   async function init() {
     updateClock();
     setInterval(updateClock, 30000);
@@ -310,6 +383,8 @@
     }
 
     loadPinnedTools(user.id);
+    currentUser = user;
+    loadCustomLinks();
 
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('dashboardContent').style.display = 'block';
