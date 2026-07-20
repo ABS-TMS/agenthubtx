@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offer Comparison Worksheet — AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.6; }
+
+  header { background: var(--navy); padding: 36px 24px; text-align: center; border-bottom: 3px solid var(--gold); }
+  header .eyebrow { color: var(--gold); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+  header h1 { color: var(--white); font-size: 28px; margin-top: 8px; }
+  header p { color: #C8C5BC; font-size: 14px; margin-top: 8px; max-width: 620px; margin-left: auto; margin-right: auto; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 16px 70px; }
+
+  .legend { background: var(--white); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .legend .row { margin-bottom: 6px; }
+  .legend b { color: var(--navy); }
+
+  .table-card { background: var(--white); border-radius: 10px; padding: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  th { background: var(--navy); color: var(--white); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 10px 8px; text-align: left; white-space: normal; }
+  td { padding: 8px; border-bottom: 1px solid #EAE6DA; }
+  input[type="text"], input[type="number"] {
+    width: 100%; padding: 7px 8px; border: 1px solid #DCD5C6; border-radius: 5px; font-size: 13px; font-family: inherit;
+  }
+  .net-cell { font-weight: 700; font-size: 14px; color: var(--navy); background: var(--off); text-align: right; padding-right: 12px; }
+  tr.winner .net-cell { color: var(--teal); background: var(--teal-light); }
+  tr.winner td:first-child { position: relative; }
+  tr.winner td:first-child::before { content: "★"; color: var(--gold); margin-right: 4px; }
+  .remove-btn { background: none; border: 1px solid #DCD5C6; color: #A33B2C; border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 12px; }
+  .remove-btn:hover { background: #FDECEA; }
+
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 10px; }
+  .add-btn { background: var(--navy); color: var(--white); border: none; border-radius: 6px; padding: 10px 18px; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+  .add-btn:hover { background: var(--gold); color: var(--navy); }
+  .reset-btn { background: none; border: 1px solid #DCD5C6; color: var(--gray-500); border-radius: 6px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
+
+  .winner-banner { background: var(--navy); border-radius: 8px; padding: 16px 22px; margin-top: 20px; color: var(--white); font-size: 14.5px; }
+  .winner-banner b { color: var(--gold); }
+
+  footer { text-align: center; padding: 24px; font-size: 11.5px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">AgentHubTX · Offer Review</div>
+  <h1>Offer Comparison Worksheet</h1>
+  <p>Rank offers by true net to seller — not the sticker price. Fill in each offer below; the highest true net highlights automatically.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="legend">
+    <div class="row"><b>Seller Covers Buyer's Fee</b> [¶12A(1)(b) / 12B(1)] — reduces the seller's net.</div>
+    <div class="row"><b>Buyer Contributes to Seller's Fee</b> [¶12B(2), new mandatory 7/1/2026] — increases the seller's net without raising the headline sale price.</div>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="min-width:130px;">Buyer</th>
+          <th style="min-width:110px;">Offer Price ($)</th>
+          <th style="min-width:100px;">Seller's Own<br>Broker Fee (%)</th>
+          <th style="min-width:120px;">Seller Covers<br>Buyer's Fee ($)</th>
+          <th style="min-width:120px;">Buyer Contributes to<br>Seller's Fee ($)</th>
+          <th style="min-width:110px;">Other Seller<br>Concessions ($)</th>
+          <th style="min-width:120px;">True Net<br>to Seller</th>
+          <th style="width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody id="offerRows"></tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <button class="add-btn" onclick="addRow()">+ Add Offer</button>
+    <button class="reset-btn" onclick="resetTable()">Reset Worksheet</button>
+  </div>
+
+  <div class="winner-banner" id="winnerBanner" style="display:none;"></div>
+
+</div>
+
+<footer>AgentHubTX · Calculations happen in your browser — nothing is saved or sent anywhere.</footer>
+
+<script>
+  let rowCount = 0;
+
+  function addRow(prefill) {
+    rowCount++;
+    const id = rowCount;
+    const tbody = document.getElementById('offerRows');
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + id;
+    tr.innerHTML = `
+      <td><input type="text" placeholder="Buyer name" value="${prefill ? prefill.name : ''}" oninput="recalc()"></td>
+      <td><input type="number" placeholder="0" value="${prefill ? prefill.price : ''}" oninput="recalc()" data-field="price"></td>
+      <td><input type="number" placeholder="3" step="0.1" value="${prefill ? prefill.feePct : ''}" oninput="recalc()" data-field="feePct"></td>
+      <td><input type="number" placeholder="0" value="${prefill ? prefill.sellerCovers : ''}" oninput="recalc()" data-field="sellerCovers"></td>
+      <td><input type="number" placeholder="0" value="${prefill ? prefill.buyerContributes : ''}" oninput="recalc()" data-field="buyerContributes"></td>
+      <td><input type="number" placeholder="0" value="${prefill ? prefill.otherConcessions : ''}" oninput="recalc()" data-field="otherConcessions"></td>
+      <td class="net-cell" data-net>$0</td>
+      <td><button class="remove-btn" onclick="removeRow(${id})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+    recalc();
+  }
+
+  function removeRow(id) {
+    const row = document.getElementById('row-' + id);
+    if (row) row.remove();
+    recalc();
+  }
+
+  function resetTable() {
+    if (!confirm('Clear the whole worksheet and start over?')) return;
+    document.getElementById('offerRows').innerHTML = '';
+    rowCount = 0;
+    addRow(); addRow();
+  }
+
+  function num(el) {
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function recalc() {
+    const rows = document.querySelectorAll('#offerRows tr');
+    let best = null, bestNet = -Infinity;
+
+    rows.forEach(row => {
+      const price = num(row.querySelector('[data-field="price"]'));
+      const feePct = num(row.querySelector('[data-field="feePct"]'));
+      const sellerCovers = num(row.querySelector('[data-field="sellerCovers"]'));
+      const buyerContributes = num(row.querySelector('[data-field="buyerContributes"]'));
+      const otherConcessions = num(row.querySelector('[data-field="otherConcessions"]'));
+
+      const sellerFeeDollar = price * (feePct / 100);
+      const trueNet = price - sellerFeeDollar - sellerCovers + buyerContributes - otherConcessions;
+
+      row.querySelector('[data-net]').textContent =
+        '$' + trueNet.toLocaleString('en-US', { maximumFractionDigits: 0 });
+      row.dataset.net = trueNet;
+      row.classList.remove('winner');
+
+      if (price > 0 && trueNet > bestNet) {
+        bestNet = trueNet;
+        best = row;
+      }
+    });
+
+    const banner = document.getElementById('winnerBanner');
+    if (best && bestNet > -Infinity) {
+      best.classList.add('winner');
+      const buyerName = best.querySelector('input[type="text"]').value || 'This offer';
+      banner.style.display = 'block';
+      banner.innerHTML = `<b>${buyerName}</b> currently has the highest true net to seller: <b>$${bestNet.toLocaleString('en-US', {maximumFractionDigits:0})}</b>`;
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Start with two example rows, matching the worked example used across
+  // the Weekend Launch presentation, PDF, and slide deck.
+  addRow({ name: 'Reyes', price: 415000, feePct: 3, sellerCovers: 10000, buyerContributes: 0, otherConcessions: 2500 });
+  addRow({ name: 'Whitfield Trust', price: 398000, feePct: 3, sellerCovers: 0, buyerContributes: 8000, otherConcessions: 0 });
+</script>
+
+</body>
+</html>
