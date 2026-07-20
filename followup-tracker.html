@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow-Up Tracker | AgentHubTX</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Iowan Old Style', serif;
+    background: #F4F1EA;
+    color: #2b2b2b;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  .hero {
+    background: #0C3057;
+    color: white;
+    padding: 32px 32px 26px;
+    border-top: 4px solid #C8922A;
+  }
+  .brand {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .brand .gold { color: #e0b563; }
+  h1 { font-size: 28px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #cfd9e8;
+    font-style: italic;
+  }
+  .back-link { display: inline-block; margin-top: 10px; font-family: Arial, sans-serif; font-size: 13px; color: #cfd9e8; text-decoration: none; }
+  .back-link:hover { color: white; }
+  .status-banner {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    padding: 10px 32px;
+    text-align: center;
+  }
+  .status-banner.connecting { background: #f3ece0; color: #9a6b1f; }
+  .status-banner.connected { background: #e8f3ec; color: #2c6e49; }
+  .status-banner.error { background: #fbe9e7; color: #b3261e; }
+  .main { padding: 24px 32px 40px; }
+  .add-lead-card {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .add-lead-card h2 {
+    font-size: 16px;
+    color: #0C3057;
+    margin: 0 0 12px;
+    font-family: Arial, sans-serif;
+  }
+  .add-lead-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .add-lead-form input {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid #c9c2b3;
+    border-radius: 6px;
+    flex: 1;
+    min-width: 140px;
+  }
+  .add-lead-form button {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    background: #C8922A;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    cursor: pointer;
+  }
+  .add-lead-form button:hover { background: #b3801f; }
+  .lead-card {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .lead-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .lead-name {
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #0C3057;
+  }
+  .lead-meta {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #6b6b6b;
+  }
+  .touch-badge {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9a6b1f;
+    background: #f3ece0;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .touch-badge.paused { color: #6b6b6b; background: #ebe8e0; }
+  .last-sent {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #2c6e49;
+    margin-bottom: 6px;
+  }
+  .message-box {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    background: #F4F1EA;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    user-select: all;
+  }
+  .lead-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .lead-actions button {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 7px 14px;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-copy { background: #C8922A; color: white; }
+  .btn-copy:hover { background: #b3801f; }
+  .btn-pause { background: white; color: #6b6b6b; border: 1px solid #c9c2b3; }
+  .btn-pause:hover { background: #f4f1ea; }
+  .empty-state {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: #6b6b6b;
+    padding: 40px 20px;
+  }
+  .copied-flash {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #2c6e49;
+    margin-left: 8px;
+    font-weight: 700;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0C3057;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 8px;
+    border-left: 4px solid #C8922A;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #loadingState { text-align: center; padding: 80px 20px; color: #6b6b6b; font-family: Arial, sans-serif; }
+</style>
+</head>
+<body>
+
+<div id="loadingState"><p>Loading your leads...</p></div>
+
+<div class="wrap" id="app-wrap" style="display:none;">
+  <div class="hero">
+    <div class="brand">
+      <span style="color: white;">AGENT</span><span class="gold">HUB</span><span style="color: white;">TX</span>
+    </div>
+    <h1>Follow-Up Tracker</h1>
+    <div class="subtitle">Add a lead. Check what's due today. Copy and send.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+
+  <div id="status-banner" class="status-banner connecting">Connecting to database&hellip;</div>
+
+  <div class="main">
+    <div class="add-lead-card">
+      <h2>Add a new lead</h2>
+      <div class="add-lead-form">
+        <input type="text" id="input-name" placeholder="Name" />
+        <input type="text" id="input-phone" placeholder="Phone (optional)" />
+        <input type="text" id="input-email" placeholder="Email (optional)" />
+        <input type="text" id="input-source" placeholder="Source (e.g. open house)" />
+        <button id="btn-add-lead">Add Lead</button>
+      </div>
+    </div>
+
+    <div id="leads-container"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function setStatus(text, cls) {
+    const el = document.getElementById("status-banner");
+    el.textContent = text;
+    el.className = "status-banner " + cls;
+  }
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('app-wrap').style.display = 'block';
+    loadLeads();
+  }
+
+  async function loadLeads() {
+    const container = document.getElementById("leads-container");
+    try {
+      const { data, error } = await sb.rpc("get_my_leads");
+      if (error) {
+        setStatus("Database error: " + error.message, "error");
+        console.error(error);
+        return;
+      }
+      setStatus("Connected", "connected");
+      renderLeads(data || []);
+    } catch (err) {
+      setStatus("Connection failed: " + err.message, "error");
+      console.error(err);
+    }
+  }
+
+  function renderLeads(leads) {
+    const container = document.getElementById("leads-container");
+    if (!leads.length) {
+      container.innerHTML = '<div class="empty-state">No active leads yet. Add one above to get started.</div>';
+      return;
+    }
+    container.innerHTML = leads.map(lead => `
+      <div class="lead-card" data-lead-id="${lead.lead_id}">
+        <div class="lead-header">
+          <div>
+            <span class="lead-name">${escapeHtml(lead.name)}</span>
+            <span class="lead-meta"> &middot; ${lead.days_since} day${lead.days_since === 1 ? "" : "s"} in</span>
+          </div>
+          <span class="touch-badge ${lead.paused ? 'paused' : ''}">${lead.paused ? "Paused" : (lead.next_touch_number ? "Touch " + lead.next_touch_number + " due" : "Sequence complete")}</span>
+        </div>
+        ${lead.last_sent_touch ? `<div class="last-sent">&check; Last sent: Touch ${lead.last_sent_touch} &middot; ${formatWhen(lead.last_sent_at)}</div>` : ""}
+        ${lead.next_touch_message ? `<div class="message-box">${escapeHtml(lead.next_touch_message)}</div>` : ""}
+        <div class="lead-actions">
+          ${lead.next_touch_number ? `
+            <button class="btn-copy" data-action="copy" data-message="${escapeHtml(lead.next_touch_message)}">Copy Message</button>
+            <button class="btn-copy" data-action="mark-sent" data-lead-id="${lead.lead_id}" data-touch="${lead.next_touch_number}">Mark Sent</button>
+          ` : ""}
+          ${!lead.paused ? `<button class="btn-pause" data-action="pause" data-lead-id="${lead.lead_id}">Pause</button>` : ""}
+          <span class="copied-flash" style="display:none;">Copied!</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function formatWhen(isoString) {
+    if (!isoString) return "";
+    const sentDate = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - sentDate;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return diffMins + " min ago";
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return diffHours + " hr ago";
+    const diffDays = Math.floor(diffHours / 24);
+    return diffDays + " day" + (diffDays === 1 ? "" : "s") + " ago";
+  }
+
+  let toastTimer = null;
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2200);
+  }
+
+  document.addEventListener("click", async function (e) {
+    const action = e.target.getAttribute("data-action");
+    if (!action) return;
+
+    if (action === "copy") {
+      const message = e.target.getAttribute("data-message");
+      try {
+        await navigator.clipboard.writeText(message);
+        const flash = e.target.parentElement.querySelector(".copied-flash");
+        flash.style.display = "inline";
+        setTimeout(() => { flash.style.display = "none"; }, 1500);
+      } catch (err) {
+        alert("Could not copy automatically. Please select and copy the message text manually.");
+      }
+    }
+
+    if (action === "mark-sent") {
+      const leadId = e.target.getAttribute("data-lead-id");
+      const touch = parseInt(e.target.getAttribute("data-touch"), 10);
+      const { error } = await sb.rpc("mark_touch_sent", { p_lead_id: leadId, p_touch_number: touch });
+      if (error) {
+        alert("Could not save: " + error.message);
+        console.error(error);
+        return;
+      }
+      loadLeads();
+      showToast("Marked as sent ✓");
+    }
+
+    if (action === "pause") {
+      const leadId = e.target.getAttribute("data-lead-id");
+      if (!confirm("Pause this lead's sequence? You can still see them, but they won't show as due.")) return;
+      const { error } = await sb.rpc("pause_lead", { p_lead_id: leadId });
+      if (error) {
+        alert("Could not save: " + error.message);
+        console.error(error);
+        return;
+      }
+      loadLeads();
+      showToast("Lead paused");
+    }
+  });
+
+  document.getElementById("btn-add-lead").addEventListener("click", async function () {
+    const name = document.getElementById("input-name").value.trim();
+    if (!name) {
+      alert("Name is required.");
+      return;
+    }
+    const phone = document.getElementById("input-phone").value.trim() || null;
+    const email = document.getElementById("input-email").value.trim() || null;
+    const source = document.getElementById("input-source").value.trim() || null;
+
+    const { error } = await sb.rpc("add_lead", {
+      p_name: name,
+      p_phone: phone,
+      p_email: email,
+      p_source: source,
+    });
+
+    if (error) {
+      alert("Could not add lead: " + error.message);
+      console.error(error);
+      return;
+    }
+
+    document.getElementById("input-name").value = "";
+    document.getElementById("input-phone").value = "";
+    document.getElementById("input-email").value = "";
+    document.getElementById("input-source").value = "";
+    loadLeads();
+    showToast("Lead added");
+  });
+
+  init();
+</script>
+</body>
+</html>
