@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offer details</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Calibri, sans-serif;
+    background: #F5F6FA;
+    margin: 0;
+    padding: 24px 16px 60px;
+    color: #2C2C2A;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  .card {
+    background: #fff; border: 1px solid #D3D1C7; border-radius: 12px;
+    padding: 20px 20px 24px;
+  }
+  .addr { font-size: 13px; color: #5F5E5A; margin: 0 0 2px; }
+  h1 { font-size: 21px; color: #1E2761; margin: 0 0 6px; }
+  p.sub { color: #5F5E5A; font-size: 13px; margin: 0 0 20px; }
+  .field { margin-bottom: 16px; }
+  label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px; color: #1E2761; }
+  .hint { font-size: 12px; color: #888780; margin: 2px 0 0; }
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid #D3D1C7; border-radius: 8px; font-family: inherit;
+    background: #fff;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #1E2761; }
+  textarea { resize: vertical; min-height: 60px; }
+  .row2 { display: flex; gap: 10px; }
+  .row2 > div { flex: 1; }
+  .radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+  .radio-option {
+    display: flex; align-items: center; gap: 8px; font-size: 14px;
+    padding: 4px 0;
+  }
+  .radio-option input { width: auto; margin: 0; }
+  .checkbox-row { display: flex; align-items: center; gap: 10px; }
+  .checkbox-row input[type="checkbox"] { width: auto; margin: 0; }
+  .checkbox-row input[type="text"] { width: 90px; flex: none; }
+  .section-divider {
+    border-top: 1px solid #D3D1C7; margin: 20px 0 16px; padding-top: 16px;
+  }
+  .section-label { font-size: 13px; font-weight: 600; color: #5F5E5A; margin: 0 0 10px; }
+  button {
+    width: 100%; padding: 15px; font-size: 16px; font-weight: 600;
+    background: #1E2761; color: #fff; border: none; border-radius: 8px;
+    cursor: pointer; margin-top: 8px;
+  }
+  button:disabled { background: #B4B2A9; cursor: not-allowed; }
+  .error { color: #A32D2D; font-size: 13px; margin-top: 10px; display: none; }
+  .error.show { display: block; }
+  .done { text-align: center; padding: 40px 20px; }
+  .done h1 { margin-bottom: 10px; }
+  .done p { color: #5F5E5A; font-size: 14px; line-height: 1.5; }
+  .loading, .gone { text-align: center; padding: 60px 20px; color: #5F5E5A; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="loadingState" class="card loading">Loading...</div>
+
+  <div id="goneState" class="card gone" style="display:none;">
+    This link isn't active. Reach out to your agent for a new one.
+  </div>
+
+  <div id="formCard" class="card" style="display:none;">
+    <p class="addr" id="propAddress"></p>
+    <h1>Let's get your offer started</h1>
+    <p class="sub">Fill this out and your agent will prepare your offer paperwork. Takes about 3 minutes.</p>
+
+    <div class="field">
+      <label>Offer price</label>
+      <input type="text" id="offerPrice" placeholder="$300,000">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Cash at closing</label>
+        <input type="text" id="cashAtClosing" placeholder="$25,000">
+      </div>
+      <div class="field">
+        <label>Financing amount</label>
+        <input type="text" id="financingAmount" placeholder="$275,000">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>How are you financing this?</label>
+      <select id="financingType">
+        <option value="">Select one</option>
+        <option value="conventional">Conventional loan</option>
+        <option value="cash">Cash</option>
+        <option value="fha">FHA</option>
+        <option value="va">VA</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Earnest money</label>
+        <input type="text" id="earnestMoney" placeholder="$5,000">
+      </div>
+      <div class="field">
+        <label>Option fee</label>
+        <input type="text" id="optionFee" placeholder="$500">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Option period (days to inspect / back out)</label>
+      <input type="text" id="optionPeriod" placeholder="10">
+    </div>
+
+    <div class="field">
+      <label>Target closing date</label>
+      <input type="date" id="closingDate">
+    </div>
+
+    <div class="field">
+      <label>Property condition</label>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="condition" value="as_is" checked> Accept as-is</label>
+        <label class="radio-option"><input type="radio" name="condition" value="as_is_with_repairs"> Accept as-is, but want specific repairs</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Possession at closing?</label>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="possession" value="upon_closing" checked> Yes, day of closing</label>
+        <label class="radio-option"><input type="radio" name="possession" value="lease_back"> I need a few extra days (lease-back)</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Want a home warranty?</label>
+      <div class="checkbox-row">
+        <input type="checkbox" id="homeWarranty">
+        <span style="font-size:14px;">Yes, seller covers up to</span>
+        <input type="text" id="homeWarrantyCap" placeholder="$600">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Asking seller to help with closing costs?</label>
+      <input type="text" id="sellerConcession" placeholder="$0 or leave blank">
+    </div>
+
+    <div class="field">
+      <label>Anything special you want noted? (optional)</label>
+      <textarea id="specialNotes" placeholder="e.g. refrigerator stays, want flexible move-in"></textarea>
+    </div>
+
+    <div class="section-divider">
+      <p class="section-label">Your contact info</p>
+      <div class="field">
+        <input type="text" id="clientName" placeholder="Full legal name(s)">
+      </div>
+      <div class="field">
+        <input type="text" id="clientPhone" placeholder="Phone">
+      </div>
+      <div class="field">
+        <input type="text" id="clientEmail" placeholder="Email">
+      </div>
+    </div>
+
+    <button id="submitBtn" onclick="submitIntake()">Submit to agent</button>
+    <p class="error" id="errorMsg"></p>
+  </div>
+
+  <div id="doneState" class="card done" style="display:none;">
+    <h1>Sent!</h1>
+    <p>Your agent has your answers and will be in touch to start the offer.</p>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = "https://tjdxnmukjraljvjprolk.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5";
+
+  function getId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("id");
+  }
+
+  async function loadIntake() {
+    const id = getId();
+    if (!id) { showGone(); return; }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_intake_property`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ p_id: id })
+      });
+
+      if (!res.ok) throw new Error("failed");
+      const address = await res.json();
+
+      if (!address) { showGone(); return; }
+
+      document.getElementById("propAddress").textContent = address;
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("formCard").style.display = "block";
+    } catch (err) {
+      showGone();
+    }
+  }
+
+  function showGone() {
+    document.getElementById("loadingState").style.display = "none";
+    document.getElementById("goneState").style.display = "block";
+  }
+
+  async function submitIntake() {
+    const id = getId();
+    const btn = document.getElementById("submitBtn");
+    const errorMsg = document.getElementById("errorMsg");
+    errorMsg.classList.remove("show");
+
+    const clientName = document.getElementById("clientName").value.trim();
+    const clientPhone = document.getElementById("clientPhone").value.trim();
+    const clientEmail = document.getElementById("clientEmail").value.trim();
+
+    if (!clientName) {
+      errorMsg.textContent = "Please enter your name before submitting.";
+      errorMsg.classList.add("show");
+      return;
+    }
+
+    const offerData = {
+      offer_price: document.getElementById("offerPrice").value.trim(),
+      cash_at_closing: document.getElementById("cashAtClosing").value.trim(),
+      financing_amount: document.getElementById("financingAmount").value.trim(),
+      financing_type: document.getElementById("financingType").value,
+      earnest_money: document.getElementById("earnestMoney").value.trim(),
+      option_fee: document.getElementById("optionFee").value.trim(),
+      option_period_days: document.getElementById("optionPeriod").value.trim(),
+      closing_date: document.getElementById("closingDate").value,
+      property_condition: document.querySelector('input[name="condition"]:checked').value,
+      possession: document.querySelector('input[name="possession"]:checked').value,
+      home_warranty_wanted: document.getElementById("homeWarranty").checked,
+      home_warranty_cap: document.getElementById("homeWarrantyCap").value.trim(),
+      seller_concession: document.getElementById("sellerConcession").value.trim(),
+      special_notes: document.getElementById("specialNotes").value.trim()
+    };
+
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/submit_intake`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          p_id: id,
+          p_client_name: clientName,
+          p_client_phone: clientPhone,
+          p_client_email: clientEmail,
+          p_offer_data: offerData
+        })
+      });
+
+      if (!res.ok) throw new Error("failed");
+      const success = await res.json();
+
+      if (!success) {
+        errorMsg.textContent = "This link may have already been submitted or expired.";
+        errorMsg.classList.add("show");
+        btn.disabled = false;
+        btn.textContent = "Submit to agent";
+        return;
+      }
+
+      document.getElementById("formCard").style.display = "none";
+      document.getElementById("doneState").style.display = "block";
+    } catch (err) {
+      errorMsg.textContent = "Something went wrong submitting. Please try again.";
+      errorMsg.classList.add("show");
+      btn.disabled = false;
+      btn.textContent = "Submit to agent";
+    }
+  }
+
+  loadIntake();
+</script>
+</body>
+</html>
