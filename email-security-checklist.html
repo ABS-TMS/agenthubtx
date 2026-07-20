@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Security Checklist | AgentHubTX</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Iowan Old Style', serif;
+    background: #F4F1EA;
+    color: #2b2b2b;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .hero {
+    background: #0C3057;
+    color: white;
+    padding: 32px 32px 26px;
+    border-top: 4px solid #C8922A;
+  }
+  .brand {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .brand .gold { color: #e0b563; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    color: #cfd9e8;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+  .source-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #9fb0c6;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+  .back-link {
+    display: inline-block;
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    color: #e0b563;
+    text-decoration: none;
+    margin-top: 14px;
+  }
+  .back-link:hover { text-decoration: underline; }
+  .content { padding: 30px 32px 60px; }
+  .section { margin-bottom: 30px; }
+  .section-title {
+    font-size: 21px;
+    font-weight: 700;
+    color: #0C3057;
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8e2d2;
+  }
+  .section-intro {
+    font-size: 14.5px;
+    margin-bottom: 16px;
+  }
+  .risk-item {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .risk-num {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #0C3057;
+    color: #e0b563;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .risk-body h4 {
+    font-family: Arial, sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0C3057;
+    margin: 0 0 6px;
+  }
+  .risk-body p { margin: 0; font-size: 14px; }
+  .risk-body .not-covered {
+    display: inline-block;
+    font-family: Arial, sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #b3261e;
+    background: #fbe9e7;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .action-item {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .action-check {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #C8922A;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 1px;
+  }
+  .action-body h4 {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0C3057;
+    margin: 0 0 4px;
+  }
+  .action-body p { margin: 0; font-size: 13.5px; color: #444; }
+  .call-box {
+    background: #0C3057;
+    color: white;
+    border-radius: 10px;
+    padding: 26px 28px;
+    margin: 24px 0;
+  }
+  .call-box .eyebrow {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e0b563;
+    margin-bottom: 8px;
+  }
+  .call-box .statement {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .call-box p { font-size: 14.5px; color: #cfd9e8; margin-bottom: 14px; }
+  .script-box {
+    background: rgba(255,255,255,0.08);
+    border-left: 3px solid #C8922A;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-style: italic;
+    font-size: 14.5px;
+    color: white;
+    margin-bottom: 14px;
+  }
+  .call-box .takeaway {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e0b563;
+  }
+  .upgrade-box {
+    background: #F3E3BC;
+    border: 1px solid #e8d098;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-top: 24px;
+  }
+  .upgrade-box h4 {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #6B4E00;
+    margin: 0 0 6px;
+  }
+  .upgrade-box p { font-size: 13.5px; color: #6B4E00; margin: 0; }
+  .footer-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #6b6b6b;
+    text-align: center;
+    padding: 20px 32px 10px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="brand">
+      <span style="color: white;">AGENT</span>
+      <span class="gold">HUB</span>
+      <span style="color: white;">TX</span>
+    </div>
+    <h1>Email Security Checklist</h1>
+    <div class="subtitle">For Texas Real Estate Agents</div>
+    <div class="source-note">Most agents run their entire real estate business through a free personal Gmail account. Here's what that means for your security — and what you can do about it right now.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+
+  <div class="content">
+
+    <div class="section">
+      <div class="section-title">The 5 Biggest Email Risks for Agents</div>
+
+      <div class="risk-item">
+        <div class="risk-num">1</div>
+        <div class="risk-body">
+          <h4>Wire Fraud &amp; Business Email Compromise</h4>
+          <p>A hacker monitors your email, waits for a closing, then sends fake wire instructions that look like they came from you or your title company. Average loss: $50,000&ndash;$150,000.</p>
+          <span class="not-covered">Your E&amp;O will NOT cover this</span>
+        </div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-num">2</div>
+        <div class="risk-body">
+          <h4>Unencrypted Text Messages</h4>
+          <p>Sending contracts, financial statements, or client personal data via standard SMS is not secure. If intercepted, you're liable.</p>
+          <span class="not-covered">A cyber claim — not covered by standard E&amp;O</span>
+        </div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-num">3</div>
+        <div class="risk-body">
+          <h4>Personal Gmail for Business Transactions</h4>
+          <p>Free Gmail has no data processing agreement, no admin controls, and no guaranteed retention. If breached, Google bears no liability — you do.</p>
+        </div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-num">4</div>
+        <div class="risk-body">
+          <h4>No Two-Factor Authentication</h4>
+          <p>One phishing email + no 2FA = complete account takeover in seconds. The hacker then has access to every client email, document, and contact in your account.</p>
+        </div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-num">5</div>
+        <div class="risk-body">
+          <h4>Client Data on Personal Devices</h4>
+          <p>Contracts, driver's licenses, bank statements saved on your personal phone. Phone stolen or hacked = data breach.</p>
+          <span class="not-covered" style="background:#F3E3BC;color:#6B4E00;">Texas law requires you to notify every affected client</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">8 Things to Do Right Now &mdash; All Free</div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Turn on 2-Factor Authentication</h4>
+          <p>myaccount.google.com &rarr; Security &rarr; 2-Step Verification. Takes 3 minutes. Stops 99% of account takeovers.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Check for hidden email forwarding rules</h4>
+          <p>Gmail Settings &rarr; See all settings &rarr; Forwarding. Hackers silently forward your emails to monitor transactions. Check this today.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Never click wire instructions from email alone</h4>
+          <p>Always call the title company using a number you looked up independently — never from an email — before any wire transfer.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Use Google Drive links instead of email attachments</h4>
+          <p>Shared Drive links with access controls are safer than attachments which can be intercepted and modified in transit.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Never use public Wi-Fi for transaction work</h4>
+          <p>Coffee shops, hotels, open houses. Use your phone hotspot instead. Always.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Set up login alerts</h4>
+          <p>myaccount.google.com &rarr; Security &rarr; Recent security activity &rarr; turn on alerts for new device logins.</p>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Check what apps have access to your Gmail</h4>
+          <p>myaccount.google.com &rarr; Security &rarr; Third-party apps. Revoke anything you don't recognize or no longer use.</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-check">&check;</div>
+        <div class="action-body">
+          <h4>Use unique passwords + 2FA everywhere — not just Gmail</h4>
+          <p>Your CRM, MLS login, and transaction management tools hold the same sensitive client data as your inbox. Reused passwords are one of the most common ways these accounts get compromised. A password manager makes unique passwords painless — set it up once and stop reusing the same login everywhere.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="call-box">
+      <div class="eyebrow">The One Call That Prevents Wire Fraud</div>
+      <div class="statement">90 Seconds That Can Save $150,000</div>
+      <p>Before EVERY closing, call your title company using a phone number you looked up independently — NOT one from an email — and say:</p>
+      <div class="script-box">
+        "I'm calling to verbally confirm the wire instructions for [client name] closing on [date]. Can you read them to me?"
+      </div>
+      <div class="takeaway">This one call has saved agents $50,000&ndash;$150,000. It takes 90 seconds.</div>
+    </div>
+
+    <div class="upgrade-box">
+      <h4>Want full protection? Upgrade to Google Workspace.</h4>
+      <p>$6&ndash;$12/month per agent gives your broker admin controls, advanced phishing protection, data loss prevention, and Texas-compliant record retention. Ask your broker if your brokerage has a Google Workspace account.</p>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Attorney Broker Services, LLC &middot; Mike Jurecka, Broker &amp; Attorney &middot; 817-543-8900 &middot; mike@attorneybrokerservices.com<br><br>
+    &copy; 2026 Attorney Broker Services, LLC. All rights reserved. &middot; Brokerage License #9007529
+  </div>
+</div>
+</body>
+</html>
