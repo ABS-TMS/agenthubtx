@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Intake | AgentHubTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Cambria:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: hsl(220, 67%, 11%);
+  --navy-dark: hsl(220, 67%, 7%);
+  --gold: hsl(42, 70%, 55%);
+  --gold-light: #F3E3BC;
+  --cream: #F7F5EF;
+  --white: #FFFFFF;
+  --ink: #1C2230;
+  --muted: #5F5E5A;
+  --border: #E5E3DA;
+  --teal: #0F6E56;
+  --teal-light: #E1F5EE;
+  --red: #A32D2D;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+body { font-family: var(--font); background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+header { background: var(--navy); padding: 24px; border-bottom: 3px solid var(--gold); }
+.header-inner { max-width: 700px; margin: 0 auto; }
+.brand { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.06em; margin-bottom: 10px; }
+.brand span { color: var(--gold); }
+.tool-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.tool-title { font-family: 'Cambria', Georgia, serif; font-size: 26px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.tool-desc { font-size: 13.5px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+.back-link { display: inline-block; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; }
+.back-link:hover { color: var(--white); }
+
+.main { max-width: 700px; margin: 0 auto; padding: 28px 16px 60px; }
+
+.bi-toggle { display: flex; gap: 0; margin-bottom: 18px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+.bi-toggle button { padding: 9px 18px; font-size: 12.5px; font-weight: 600; border: none; background: var(--white); color: var(--muted); cursor: pointer; font-family: inherit; }
+.bi-toggle button.active { background: var(--navy); color: var(--white); }
+.bi-view { display: none; }
+.bi-view.active { display: block; }
+
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.form-row input { width: 100%; padding: 10px 13px; background: var(--cream); border: 1px solid var(--border); border-radius: 7px; font-size: 13.5px; color: var(--ink); font-family: inherit; }
+.form-row input:focus { outline: none; border-color: var(--gold); background: var(--white); }
+
+.btn-submit { width: 100%; padding: 13px; background: var(--navy); color: white; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.btn-submit:hover { background: var(--navy-dark); }
+.btn-submit:disabled { background: #B4B2A9; cursor: not-allowed; }
+.btn-copy { padding: 7px 16px; background: transparent; color: var(--navy); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-copy:hover { border-color: var(--gold); background: var(--gold-light); }
+
+.bi-link-result { display: none; margin-top: 14px; }
+.bi-link-result.visible { display: block; }
+.bi-link-box { display: flex; gap: 8px; align-items: center; background: var(--cream); border-radius: 7px; padding: 9px 12px; margin-bottom: 10px; }
+.bi-link-box input { flex: 1; border: none; background: none; font-size: 12.5px; color: var(--navy); font-family: monospace; padding: 0; outline: none; }
+.bi-share-row { display: flex; gap: 8px; }
+.bi-share-row a { flex: 1; text-align: center; padding: 9px; border-radius: 7px; font-size: 13px; font-weight: 600; text-decoration: none; font-family: inherit; }
+.bi-share-text { background: var(--navy); color: var(--white); }
+.bi-share-email { background: var(--white); color: var(--navy); border: 1px solid var(--border); }
+
+.bi-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.bi-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.bi-addr { font-weight: 700; font-size: 13.5px; color: var(--navy); margin: 0; }
+.bi-meta { font-size: 11px; color: var(--muted); margin: 2px 0 0; }
+.bi-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+.bi-badge-sent { background: #FAEEDA; color: #854F0B; }
+.bi-badge-submitted { background: var(--teal-light); color: var(--teal); }
+.bi-badge-transferred { background: var(--cream); color: var(--muted); }
+.bi-details { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--cream); display: none; }
+.bi-details.show { display: block; }
+.bi-detail-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; }
+.bi-detail-row .k { color: var(--muted); }
+.bi-detail-row .v { font-weight: 600; color: var(--ink); text-align: right; }
+.bi-notes-box { font-size: 12.5px; color: var(--ink); margin-top: 7px; padding: 9px; background: var(--cream); border-radius: 6px; }
+.bi-card-actions { margin-top: 10px; display: flex; gap: 8px; }
+.bi-card-actions button { flex: 1; padding: 7px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--navy); font-family: inherit; }
+.bi-card-actions button.primary { background: var(--navy); color: var(--white); border: none; }
+.bi-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+
+footer { background: var(--navy); padding: 1.2rem; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 1.5rem; }
+
+#loadingState { text-align: center; padding: 80px 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div id="loadingState"><p>Loading...</p></div>
+
+<div id="appWrap" style="display:none;">
+  <header>
+    <div class="header-inner">
+      <div class="brand">Agent<span>HubTX</span></div>
+      <div class="tool-eyebrow">Showings</div>
+      <div class="tool-title">Buyer Intake</div>
+      <div class="tool-desc">Capture a buyer's offer details right after a showing. They fill it out on their phone — you review and move it into the offer.</div>
+      <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="bi-toggle">
+      <button class="active" id="bi-tab-new" onclick="biShowView('new')">New intake</button>
+      <button id="bi-tab-submitted" onclick="biShowView('submitted')">Submitted</button>
+    </div>
+
+    <div class="bi-view active" id="bi-view-new">
+      <div class="form-card">
+        <div class="form-row">
+          <label>Property address</label>
+          <input type="text" id="bi-address" placeholder="123 Mockingbird Ln, Lantana TX 76226">
+        </div>
+        <button class="btn-submit" id="bi-create-btn" onclick="biCreateLink()">Create link</button>
+        <div style="font-size:11.5px;color:var(--red);margin-top:8px;display:none;" id="bi-create-error"></div>
+      </div>
+
+      <div class="bi-link-result" id="bi-link-result">
+        <div class="form-card">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Link ready — share it with your client:</div>
+          <div class="bi-link-box">
+            <input type="text" id="bi-link-output" readonly>
+            <button class="btn-copy" onclick="biCopyLink()" id="bi-copy-btn">Copy</button>
+          </div>
+          <div class="bi-share-row">
+            <a href="#" id="bi-text-link" class="bi-share-text">Text it</a>
+            <a href="#" id="bi-email-link" class="bi-share-email">Email it</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bi-view" id="bi-view-submitted">
+      <div id="bi-submitted-list"></div>
+    </div>
+  </div>
+</div>
+
+<footer>&copy; 2026 AgentHubTX</footer>
+
+<script>
+const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BI_BASE_URL = 'https://agenthubtx.com/intake.html';
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'block';
+}
+
+function biShowView(view) {
+  document.getElementById('bi-view-new').classList.toggle('active', view === 'new');
+  document.getElementById('bi-view-submitted').classList.toggle('active', view === 'submitted');
+  document.getElementById('bi-tab-new').classList.toggle('active', view === 'new');
+  document.getElementById('bi-tab-submitted').classList.toggle('active', view === 'submitted');
+  if (view === 'submitted') biLoadIntakes();
+}
+
+async function biCreateLink() {
+  const address = document.getElementById('bi-address').value.trim();
+  const btn = document.getElementById('bi-create-btn');
+  const errorEl = document.getElementById('bi-create-error');
+  errorEl.style.display = 'none';
+
+  if (!address) {
+    errorEl.textContent = 'Enter a property address first.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const { data, error } = await sb.rpc('create_intake', { p_property_address: address });
+    if (error) throw error;
+
+    const link = `${BI_BASE_URL}?id=${data}`;
+    document.getElementById('bi-link-output').value = link;
+    document.getElementById('bi-text-link').href = `sms:?body=${encodeURIComponent("Here's the link to share your offer details for " + address + ": " + link)}`;
+    document.getElementById('bi-email-link').href = `mailto:?subject=${encodeURIComponent("Quick form for " + address)}&body=${encodeURIComponent("Fill this out when you get a sec and I'll start drafting the offer: " + link)}`;
+    document.getElementById('bi-link-result').classList.add('visible');
+  } catch (err) {
+    console.error('Create intake link failed:', err);
+    errorEl.textContent = 'Something went wrong creating the link. Try again.';
+    errorEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Create link';
+}
+
+function biCopyLink() {
+  const input = document.getElementById('bi-link-output');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById('bi-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+const BI_FIELD_LABELS = {
+  offer_price: 'Offer price',
+  cash_at_closing: 'Cash at closing',
+  financing_amount: 'Financing amount',
+  financing_type: 'Financing type',
+  earnest_money: 'Earnest money',
+  option_fee: 'Option fee',
+  option_period_days: 'Option period (days)',
+  closing_date: 'Target closing date',
+  property_condition: 'Property condition',
+  possession: 'Possession',
+  home_warranty_wanted: 'Home warranty wanted',
+  home_warranty_cap: 'Home warranty cap',
+  seller_concession: 'Seller concession ask'
+};
+
+function biEscapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function biRenderDetails(intake) {
+  const data = intake.offer_data || {};
+  let rows = '';
+  for (const key in BI_FIELD_LABELS) {
+    let val = data[key];
+    if (val === undefined || val === null || val === '') continue;
+    if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+    rows += `<div class="bi-detail-row"><span class="k">${BI_FIELD_LABELS[key]}</span><span class="v">${biEscapeHtml(String(val))}</span></div>`;
+  }
+  let notes = data.special_notes ? `<div class="bi-notes-box">${biEscapeHtml(data.special_notes)}</div>` : '';
+  let contact = `<div class="bi-detail-row"><span class="k">Phone</span><span class="v">${biEscapeHtml(intake.client_phone || '—')}</span></div>
+                 <div class="bi-detail-row"><span class="k">Email</span><span class="v">${biEscapeHtml(intake.client_email || '—')}</span></div>`;
+  return rows + contact + notes;
+}
+
+function biFormatDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function biBadgeClass(status) {
+  if (status === 'sent') return 'bi-badge-sent';
+  if (status === 'submitted') return 'bi-badge-submitted';
+  if (status === 'transferred') return 'bi-badge-transferred';
+  return '';
+}
+
+function biToggleDetails(idx) {
+  document.getElementById(`bi-details-${idx}`).classList.toggle('show');
+}
+
+async function biMarkTransferred(id) {
+  try {
+    const { error } = await sb.rpc('mark_intake_transferred', { p_id: id });
+    if (!error) biLoadIntakes();
+  } catch (err) {
+    console.error('Mark transferred failed:', err);
+  }
+}
+
+async function biLoadIntakes() {
+  const list = document.getElementById('bi-submitted-list');
+  list.innerHTML = `<div class="bi-empty">Loading...</div>`;
+
+  try {
+    const { data: intakes, error } = await sb.rpc('get_agent_intakes');
+    if (error) throw error;
+
+    if (!intakes || intakes.length === 0) {
+      list.innerHTML = `<div class="bi-empty">No intakes yet. Create a link from a showing to get started.</div>`;
+      return;
+    }
+
+    list.innerHTML = intakes.map((intake, idx) => {
+      const hasData = intake.status === 'submitted' || intake.status === 'transferred';
+      return `
+        <div class="bi-card">
+          <div class="bi-card-top">
+            <div>
+              <p class="bi-addr">${biEscapeHtml(intake.property_address)}</p>
+              <p class="bi-meta">${intake.client_name ? biEscapeHtml(intake.client_name) + ' — ' : ''}${biFormatDate(intake.submitted_at || intake.created_at)}</p>
+            </div>
+            <span class="bi-badge ${biBadgeClass(intake.status)}">${intake.status}</span>
+          </div>
+          ${hasData ? `<div class="bi-details" id="bi-details-${idx}">${biRenderDetails(intake)}</div>` : ''}
+          <div class="bi-card-actions">
+            ${hasData ? `<button onclick="biToggleDetails(${idx})">View details</button>` : ''}
+            ${intake.status === 'submitted' ? `<button class="primary" onclick="biMarkTransferred('${intake.id}')">Mark transferred</button>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('Load intakes failed:', err);
+    list.innerHTML = `<div class="bi-empty">Couldn't load intakes. Try refreshing.</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
