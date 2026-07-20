@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offer Strength Analyzer | AgentHubTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Cambria:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: hsl(220, 67%, 11%);
+  --navy-dark: hsl(220, 67%, 7%);
+  --gold: hsl(42, 70%, 55%);
+  --gold-light: #F3E3BC;
+  --cream: #F7F5EF;
+  --white: #FFFFFF;
+  --ink: #1C2230;
+  --muted: #5F5E5A;
+  --border: #E5E3DA;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+body { font-family: var(--font); background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+header { background: var(--navy); padding: 24px; border-bottom: 3px solid var(--gold); }
+.header-inner { max-width: 700px; margin: 0 auto; }
+.brand { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.06em; margin-bottom: 10px; }
+.brand span { color: var(--gold); }
+.tool-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.tool-title { font-family: 'Cambria', Georgia, serif; font-size: 26px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.tool-desc { font-size: 13.5px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+.back-link { display: inline-block; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; }
+.back-link:hover { color: var(--white); }
+
+.main { max-width: 700px; margin: 0 auto; padding: 28px 16px 60px; }
+
+.tool-disclaimer { background: var(--gold-light); border: 1px solid #E8D098; border-radius: 8px; padding: 10px 14px; font-size: 11.5px; color: #6B4E00; line-height: 1.5; margin-bottom: 14px; }
+
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 10px 13px; background: var(--cream);
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 13.5px; color: var(--ink); font-family: inherit; transition: border-color 0.15s;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--gold); background: var(--white); }
+.form-row input::placeholder, .form-row textarea::placeholder { color: #B4B2A9; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 12px; }
+
+.btn-submit { width: 100%; padding: 13px; background: var(--navy); color: white; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.btn-submit:hover { background: var(--navy-dark); }
+.btn-submit:disabled { background: #B4B2A9; cursor: not-allowed; }
+.btn-copy { padding: 7px 16px; background: transparent; color: var(--navy); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-copy:hover { border-color: var(--gold); background: var(--gold-light); }
+.btn-clear { padding: 7px 16px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+.result-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: none; }
+.result-card.visible { display: block; }
+.result-header { padding: 12px 18px; background: var(--cream); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.result-title { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.result-actions { display: flex; gap: 8px; }
+.result-body { padding: 18px; font-size: 13.5px; color: var(--ink); line-height: 1.75; white-space: pre-wrap; }
+.result-body.loading { color: var(--muted); font-style: italic; }
+
+footer { background: var(--navy); padding: 1.2rem; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 1.5rem; }
+
+@media (max-width: 600px) {
+  .main { padding: 18px 12px 50px; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .tool-title { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <div class="tool-eyebrow">Analysis</div>
+    <div class="tool-title">Offer Strength Analyzer</div>
+    <div class="tool-desc">Input the listing details and your offer terms. Get a straightforward breakdown of how the offer stacks up on paper, based only on the numbers you enter.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+</header>
+
+<div class="main">
+  <div class="tool-disclaimer">This tool summarizes the numbers you provide — it is not market analysis, an appraisal, or professional advice. Review the analysis with your client and your broker before relying on it.</div>
+  <div class="form-card">
+    <div class="form-section-label">The Listing</div>
+    <div class="form-grid-3">
+      <div class="form-row"><label>List price</label><input type="text" id="o-listprice" placeholder="$425,000"></div>
+      <div class="form-row"><label>Days on market</label><input type="number" id="o-dom" placeholder="4"></div>
+      <div class="form-row"><label>Known offers</label><input type="number" id="o-offers" placeholder="3"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>City / area</label><input type="text" id="o-city" placeholder="Southlake, TX"></div>
+      <div class="form-row"><label>Property type</label>
+        <select id="o-type">
+          <option>Single family residential</option>
+          <option>Townhome / condo</option>
+          <option>New construction</option>
+          <option>Farm &amp; ranch</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-section-label" style="margin-top:16px;">Your Offer</div>
+    <div class="form-grid-3">
+      <div class="form-row"><label>Offer price</label><input type="text" id="o-offerprice" placeholder="$435,000"></div>
+      <div class="form-row"><label>Option period (days)</label><input type="number" id="o-option" placeholder="7"></div>
+      <div class="form-row"><label>Option fee ($)</label><input type="text" id="o-optionfee" placeholder="250"></div>
+    </div>
+    <div class="form-grid-3">
+      <div class="form-row"><label>Earnest money ($)</label><input type="text" id="o-earnest" placeholder="5,000"></div>
+      <div class="form-row"><label>Finance type</label>
+        <select id="o-finance">
+          <option>Conventional</option>
+          <option>Cash</option>
+          <option>FHA</option>
+          <option>VA</option>
+          <option>USDA</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Closing date</label><input type="text" id="o-closing" placeholder="30 days"></div>
+    </div>
+    <div class="form-row"><label>Concessions or special terms</label><input type="text" id="o-concessions" placeholder="Asking for $3k closing costs, leaseback needed, etc. Or leave blank."></div>
+    <button class="btn-submit" onclick="analyzeOffer()">Analyze My Offer &rarr;</button>
+  </div>
+  <div class="result-card" id="result-offer">
+    <div class="result-header">
+      <div class="result-title">Offer strength analysis</div>
+      <div class="result-actions">
+        <button class="btn-copy" onclick="copyResult('result-offer-body')">Copy analysis</button>
+        <button class="btn-clear" onclick="clearResult('result-offer')">Clear</button>
+      </div>
+    </div>
+    <div class="result-body" id="result-offer-body"></div>
+  </div>
+</div>
+
+<footer>&copy; 2026 AgentHubTX</footer>
+
+<script>
+function setLoading(btnEl, resultId, bodyId) {
+  btnEl.disabled = true;
+  btnEl.textContent = 'Generating...';
+  const card = document.getElementById(resultId);
+  const body = document.getElementById(bodyId);
+  card.classList.add('visible');
+  body.classList.add('loading');
+  body.textContent = 'Crafting your content...';
+}
+
+function setResult(btnEl, originalText, resultId, bodyId, text) {
+  btnEl.disabled = false;
+  btnEl.textContent = originalText;
+  const body = document.getElementById(bodyId);
+  body.classList.remove('loading');
+  body.textContent = text;
+}
+
+function copyResult(bodyId) {
+  const text = document.getElementById(bodyId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(b => { const orig = b.textContent; b.textContent = 'Copied!'; setTimeout(() => b.textContent = orig, 2000); });
+  });
+}
+
+function clearResult(resultId) {
+  document.getElementById(resultId).classList.remove('visible');
+}
+
+async function callClaude(prompt) {
+  const response = await fetch('/.netlify/functions/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  return data.content;
+}
+
+async function analyzeOffer() {
+  const listprice = document.getElementById('o-listprice').value;
+  const offerprice = document.getElementById('o-offerprice').value;
+  const dom = document.getElementById('o-dom').value;
+  const offers = document.getElementById('o-offers').value;
+  const city = document.getElementById('o-city').value;
+  const option = document.getElementById('o-option').value;
+  const optionfee = document.getElementById('o-optionfee').value;
+  const earnest = document.getElementById('o-earnest').value;
+  const finance = document.getElementById('o-finance').value;
+  const closing = document.getElementById('o-closing').value;
+  const concessions = document.getElementById('o-concessions').value;
+  const type = document.getElementById('o-type').value;
+
+  if (!listprice || !offerprice) { alert('Please enter list price and offer price.'); return; }
+
+  const btn = event.target;
+  setLoading(btn, 'result-offer', 'result-offer-body');
+
+  const prompt = `Analyze this real estate offer for competitiveness based on the data provided. Be direct and specific, grounded only in the numbers given.
+
+LISTING DETAILS:
+- Property type: ${type}
+- List price: ${listprice}
+- Days on market: ${dom || 'unknown'}
+- Known competing offers: ${offers || 'unknown'}
+- Market area: ${city || 'DFW Texas'}
+
+OFFER DETAILS:
+- Offer price: ${offerprice}
+- Finance type: ${finance}
+- Option period: ${option} days
+- Option fee: $${optionfee}
+- Earnest money: $${earnest}
+- Closing timeline: ${closing}
+- Concessions/special terms: ${concessions || 'none'}
+
+Provide:
+1. OVERALL STRENGTH RATING: Weak / Moderate / Strong / Very Strong — with one sentence explanation based on the numbers above
+2. WHAT'S WORKING: 2-3 specific strengths of this offer, based only on the data given
+3. WHAT'S HURTING YOU: 2-3 specific weaknesses or risks, based only on the data given
+4. THINGS TO CONSIDER: 3 specific factors the agent and client may want to discuss to strengthen this offer
+
+Be specific and practical. Do not claim personal experience, tenure, or transaction history. Base every point strictly on the inputs provided, and note where local market knowledge beyond these numbers would be needed to go further.`;
+
+  try {
+    const result = await callClaude(prompt);
+    setResult(btn, 'Analyze My Offer →', 'result-offer', 'result-offer-body', result);
+  } catch(err) {
+    setResult(btn, 'Analyze My Offer →', 'result-offer', 'result-offer-body', 'Error analyzing offer. Please try again.');
+  }
+}
+</script>
+</body>
+</html>
