@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer's Agent Obligations — TREC 20-19 | AgentHubTX</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Iowan Old Style', serif;
+    background: #F4F1EA;
+    color: #2b2b2b;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .hero {
+    background: #0C3057;
+    color: white;
+    padding: 32px 32px 26px;
+    border-top: 4px solid #C8922A;
+  }
+  .brand {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .brand .gold { color: #e0b563; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    color: #cfd9e8;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+  .source-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #9fb0c6;
+    margin-top: 10px;
+  }
+  .back-link {
+    display: inline-block;
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    color: #e0b563;
+    text-decoration: none;
+    margin-top: 14px;
+  }
+  .back-link:hover { text-decoration: underline; }
+  .content { padding: 30px 32px 60px; }
+  .section { margin-bottom: 30px; }
+  .section-title {
+    font-size: 21px;
+    font-weight: 700;
+    color: #0C3057;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8e2d2;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .compare-card {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .compare-card h4 {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0C3057;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .compare-card ul { margin: 0; padding-left: 18px; }
+  .compare-card li { font-size: 13.5px; margin-bottom: 6px; }
+  .duty-item {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .duty-item .cite {
+    flex-shrink: 0;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #C8922A;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .duty-item p { margin: 0; font-size: 14.5px; }
+  .duties-bar {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .duty-letter {
+    background: #0C3057;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .duty-letter .letter {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #e0b563;
+  }
+  .duty-letter .word {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .deadline-header {
+    background: #0C3057;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 8px 8px 0 0;
+    margin-top: 22px;
+  }
+  .deadline-header .sub {
+    font-weight: 400;
+    color: #cfd9e8;
+    margin-left: 8px;
+  }
+  .warning-box {
+    background: #fbe9e7;
+    border-left: 4px solid #b3261e;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    color: #6b1f17;
+  }
+  .warning-box strong { color: #b3261e; }
+  .one-line-test {
+    background: #0C3057;
+    color: white;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin: 24px 0;
+    text-align: center;
+  }
+  .one-line-test .eyebrow {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e0b563;
+    margin-bottom: 6px;
+  }
+  .one-line-test .statement {
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .recap-list {
+    background: white;
+    border: 1px solid #ddd5c4;
+    border-radius: 8px;
+    padding: 4px 18px;
+  }
+  .recap-list li { font-size: 14.5px; padding: 10px 0; border-bottom: 1px solid #f0ebe0; list-style: none; padding-left: 24px; position: relative; }
+  .recap-list li:last-child { border-bottom: none; }
+  .recap-list li:before { content: "\2713"; position: absolute; left: 0; color: #C8922A; font-weight: 700; }
+  .footer-note {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #6b6b6b;
+    text-align: center;
+    padding: 20px 32px 10px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="brand">
+      <span style="color: white;">ATTORNEY </span>
+      <span class="gold">BROKER</span>
+      <span style="color: white;"> SERVICES</span>
+    </div>
+    <h1>The Buyer's Agent's Duty</h1>
+    <div class="subtitle">Your Obligations to the Buyer Under the TREC 20-19 Contract</div>
+    <div class="source-note">Companion to the Buyer Obligations Checklist &middot; Based on TREC Form 20-19 (effective 05-04-2026) and Texas Occupations Code Ch. 1101 (TRELA)</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to AgentHubTX</a>
+  </div>
+
+  <div class="content">
+
+    <div class="section">
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>The Buyer's Obligations</h4>
+          <ul>
+            <li>Come from the contract itself</li>
+            <li>Deadlines: earnest money, option fee, inspections, termination notices</li>
+            <li>If missed: buyer loses rights, money, or remedies</li>
+            <li>Tracked on the Buyer Obligations Checklist</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Your Obligations</h4>
+          <ul>
+            <li>Come from statute and your representation agreement</li>
+            <li>Fiduciary duties: care, obedience, loyalty, disclosure, confidentiality, accounting</li>
+            <li>If missed: license discipline, E&amp;O exposure, breach of fiduciary duty claims</li>
+            <li>Mapped to every deadline in this module</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Where Your Duties Come From</div>
+      <p style="font-size:14.5px;margin-bottom:14px;">Four legal sources establish what you owe a buyer client, independent of anything written in the TREC 20-19 contract.</p>
+      <div class="duty-item"><span class="cite">TRELA &sect;1101.557</span><p>A broker who represents a party owes that party the duties of a fiduciary.</p></div>
+      <div class="duty-item"><span class="cite">TRELA &sect;1101.562&ndash;.563</span><p>Buyer representation must be in writing once you act for the buyer beyond a casual, unrepresented showing.</p></div>
+      <div class="duty-item"><span class="cite">TRELA &sect;1101.559&ndash;.561</span><p>Intermediary status — if your brokerage represents both parties — changes which duties apply and to whom.</p></div>
+      <div class="duty-item"><span class="cite">TREC Fiduciary Duties</span><p>Care, obedience, loyalty, disclosure, confidentiality, and accounting are owed throughout representation.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The Six Fiduciary Duties</div>
+      <p style="font-size:14.5px;margin-bottom:14px;">Every obligation in this module traces back to one of these six duties.</p>
+      <div class="duties-bar">
+        <div class="duty-letter"><div class="letter">C</div><div class="word">Care</div></div>
+        <div class="duty-letter"><div class="letter">O</div><div class="word">Obedience</div></div>
+        <div class="duty-letter"><div class="letter">L</div><div class="word">Loyalty</div></div>
+        <div class="duty-letter"><div class="letter">D</div><div class="word">Disclosure</div></div>
+        <div class="duty-letter"><div class="letter">C</div><div class="word">Confidentiality</div></div>
+        <div class="duty-letter"><div class="letter">A</div><div class="word">Accounting</div></div>
+      </div>
+
+      <div class="deadline-header">DAY 0 — EFFECTIVE DATE <span class="sub">At Signing</span></div>
+      <div class="duty-item" style="border-radius:0 0 8px 8px;margin-top:0;"><span class="cite">&sect;1101.557 — Care</span><p>Confirm the effective date is correctly entered (date of final acceptance) before circulating the contract.</p></div>
+      <div class="duty-item"><span class="cite">&sect;1101.558 — Disclosure</span><p>Disclose, in writing, any party or family/business interest you or your brokerage have in the transaction.</p></div>
+      <div class="duty-item"><span class="cite">Care / Loyalty</span><p>Verify the correct financing addendum is attached and matches the buyer's actual loan type.</p></div>
+      <div class="duty-item"><span class="cite">&sect;1101.562&ndash;.563</span><p>Confirm a written buyer representation agreement is signed before, or concurrent with, the contract.</p></div>
+
+      <div class="deadline-header">WITHIN 3 DAYS — CRITICAL <span class="sub">Earnest Money &amp; Option Fee</span></div>
+      <div class="warning-box" style="border-radius:0;margin-top:0;"><strong>This is the single most common buyer-side compliance failure.</strong> Reminding the buyer is not enough — confirm delivery in writing.</div>
+      <div class="duty-item"><span class="cite">If missed: seller can terminate (5A/5C)</span><p>Personally confirm earnest money was delivered to the escrow agent — don't assume.</p></div>
+      <div class="duty-item"><span class="cite">If missed: buyer forfeits right to terminate (5A/5D)</span><p>Personally confirm the option fee was delivered — don't assume.</p></div>
+      <div class="duty-item"><span class="cite">Care / Accounting</span><p>Document delivery confirmation (receipt, email, or escrow confirmation) in the file.</p></div>
+
+      <div class="deadline-header">OPTION / INSPECTION PERIOD <span class="sub">Coordinating the Option Period</span></div>
+      <div class="duty-item" style="border-radius:0 0 8px 8px;margin-top:0;"><span class="cite">Care</span><p>Help schedule inspections with TREC-licensed inspectors and attend or coordinate access.</p></div>
+      <div class="duty-item"><span class="cite">Care / Disclosure</span><p>Confirm any hydrostatic testing is authorized separately in writing before it occurs.</p></div>
+      <div class="duty-item"><span class="cite">Care</span><p>Track the repair amendment or As-Is election deadline (Para 7D) on your own calendar — not just the buyer's.</p></div>
+      <div class="warning-box"><strong>If the buyer is terminating:</strong> personally verify written notice reaches the seller by 5:00 PM on the last day — hand-delivery or confirmed receipt, not just "sent."</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Disclosures &middot; Title &middot; Survey</div>
+      <p style="font-size:14.5px;margin-bottom:14px;">Routing and calendaring review windows the moment documents arrive — not when the buyer says they reviewed them.</p>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>Disclosure Duties</h4>
+          <ul>
+            <li>Forward Seller's Disclosure Notice the day it's received — don't sit on it</li>
+            <li>Same for the Water Disclosure and any Natural Resource Lease notice</li>
+            <li>Calendar each 7-day termination window the moment the disclosure is received</li>
+            <li>Advise on the deadline; the decision to terminate belongs to the buyer (Obedience)</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>Title &amp; Survey Duties</h4>
+          <ul>
+            <li>Review the title commitment and exception documents the day they arrive</li>
+            <li>Calendar the written objection deadline (Para 6D) from receipt of commitment, exceptions, and survey</li>
+            <li>Track the seller's 15-day cure period and the buyer's 5-day election window</li>
+            <li>Re-review and re-object to any revised commitment within the same timeframe</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="deadline-header">FINANCING OBLIGATIONS <span class="sub">Watching the Lender Process</span></div>
+      <div class="duty-item" style="border-radius:0 0 8px 8px;margin-top:0;"><span class="cite">Third Party Financing Addendum</span><p>Confirm the buyer submitted a loan application promptly and is diligently pursuing financing.</p></div>
+      <div class="duty-item"><span class="cite">Para 7E — Disclosure</span><p>Flag lender-required repairs to all parties immediately — the contract terminates if no agreement is reached.</p></div>
+      <div class="duty-item"><span class="cite">Para 7E — Care</span><p>Calculate whether lender-required repair costs exceed 5% of the sales price — this triggers a termination right with earnest money refund.</p></div>
+      <div class="duty-item"><span class="cite">Para 12A(2)</span><p>Walk the buyer through every line of buyer's expenses due at closing before they're surprised at the table.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Compensation Transparency Is a Duty</div>
+      <div class="warning-box" style="background:#F3E3BC;border-left-color:#C8922A;color:#6B4E00;"><strong>Your buyer representation agreement sets your compensation</strong> — it is fully negotiable and never set by law, MLS, or association policy.</div>
+      <div class="duty-item"><span class="cite">Disclosure</span><p>Disclose in writing how you are compensated before the buyer signs anything.</p></div>
+      <div class="duty-item"><span class="cite">Para 12B(1)</span><p>If a seller offers compensation to the buyer's broker, explain that it is applied toward — and does not change — the buyer's obligation under your agreement.</p></div>
+      <div class="duty-item"><span class="cite">Loyalty</span><p>Never let compensation source influence which properties you show or how hard you negotiate.</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Getting to the Closing Table Clean</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>Before Closing</h4>
+          <ul>
+            <li>Coordinate the final walk-through and attend if possible</li>
+            <li>Confirm proof of completion for every agreed repair before the buyer signs off</li>
+            <li>Remind the buyer to bind homeowner's insurance ahead of transfer</li>
+            <li>Confirm the buyer has not taken early possession without a TREC lease</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h4>At Closing</h4>
+          <ul>
+            <li>Review closing documents with the buyer before they sign</li>
+            <li>Confirm the earnest money release/application matches Para 18B</li>
+            <li>Flag FIRPTA withholding obligations if the seller is a foreign person with no affidavit</li>
+            <li>Confirm your compensation paperwork (CDA) is accurate before funds disburse</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Your Duty Doesn't End at the Table</div>
+      <div class="duty-item"><span class="cite">Para 18C/18D</span><p>If the contract terminates, help the buyer respond to an earnest money release request within 7 days — silence creates liability.</p></div>
+      <div class="duty-item"><span class="cite">Para 16</span><p>If a dispute arises, guide the buyer toward mediation before litigation, per the contract.</p></div>
+      <div class="duty-item"><span class="cite">Para 19 / Accounting</span><p>Retain your file — representations and warranties survive closing, and so does your record-keeping duty.</p></div>
+    </div>
+
+    <div class="one-line-test">
+      <div class="eyebrow">The One-Line Test</div>
+      <div class="statement">Don't Remind. Confirm.</div>
+    </div>
+
+    <div class="section">
+      <p style="font-size:14.5px;margin-bottom:16px;">Every duty in this module reduces to the same habit: at every deadline on the buyer's checklist, your job is not to remind the buyer it's due — it's to confirm it actually happened, document that confirmation, and escalate immediately if it didn't.</p>
+      <ul class="recap-list">
+        <li>Calendar every deadline the day the contract is signed — not the day before it's due.</li>
+        <li>Confirm delivery in writing for earnest money, option fee, and termination notices.</li>
+        <li>Route every disclosure the day you receive it.</li>
+        <li>Document your advice and the buyer's decisions — especially terminations.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Use this module alongside the Buyer Obligations Checklist for every TREC 20-19 transaction. Always consult your broker or attorney on specific transactions.<br>
+    This document is for informational and training purposes only and does not constitute legal advice. TREC rules prohibit real estate brokers and sales agents from giving legal advice.<br><br>
+    &copy; 2026 AgentHubTX. All rights reserved.
+  </div>
+</div>
+</body>
+</html>
