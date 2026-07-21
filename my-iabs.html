@@ -267,7 +267,12 @@ async function init() {
   try {
     const { data, error } = await sb.rpc('get_my_iabs_profile');
     if (error) throw error;
-    if (data) profile = { ...BLANK_PROFILE, ...data };
+    if (data) {
+      profile = { ...BLANK_PROFILE, ...data };
+      if (profile.supervisor_enabled === null || profile.supervisor_enabled === undefined) {
+        profile.supervisor_enabled = true;
+      }
+    }
   } catch (err) {
     console.error('Failed to load profile:', err);
   }
@@ -342,7 +347,7 @@ async function saveProfile() {
     const { error } = await sb.rpc('save_my_iabs_profile', {
       p_firm_name: profile.firm_name, p_firm_license: profile.firm_license, p_firm_email: profile.firm_email, p_firm_phone: profile.firm_phone,
       p_broker_name: profile.broker_name, p_broker_license: profile.broker_license, p_broker_email: profile.broker_email, p_broker_phone: profile.broker_phone,
-      p_supervisor_enabled: profile.supervisor_enabled,
+      p_supervisor_enabled: !!profile.supervisor_enabled,
       p_supervisor_name: profile.supervisor_name, p_supervisor_license: profile.supervisor_license, p_supervisor_email: profile.supervisor_email, p_supervisor_phone: profile.supervisor_phone,
       p_agent_name: profile.agent_name, p_agent_license: profile.agent_license, p_agent_phone: profile.agent_phone,
     });
