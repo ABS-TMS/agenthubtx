@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rollback Tax Calculator | AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE; --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.55; }
+  input, button { font-family: inherit; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 28px 24px; }
+  .header-inner { max-width: 820px; margin: 0 auto; }
+  .brand { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .brand span { color: var(--gold); }
+  h1 { color: #fff; font-size: 22px; }
+  .back-link { display: inline-block; margin-top: 10px; font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  .wrap { max-width: 820px; margin: 0 auto; padding: 26px 20px 60px; }
+
+  .disclaimer { background: #FCEBEB; border: 1px solid #E9B8B8; border-radius: 8px; padding: 14px 16px; font-size: 12.5px; color: #7a2b2b; line-height: 1.55; margin-bottom: 22px; }
+
+  h2.section { color: var(--navy); font-size: 17px; margin: 26px 0 8px; }
+  .section-sub { font-size: 12.5px; color: var(--gray-500); margin-bottom: 12px; }
+
+  .card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 16px 18px; margin-bottom: 12px; }
+  .card p { font-size: 13.5px; margin-bottom: 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul { padding-left: 20px; font-size: 13.5px; }
+  .card li { margin-bottom: 5px; }
+
+  .cite { display: inline-block; background: var(--teal-light); color: var(--teal); font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; margin-left: 4px; white-space: nowrap; }
+
+  .quick-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .quick-facts { grid-template-columns: 1fr; } }
+  .fact { background: var(--white); border-left: 4px solid var(--gold); border-radius: 6px; padding: 12px 14px; font-size: 12.5px; }
+  .fact strong { display: block; color: var(--navy); font-size: 13px; margin-bottom: 3px; }
+
+  .calc-card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; padding: 18px 20px; }
+  .settings-row { display: flex; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .settings-row label { font-size: 12.5px; font-weight: 600; color: var(--navy); }
+  .settings-row select, .settings-row input { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 13px; margin-left: 6px; }
+
+  table.year-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  table.year-table th { background: var(--navy); color: #fff; font-size: 10.5px; text-transform: uppercase; padding: 8px 6px; text-align: left; }
+  table.year-table td { padding: 6px; border-bottom: 1px solid #EFEDE5; }
+  table.year-table td.year-label { font-size: 12.5px; font-weight: 600; color: var(--navy); white-space: nowrap; }
+  table.year-table input { width: 100%; padding: 6px 8px; border-radius: 5px; border: 1px solid var(--gray-300); font-size: 13px; }
+
+  .btn-primary { display: block; width: 100%; padding: 12px; border-radius: 9px; border: none; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 14px; }
+  .btn-primary:hover { opacity: 0.92; }
+
+  .result-box { display: none; margin-top: 18px; }
+  .result-total { background: var(--navy); border-radius: 10px; padding: 18px 20px; text-align: center; margin-bottom: 12px; }
+  .result-total .label { color: var(--gray-300); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .result-total .amount { color: #fff; font-size: 30px; font-weight: 700; }
+  .result-total .sub { color: var(--gray-300); font-size: 11.5px; margin-top: 4px; }
+
+  table.breakdown { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.breakdown th { background: #FAFAF8; color: var(--gray-500); font-size: 10.5px; text-transform: uppercase; padding: 7px 8px; text-align: left; border-bottom: 2px solid #E5E3DA; }
+  table.breakdown td { padding: 7px 8px; border-bottom: 1px solid #EFEDE5; }
+  table.breakdown tr.total-row td { font-weight: 700; color: var(--navy); border-top: 2px solid var(--navy); }
+
+  .footer-links { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 14px 16px; margin-top: 20px; }
+  .footer-links div { padding: 6px 0; border-bottom: 1px solid #EFEDE5; font-size: 13.5px; }
+  .footer-links div:last-child { border-bottom: none; }
+  .footer-links a { color: var(--navy); font-weight: 600; text-decoration: none; }
+  .footer-links a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <h1>Rollback Tax Calculator</h1>
+    <a class="back-link" href="tools-directory.html">&larr; Back to Tools Directory</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="disclaimer">
+    <strong>Estimate only — not legal or tax advice.</strong> The county appraisal district calculates the actual, official rollback tax owed on a specific property. This tool is for discussion and planning purposes with a client, not a substitute for that calculation or for advice from an attorney or tax professional.
+  </div>
+
+  <h2 class="section">How Rollback Taxes Work in Texas</h2>
+  <div class="card">
+    <p>When land with an agricultural or timber special appraisal (productivity value) changes to a non-agricultural use, the property owner who changed the use owes a rollback tax — the difference between what was paid at the lower agricultural value and what would have been paid at full market value.</p>
+  </div>
+
+  <div class="quick-facts">
+    <div class="fact"><strong>Lookback period</strong>The previous 3 tax years the land received the agricultural appraisal<span class="cite">Tax Code §23.55</span></div>
+    <div class="fact"><strong>Interest</strong>Widely reported at 5% per year since HB 1743 (down from 7%) — confirm the exact current rate with the county</div>
+    <div class="fact"><strong>Who owes it</strong>The owner who changes the use — this can be a new buyer if the change happens after a sale</div>
+    <div class="fact"><strong>Interest applies to</strong>Land qualifying under Subchapter C (1-d) incurs interest; confirm treatment for 1-d-1 (open-space) with the appraisal district</div>
+  </div>
+
+  <h2 class="section">Common Triggers</h2>
+  <div class="card">
+    <ul>
+      <li>Subdividing or developing the land</li>
+      <li>Building a residential subdivision or paving a commercial site</li>
+      <li>Simply stopping the qualifying agricultural or timber use</li>
+    </ul>
+    <p style="margin-top:10px;">A few situations are excepted from the rollback tax — including certain right-of-way sales, condemnations, transfers to a state or political subdivision for public use, and land transferred for economic development purposes.</p>
+  </div>
+
+  <h2 class="section">Estimate a Rollback Tax</h2>
+  <p class="section-sub">Enter each year's market value, agricultural (productivity) value, and local tax rate. This estimates the base rollback difference plus 5% annual interest.</p>
+
+  <div class="calc-card">
+    <div class="settings-row">
+      <div>
+        <label>Lookback years:
+          <select id="lookbackYears" onchange="buildYearRows()">
+            <option value="3" selected>3 (current standard rule)</option>
+            <option value="5">5 (older/legacy cases)</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Interest rate:
+          <input type="number" id="interestRate" value="5" step="0.1" style="width:60px;">%
+        </label>
+      </div>
+    </div>
+
+    <table class="year-table">
+      <thead>
+        <tr><th>Tax Year</th><th>Market Value ($)</th><th>Ag Value ($)</th><th>Tax Rate (per $100)</th></tr>
+      </thead>
+      <tbody id="yearRows"></tbody>
+    </table>
+
+    <button class="btn-primary" onclick="calculateRollback()">Calculate Estimated Rollback Tax</button>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-total">
+        <div class="label">Estimated Total Rollback Tax</div>
+        <div class="amount" id="totalAmount">$0</div>
+        <div class="sub">Base tax difference + accrued interest, across all years entered</div>
+      </div>
+      <table class="breakdown" id="breakdownTable"></table>
+    </div>
+  </div>
+
+  <h2 class="section">Further Reading</h2>
+  <div class="footer-links">
+    <div><a href="https://comptroller.texas.gov/taxes/property-tax/ag-timber/index.php" target="_blank" rel="noopener">Texas Comptroller — Agricultural, Timberland and Wildlife Management Use Special Appraisal</a></div>
+    <div><a href="https://comptroller.texas.gov/taxes/property-tax/docs/96-300.pdf" target="_blank" rel="noopener">Manual for the Appraisal of Agricultural Land (PDF)</a></div>
+    <div><a href="https://statutes.capitol.texas.gov/Docs/TX/htm/TX.23.htm" target="_blank" rel="noopener">Texas Tax Code, Chapter 23 (Subchapters C &amp; D)</a> — full statute text</div>
+  </div>
+
+</div>
+
+<script>
+  function buildYearRows() {
+    const years = parseInt(document.getElementById('lookbackYears').value);
+    const tbody = document.getElementById('yearRows');
+    const currentYear = new Date().getFullYear();
+    let html = '';
+    for (let i = 1; i <= years; i++) {
+      const yearLabel = currentYear - i;
+      html += `
+        <tr>
+          <td class="year-label">${yearLabel}</td>
+          <td><input type="number" id="market_${i}" placeholder="e.g. 350000"></td>
+          <td><input type="number" id="ag_${i}" placeholder="e.g. 8000"></td>
+          <td><input type="number" id="rate_${i}" placeholder="e.g. 2.1" step="0.01"></td>
+        </tr>`;
+    }
+    tbody.innerHTML = html;
+    document.getElementById('resultBox').style.display = 'none';
+  }
+
+  function calculateRollback() {
+    const years = parseInt(document.getElementById('lookbackYears').value);
+    const interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
+    let totalBase = 0;
+    let totalInterest = 0;
+    let rows = '';
+
+    for (let i = 1; i <= years; i++) {
+      const market = parseFloat(document.getElementById(`market_${i}`).value) || 0;
+      const ag = parseFloat(document.getElementById(`ag_${i}`).value) || 0;
+      const rate = parseFloat(document.getElementById(`rate_${i}`).value) || 0;
+
+      const marketTax = market * (rate / 100);
+      const agTax = ag * (rate / 100);
+      const baseDiff = Math.max(0, marketTax - agTax);
+
+      // Interest accrues per year elapsed since that tax year — the oldest year in
+      // the lookback has accrued interest the longest.
+      const yearsElapsed = years - i + 1;
+      const interest = baseDiff * (interestRate / 100) * yearsElapsed;
+      const yearTotal = baseDiff + interest;
+
+      totalBase += baseDiff;
+      totalInterest += interest;
+
+      const currentYear = new Date().getFullYear();
+      const yearLabel = currentYear - i;
+
+      rows += `
+        <tr>
+          <td>${yearLabel}</td>
+          <td>$${marketTax.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+          <td>$${agTax.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+          <td>$${baseDiff.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+          <td>$${interest.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+          <td>$${yearTotal.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+        </tr>`;
+    }
+
+    const grandTotal = totalBase + totalInterest;
+
+    document.getElementById('breakdownTable').innerHTML = `
+      <thead>
+        <tr><th>Year</th><th>Tax at Market</th><th>Tax at Ag Value</th><th>Base Difference</th><th>Interest</th><th>Year Total</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr class="total-row"><td colspan="3">Total</td><td>$${totalBase.toLocaleString(undefined, {maximumFractionDigits:2})}</td><td>$${totalInterest.toLocaleString(undefined, {maximumFractionDigits:2})}</td><td>$${grandTotal.toLocaleString(undefined, {maximumFractionDigits:2})}</td></tr>
+      </tfoot>`;
+
+    document.getElementById('totalAmount').textContent = `$${grandTotal.toLocaleString(undefined, {maximumFractionDigits:2})}`;
+    document.getElementById('resultBox').style.display = 'block';
+  }
+
+  buildYearRows();
+</script>
+
+</body>
+</html>
