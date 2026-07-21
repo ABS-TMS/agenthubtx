@@ -143,20 +143,6 @@
   .field-text li{
     margin-bottom:4px;
   }
-  .badge-row{
-    margin-top:14px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .badge{
-    font-size:11px;
-    background:var(--navy);
-    color:var(--cream);
-    padding:4px 10px;
-    border-radius:12px;
-    font-weight:700;
-  }
   .footer-note{
     margin-top:40px;
     padding:20px 22px;
@@ -188,439 +174,400 @@
   <p class="intro">A quick reference for every tool on the hub — what it does, when to reach for it, and how to use it. Tap a tool to expand.</p>
   <p class="search-hint">Can't find what you're looking for, or something's not working? Check with your designated supervisor first.</p>
 
-  <!-- ============ CORE COMPLIANCE ============ -->
-  <div class="group-title">Core Compliance</div>
+  <!-- ============ GETTING STARTED ============ -->
+  <div class="group-title">Getting Started</div>
 
-  <details id="my-iabs">
+  <details id="getting-started">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">My IABS</div>
-          <div class="tool-tagline">Your personal, pre-filled Information About Brokerage Services form</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Getting Started</div>
+        <div class="tool-tagline">Five steps to get oriented on AgentHubTX</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Generates your own scoped IABS disclosure, pre-filled with your name and license info, ready to send or print for a client.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">At first substantive contact with any buyer or seller — this is a TREC requirement, not optional paperwork.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Open My IABS from the hub Tools menu</li>
-            <li>Confirm your info is correct (it should auto-populate)</li>
-            <li>Download or send the link directly to your client</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Walks you through setting up your daily tools, browsing and pinning from the Tools Directory, saving your own links, trying the AI tools, and setting up Follow-Up Tracker and Buyer Intake.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Your first day on AgentHubTX, or anytime you want a refresher on what's available.</div></div>
     </div>
   </details>
 
-  <details id="client-ai-disclosure">
+  <details id="tools-directory">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Client AI Disclosure</div>
-          <div class="tool-tagline">Discloses AI-assisted content to clients where required</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Tools Directory</div>
+        <div class="tool-tagline">Every tool on the hub, searchable and organized by category</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Generates a client-facing disclosure statement whenever AI has been used to help draft something they'll see — descriptions, emails, or offer analysis.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Any time you use an EzzAgent Tool (or any AI tool) to produce content a client will read. This keeps you aligned with ABS's AI Use Policy.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Open Client AI Disclosure from the Tools menu</li>
-            <li>Enter your PIN when prompted</li>
-            <li>Attach or send the generated disclosure alongside the AI-assisted content</li>
-          </ol>
-        </div>
-      </div>
-      <div class="badge-row"><span class="badge">PIN required</span></div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">The full catalog of everything on AgentHubTX, grouped by Compliance, Practice Aids &amp; Checklist, Client Communication, Marketing &amp; Lead Generation, and Security.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Star anything you use often — it shows up as a Pinned Tool on your dashboard</li>
+          <li>Use the search or category filters to find something fast</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
-  <!-- ============ EZZAGENT TOOLS ============ -->
-  <div class="group-title">EzzAgent Tools</div>
-
-  <details id="listing-description">
+  <details id="my-links">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Listing Description</div>
-          <div class="tool-tagline">AI-generated listing copy, TREC-safe by default</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">My Links</div>
+        <div class="tool-tagline">Save your own bookmarks right on the dashboard</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Writes a polished listing description from the property details you provide, avoiding language that could raise fair housing or disclosure issues.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Any time you're prepping a new listing for MLS or marketing and want a clean first draft fast.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Enter the property's key details (beds, baths, features, neighborhood highlights)</li>
-            <li>Generate the description</li>
-            <li>Review and edit before publishing — always read it yourself first</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Lets you save any site you use often — a lender portal, a specific vendor — as a one-click tile on your own dashboard, so you don't need browser bookmarks.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>On your dashboard, enter a name and URL under "My Links"</li>
+          <li>Click Add — it appears as a tile right away</li>
+          <li>Click the ✕ on any link to remove it</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
-  <details id="client-email">
+  <!-- ============ COMPLIANCE ============ -->
+  <div class="group-title">Compliance</div>
+
+  <details id="checklists">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Client Email</div>
-          <div class="tool-tagline">Draft client-facing emails in a professional, consistent voice</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Buyer's &amp; Seller's Checklists (TREC 20-19)</div>
+        <div class="tool-tagline">Step-by-step checklists for the current TREC contract</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Generates a draft email for common client communications — status updates, showing follow-ups, closing reminders.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">When you know what you need to say but want a faster, cleaner starting point than a blank inbox.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Select the type of email and add a few specifics</li>
-            <li>Generate the draft</li>
-            <li>Personalize before sending — never send it unread</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Walks through every step of a transaction under the TREC 20-19 contract, from the buyer or seller side.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Any time you're working a new contract and want to make sure nothing's missed.</div></div>
     </div>
   </details>
 
-  <details id="offer-strength">
+  <details id="agent-obligations">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Offer Strength</div>
-          <div class="tool-tagline">Quick read on how a buyer's offer stacks up</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Buyer's &amp; Seller's Agent Obligations</div>
+        <div class="tool-tagline">What you owe each type of client under Texas law</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Analyzes the terms of an offer (price, contingencies, financing, timeline) and gives you a plain-language breakdown of its relative strength.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">When you're helping a seller compare multiple offers, or want a sanity check on a buyer's offer before presenting it.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Enter the offer terms</li>
-            <li>Review the generated breakdown</li>
-            <li>Use it as a talking-point aid — not a substitute for your own judgment or legal advice</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Spells out your specific duties depending on whether you're representing the buyer or the seller in a transaction.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Anytime you want a clear refresher on what's required of you in your current role on a deal.</div></div>
     </div>
   </details>
 
-  <details id="open-house-followup">
+  <details id="advertising-rules">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Open House Follow-Up</div>
-          <div class="tool-tagline">Turn open house sign-ins into a follow-up sequence</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Advertising Rules Quick Reference</div>
+        <div class="tool-tagline">What TREC requires in your ads and marketing</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Generates a follow-up message sequence for people who visited your open house, so no lead goes cold from forgetting to reach back out.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">The same day as your open house, while visitor details are still fresh.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Enter visitor names and notes from your sign-in sheet</li>
-            <li>Generate the follow-up messages</li>
-            <li>Send within 24 hours for best response rates</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Covers required disclosures and naming rules for any advertising — yard signs, social posts, listing flyers, and more.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Before publishing any new ad or marketing material, especially if you're unsure whether it needs your broker's name attached.</div></div>
     </div>
   </details>
 
-  <details id="property-scout">
+  <details id="faq-resource">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Property Scout</div>
-          <div class="tool-tagline">Fast property research for a new address</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">FAQ Resource</div>
+        <div class="tool-tagline">Answers to common TREC compliance questions</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Pulls together key property details to give you a quick research summary before a showing or listing appointment.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Before a first showing or listing consultation, when you want to walk in already informed.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Enter the property address</li>
-            <li>Review the summary generated</li>
-            <li>Also available in ABS Field Tools for use on your phone in the field</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">A searchable set of answers to the compliance questions that come up most for agents day-to-day.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Your first stop for a quick compliance question, before reaching out to your designated supervisor.</div></div>
+    </div>
+  </details>
+
+  <details id="recording-devices">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Recording Devices &amp; Smart Home Disclosures</div>
+        <div class="tool-tagline">Informing buyers about recording devices during showings</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Covers what you're required to tell a buyer about recording devices and smart home tech that may be present at a showing.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Before any showing, especially at owner-occupied properties.</div></div>
+    </div>
+  </details>
+
+  <details id="groundwater">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Groundwater District Questions &amp; Lookup</div>
+        <div class="tool-tagline">Groundwater disclosure guidance plus the district search tool</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Explains groundwater disclosure requirements, with links to look up the Texas Alliance of Groundwater Districts and search HOA info for a property.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Whenever a property's disclosure paperwork requires groundwater or HOA information you don't already have.</div></div>
+    </div>
+  </details>
+
+  <details id="addenda-library">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">TREC Addenda Reference Library</div>
+        <div class="tool-tagline">Quick reference for every TREC addendum form</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">A quick-lookup guide to TREC addenda — which one to use and when.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Whenever you're not sure which addendum a situation calls for.</div></div>
+    </div>
+  </details>
+
+  <!-- ============ PRACTICE AIDS & CHECKLIST ============ -->
+  <div class="group-title">Practice Aids &amp; Checklist</div>
+
+  <details id="agent-checklist">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Agent's Checklist &amp; Seller's Guide (TXR-1101)</div>
+        <div class="tool-tagline">Full walkthrough of the listing agreement process</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Step-by-step guidance for both you and your seller through the TXR-1101 listing agreement process.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Any time you're taking a new listing.</div></div>
+    </div>
+  </details>
+
+  <details id="mic-setup">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Microphone Setup &amp; Troubleshooting</div>
+        <div class="tool-tagline">Getting your mic working for calls and recordings</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Walks through common fixes for microphone issues on calls or recordings.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Whenever your mic isn't working right before a call or recorded walkthrough.</div></div>
+    </div>
+  </details>
+
+  <details id="offer-worksheet">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Offer Comparison Worksheet</div>
+        <div class="tool-tagline">Lay multiple offers side by side</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">A worksheet for laying out multiple offers side by side so a seller can compare them clearly.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">When a seller has more than one offer to consider.</div></div>
+    </div>
+  </details>
+
+  <details id="working-numbers">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">The Working Numbers</div>
+        <div class="tool-tagline">Mortgage, net proceeds, and commission split calculators</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">A calculator suite covering mortgage payments, seller net proceeds, commission splits, and more.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Any time you need a quick number for a client conversation — no spreadsheet needed.</div></div>
     </div>
   </details>
 
   <details id="buyer-intake">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Buyer Intake</div>
-          <div class="tool-tagline">Capture new buyer info in one clean form</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Buyer Intake</div>
+        <div class="tool-tagline">Capture a buyer's offer details right after a showing</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">A structured intake form to capture a new buyer's needs, budget, and timeline in one place — feeds into your own records, not shared across agents.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Your first meeting or call with a new buyer client.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Open Buyer Intake from Tools or the Field Tools app</li>
-            <li>Fill in the client's details during or right after your conversation</li>
-            <li>Reference it later when narrowing down listings for them</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Send the buyer a link to fill out their own intake and offer details on their phone — you review it and move it into the offer.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Open Buyer Intake and create a new intake for the property</li>
+          <li>Text or email the client link to your buyer</li>
+          <li>Review their submission and mark it transferred once it's in the offer</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
-  <!-- ============ FIELD & FOLLOW-UP ============ -->
-  <div class="group-title">Field &amp; Follow-Up</div>
+  <!-- ============ CLIENT COMMUNICATION ============ -->
+  <div class="group-title">Client Communication</div>
 
-  <details id="field-tools">
+  <details id="working-other-agent">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">ABS Field Tools (App)</div>
-          <div class="tool-tagline">Property Scout + Buyer Intake, installable on your phone</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Working the Other Agent</div>
+        <div class="tool-tagline">Guidance for dealing with the agent on the other side</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">A lightweight installable app version of Property Scout and Buyer Intake, built for use on your phone while you're out showing property.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Anytime you're in the field without easy laptop access — at a showing, an open house, or between appointments.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Visit the Field Tools link on your phone's browser</li>
-            <li>Tap "Add to Home Screen" to install it like an app</li>
-            <li>Enter your PIN to access Property Scout and Buyer Intake</li>
-          </ol>
-        </div>
-      </div>
-      <div class="badge-row"><span class="badge">PIN required</span><span class="badge">Installable</span></div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Practical guidance and language for navigating negotiations and communication with the agent on the other side of a deal.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Before a tricky negotiation or when a deal starts feeling adversarial.</div></div>
+    </div>
+  </details>
+
+  <details id="client-email">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Client Email Drafter</div>
+        <div class="tool-tagline">Draft client-facing emails in a professional, consistent voice</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Generates a draft email for common client communications — status updates, showing follow-ups, closing reminders.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Describe what the email needs to say</li>
+          <li>Generate the draft</li>
+          <li>Personalize it before sending — never send it unread</li>
+        </ol>
+      </div></div>
+    </div>
+  </details>
+
+  <!-- ============ MARKETING & LEAD GENERATION ============ -->
+  <div class="group-title">Marketing &amp; Lead Generation</div>
+
+  <details id="showing-tips">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Showing Tips for New Agents</div>
+        <div class="tool-tagline">Practical guidance for running showings smoothly</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Covers the basics of running a smooth showing, especially useful for your first few.</div></div>
+      <div class="field"><div class="field-label">When to use it</div><div class="field-text">Before any showing, but especially early in your career.</div></div>
+    </div>
+  </details>
+
+  <details id="listing-description">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">Listing Description Generator</div>
+        <div class="tool-tagline">AI-generated listing copy, TREC-safe by default</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Writes a polished listing description from the property details you provide, avoiding language that could raise fair housing or disclosure issues.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Enter the property's key details</li>
+          <li>Generate the description</li>
+          <li>Review and edit before publishing — always read it yourself first</li>
+        </ol>
+      </div></div>
+    </div>
+  </details>
+
+  <!-- ============ GENERAL ============ -->
+  <div class="group-title">General</div>
+
+  <details id="new-agent-tips">
+    <summary>
+      <div class="summary-left"><div>
+        <div class="tool-name">New Agent &amp; Pro Tips</div>
+        <div class="tool-tagline">Practical tips for new and experienced agents alike</div>
+      </div></div>
+      <div class="chevron">+</div>
+    </summary>
+    <div class="body">
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">A running collection of practical tips that come up in real day-to-day agent work.</div></div>
     </div>
   </details>
 
   <details id="follow-up-tracker">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Follow-Up Tracker</div>
-          <div class="tool-tagline">Keep leads warm with scheduled nurture reminders</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Follow-Up Tracker</div>
+        <div class="tool-tagline">Keep leads warm with a scheduled follow-up sequence</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Tracks your leads and reminds you when it's time to follow up, using templates so you're not writing from scratch every time.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">For any lead that isn't ready to transact today but shouldn't go cold — the majority of your pipeline.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Add a lead with their contact info and where they are in the process</li>
-            <li>Choose or customize a follow-up template</li>
-            <li>Check the tracker regularly — it only works if you act on the reminders</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Tracks your leads through a 4-touch follow-up sequence, so nothing goes cold from forgetting to reach back out.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Add a lead with their contact info</li>
+          <li>Copy the suggested message when a touch is due, and mark it sent</li>
+          <li>Pause or delete a lead any time from the tracker</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
-  <!-- ============ GETTING STARTED ============ -->
-  <div class="group-title">Getting Started</div>
-
-  <details id="onboarding-checklist">
+  <details id="offer-strength">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Onboarding Checklist</div>
-          <div class="tool-tagline">Your step-by-step path through AgentHubTX's tools</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Offer Strength Analyzer</div>
+        <div class="tool-tagline">Quick read on how a buyer's offer stacks up</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">What it does</div>
-        <div class="field-text">Walks new agents through every core AgentHubTX tool, tracking your progress as you go.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">When to use it</div>
-        <div class="field-text">Your first few weeks with ABS — but it stays available if you want a refresher later.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">How to use it</div>
-        <div class="field-text">
-          <ol>
-            <li>Open the Onboarding Checklist from the hub</li>
-            <li>Work through each lesson at your own pace</li>
-            <li>Progress is saved automatically to your account</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">What it does</div><div class="field-text">Analyzes the terms of an offer and gives you a plain-language breakdown of its relative strength.</div></div>
+      <div class="field"><div class="field-label">How to use it</div><div class="field-text">
+        <ol>
+          <li>Enter the offer terms</li>
+          <li>Review the generated breakdown</li>
+          <li>Use it as a talking-point aid — not a substitute for your own judgment or legal advice</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
-  <!-- ============ BEST PRACTICES ============ -->
-  <div class="group-title">Best Practices</div>
-  <p style="font-size:12px;color:#8a8271;margin:-4px 0 12px;font-style:italic;">Brokerage guidance from ABS — not TREC-sourced. See the FAQ Resource for TREC-specific compliance questions.</p>
-
-  <details id="ai-tool-caution">
-    <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Using AI Tools Safely</div>
-          <div class="tool-tagline">What to watch for with ChatGPT and other general AI tools</div>
-        </div>
-      </div>
-      <div class="chevron">+</div>
-    </summary>
-    <div class="body">
-      <div class="field">
-        <div class="field-label">Why it matters</div>
-        <div class="field-text">General-purpose AI tools like ChatGPT aren't built with Texas real estate law or TREC form requirements in mind. They can generate language that unintentionally crosses into legal advice or misrepresents disclosure obligations.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">What to do instead</div>
-        <div class="field-text">
-          <ol>
-            <li>Use EzzAgent Tools first for anything client-facing — Listing Description, Client Email, and Offer Strength are built around TREC-compliant language for these exact situations</li>
-            <li>If you use a general AI tool instead, always review the output yourself before it reaches a client — especially anything touching legal terms, contingencies, or disclosure language</li>
-            <li>Use Client AI Disclosure any time AI-assisted content goes to a client</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </details>
+  <!-- ============ SECURITY ============ -->
+  <div class="group-title">Security</div>
 
   <details id="cybersecurity-basics">
     <summary>
-      <div class="summary-left">
-        <div>
-          <div class="tool-name">Cybersecurity Basics</div>
-          <div class="tool-tagline">Protecting client data on your accounts and devices</div>
-        </div>
-      </div>
+      <div class="summary-left"><div>
+        <div class="tool-name">Client Data Handling Policy &amp; Email Security Checklist</div>
+        <div class="tool-tagline">Protecting client data on your accounts and devices</div>
+      </div></div>
       <div class="chevron">+</div>
     </summary>
     <div class="body">
-      <div class="field">
-        <div class="field-label">Why it matters</div>
-        <div class="field-text">Real estate transactions involve sensitive client financial and personal information, and agents are frequent targets for wire fraud and phishing schemes tied to closings.</div>
-      </div>
-      <div class="field">
-        <div class="field-label">What to do</div>
-        <div class="field-text">
-          <ol>
-            <li>Use two-factor authentication on your email, CRM, and transaction management accounts</li>
-            <li>Use a password manager for unique passwords across every tool — not just email</li>
-            <li>Never act on wiring instructions received only by email — verify by phone using a number you already have on file</li>
-            <li>For the full walkthrough, including the exact verification script to use before a closing, see the Email Security Checklist resource on the hub</li>
-          </ol>
-        </div>
-      </div>
+      <div class="field"><div class="field-label">Why it matters</div><div class="field-text">Real estate transactions involve sensitive client financial and personal information, and agents are frequent targets for wire fraud and phishing schemes tied to closings.</div></div>
+      <div class="field"><div class="field-label">What to do</div><div class="field-text">
+        <ol>
+          <li>Use two-factor authentication on your email, CRM, and transaction management accounts</li>
+          <li>Never act on wiring instructions received only by email — verify by phone using a number you already have on file</li>
+          <li>See the full Email Security Checklist for the exact verification script to use before a closing</li>
+        </ol>
+      </div></div>
     </div>
   </details>
 
   <div class="footer-note">
-    <strong>Still stuck?</strong> This page covers the how — for the why behind a policy or a TREC requirement, check the FAQ. For anything this page doesn't answer, reach out to your designated supervisor first, before escalating further.
+    <strong>Still stuck?</strong> This page covers the how — for the why behind a policy or a TREC requirement, check the FAQ Resource. For anything this page doesn't answer, reach out to your designated supervisor first, before escalating further.
   </div>
 
   <div class="page-footer">AgentHubTX</div>
-
 
 </div>
 
