@@ -52,6 +52,8 @@
   .badge-active { background: #E1EEFB; color: #185FA5; }
   .badge-notinterested { background: var(--red-light); color: var(--red); }
   .check-btn { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--navy); }
+  .deactivate-btn { background: none; border: 1px solid var(--red); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--red); }
+  .deactivate-btn.is-reactivate { border-color: var(--teal); color: var(--teal); }
   .delete-btn { background: none; border: none; color: var(--gray-500); font-size: 15px; cursor: pointer; }
   .delete-btn:hover { color: var(--red); }
 
@@ -176,6 +178,7 @@ function render() {
             `<option value="${s}" ${s === inv.status ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
         <button class="check-btn" onclick="checkSignup('${inv.id}', '${escapeHtml(inv.contact || '')}')">Check signup</button>
+        <button class="deactivate-btn ${inv.is_banned ? 'is-reactivate' : ''}" onclick="toggleBan('${inv.id}', '${escapeHtml(inv.contact || '')}', ${!!inv.is_banned})">${inv.is_banned ? 'Reactivate' : 'Deactivate'}</button>
         <button class="delete-btn" onclick="deleteInvite('${inv.id}')" title="Remove">✕</button>
       </div>
     </div>
@@ -232,6 +235,36 @@ async function checkSignup(id, contact) {
   } catch (err) {
     console.error('Could not check signup:', err);
     alert('Could not check right now. Try again.');
+  }
+}
+
+async function toggleBan(id, contact, isCurrentlyBanned) {
+  if (!contact || !contact.includes('@')) {
+    alert('This entry needs a real email address to deactivate the account.');
+    return;
+  }
+  const action = isCurrentlyBanned ? 'unban' : 'ban';
+  const confirmMsg = isCurrentlyBanned
+    ? `Restore access for ${contact}?`
+    : `Deactivate ${contact}? They will not be able to sign in until reactivated.`;
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const resp = await fetch('/.netlify/functions/admin-user-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, email: contact, accessToken: session.access_token }),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || 'Request failed');
+
+    const inv = invites.find(i => i.id === id);
+    if (inv) inv.is_banned = action === 'ban';
+    render();
+  } catch (err) {
+    console.error('Could not update account access:', err);
+    alert('Could not complete that action: ' + err.message);
   }
 }
 
