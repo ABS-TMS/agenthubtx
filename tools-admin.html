@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorganize Tools | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
+  input, button { font-family: inherit; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .brand { font-size: 15px; font-weight: 700; color: #fff; }
+  .brand span { color: var(--gold); }
+  .back-link { font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  #loadingState, #deniedState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+
+  .toolbar { padding: 14px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .toolbar input { padding: 8px 12px; border-radius: 7px; border: 1px solid var(--gray-300); font-size: 13px; width: 220px; }
+  .toolbar button { padding: 8px 16px; border-radius: 7px; border: none; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 13px; cursor: pointer; }
+  .save-status { font-size: 12px; color: var(--teal); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+  .save-status.show { opacity: 1; }
+
+  .board { display: flex; gap: 14px; padding: 0 20px 40px; overflow-x: auto; align-items: flex-start; }
+  .column { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; min-width: 250px; max-width: 250px; flex-shrink: 0; }
+  .column-header { padding: 12px 14px; font-size: 12.5px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+  .column-count { font-size: 11px; color: var(--gray-500); font-weight: 400; text-transform: none; }
+  .column-body { padding: 10px; min-height: 60px; }
+  .column.drag-over .column-body { background: var(--teal-light); border-radius: 0 0 8px 8px; }
+
+  .card { background: var(--off); border: 1px solid #E5E3DA; border-radius: 7px; padding: 10px 12px; margin-bottom: 8px; cursor: grab; font-size: 12.5px; }
+  .card.dragging { opacity: 0.35; }
+  .card:active { cursor: grabbing; }
+  .card-title { font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+  .card-desc { font-size: 11px; color: var(--gray-500); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .drop-indicator { height: 3px; background: var(--gold); border-radius: 2px; margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Agent<span>HubTX</span> · Reorganize Tools</div>
+  <a class="back-link" href="tools-directory.html">&larr; Back to Tools Directory</a>
+</header>
+
+<div id="loadingState"><p>Loading...</p></div>
+<div id="deniedState" style="display:none;">
+  <h2 style="color:var(--navy); margin-bottom:10px;">Not authorized</h2>
+  <p>This page is limited to the broker account.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="toolbar">
+    <input type="text" id="newCategoryInput" placeholder="New category name...">
+    <button onclick="addCategory()">Add Category</button>
+    <span class="save-status" id="saveStatus">Saved</span>
+  </div>
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ADMIN_EMAIL = 'mike@urocketrealty.com';
+
+let tools = [];
+let categoryOrder = [];
+let draggedId = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session || session.user.email !== ADMIN_EMAIL) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('deniedState').style.display = 'block';
+    return;
+  }
+
+  const { data, error } = await sb.rpc('get_tools');
+  if (error) {
+    document.getElementById('loadingState').innerHTML = '<p>Could not load tools. Refresh to try again.</p>';
+    return;
+  }
+  tools = data || [];
+  categoryOrder = [...new Set(tools.map(t => t.category))];
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+}
+
+function addCategory() {
+  const input = document.getElementById('newCategoryInput');
+  const name = input.value.trim();
+  if (!name || categoryOrder.includes(name)) return;
+  categoryOrder.push(name);
+  input.value = '';
+  render();
+}
+
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = categoryOrder.map(cat => {
+    const items = tools.filter(t => t.category === cat).sort((a, b) => a.sort_order - b.sort_order);
+    return `
+      <div class="column" data-category="${escapeHtml(cat)}"
+           ondragover="onColumnDragOver(event)" ondragleave="onColumnDragLeave(event)" ondrop="onColumnDrop(event, '${escapeHtml(cat)}')">
+        <div class="column-header">${escapeHtml(cat)} <span class="column-count">${items.length}</span></div>
+        <div class="column-body">
+          ${items.map(t => `
+            <div class="card" draggable="true" data-id="${t.id}"
+                 ondragstart="onDragStart(event, '${t.id}')" ondragend="onDragEnd(event)">
+              <div class="card-title">${escapeHtml(t.title)}</div>
+              <div class="card-desc">${escapeHtml(t.description || '')}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function onDragStart(e, id) {
+  draggedId = id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+}
+function onColumnDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function onColumnDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+async function onColumnDrop(e, newCategory) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedId) return;
+
+  const tool = tools.find(t => t.id === draggedId);
+  if (!tool) return;
+
+  tool.category = newCategory;
+  const itemsInCategory = tools.filter(t => t.category === newCategory);
+  tool.sort_order = (Math.max(0, ...itemsInCategory.map(t => t.sort_order)) || 0) + 10;
+
+  render();
+  await saveTool(tool);
+  draggedId = null;
+}
+
+async function saveTool(tool) {
+  try {
+    const { error } = await sb.rpc('admin_update_tool_placement', {
+      p_id: tool.id,
+      p_category: tool.category,
+      p_sort_order: tool.sort_order,
+    });
+    if (error) throw error;
+    const status = document.getElementById('saveStatus');
+    status.classList.add('show');
+    setTimeout(() => status.classList.remove('show'), 1500);
+  } catch (err) {
+    console.error('Save failed:', err);
+    alert('Could not save that change. Refresh and try again.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
