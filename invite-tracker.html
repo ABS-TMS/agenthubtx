@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invite Tracker | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --amber: #B8860B; --amber-light: #FFF3D6;
+    --red: #A32D2D; --red-light: #FCEBEB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
+  input, button, select, textarea { font-family: inherit; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .brand { font-size: 15px; font-weight: 700; color: #fff; }
+  .brand span { color: var(--gold); }
+  .back-link { font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  #loadingState, #deniedState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .add-card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .add-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .add-row input { flex: 1; min-width: 140px; padding: 9px 12px; border-radius: 7px; border: 1px solid var(--gray-300); font-size: 13.5px; }
+  .add-card button { padding: 9px 20px; border-radius: 7px; border: none; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 13.5px; cursor: pointer; }
+
+  .stats-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 10px 16px; font-size: 12.5px; flex: 1; min-width: 100px; text-align: center; }
+  .stat .num { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .stat .label { color: var(--gray-500); font-size: 11px; text-transform: uppercase; }
+
+  .row { background: var(--white); border: 1px solid #E5E3DA; border-radius: 9px; padding: 12px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .row-left { flex: 1; min-width: 200px; }
+  .row-name { font-weight: 700; color: var(--navy); font-size: 14px; }
+  .row-contact { font-size: 12.5px; color: var(--gray-500); }
+  .row-date { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+  .row-notes { font-size: 12px; color: var(--gray-700); margin-top: 6px; font-style: italic; }
+
+  .row-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12px; font-weight: 600; }
+  .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; }
+  .badge-invited { background: var(--amber-light); color: var(--amber); }
+  .badge-signedup { background: var(--teal-light); color: var(--teal); }
+  .badge-active { background: #E1EEFB; color: #185FA5; }
+  .badge-notinterested { background: var(--red-light); color: var(--red); }
+  .check-btn { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--navy); }
+  .delete-btn { background: none; border: none; color: var(--gray-500); font-size: 15px; cursor: pointer; }
+  .delete-btn:hover { color: var(--red); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 13.5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Agent<span>HubTX</span> · Invite Tracker</div>
+  <a class="back-link" href="dashboard.html">&larr; Back to hub</a>
+</header>
+
+<div id="loadingState"><p>Loading...</p></div>
+<div id="deniedState" style="display:none;">
+  <h2 style="color:var(--navy); margin-bottom:10px;">Not authorized</h2>
+  <p>This page is limited to the broker account.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="wrap">
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="add-card">
+      <div class="add-row">
+        <input type="text" id="newName" placeholder="Name">
+        <input type="text" id="newContact" placeholder="Email or phone">
+      </div>
+      <div class="add-row">
+        <input type="text" id="newNotes" placeholder="Notes (optional)">
+        <button onclick="addInvite()">Add</button>
+      </div>
+    </div>
+
+    <div id="listWrap"></div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ADMIN_EMAIL = 'mike@urocketrealty.com';
+
+let invites = [];
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+function badgeClass(status) {
+  return {
+    'Invited': 'badge-invited',
+    'Signed Up': 'badge-signedup',
+    'Active': 'badge-active',
+    'Not Interested': 'badge-notinterested',
+  }[status] || 'badge-invited';
+}
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session || session.user.email !== ADMIN_EMAIL) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('deniedState').style.display = 'block';
+    return;
+  }
+
+  await loadInvites();
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+async function loadInvites() {
+  const { data, error } = await sb
+    .from('invite_tracker')
+    .select('*')
+    .order('date_invited', { ascending: false });
+  if (error) {
+    console.error('Failed to load invites:', error);
+    return;
+  }
+  invites = data || [];
+  render();
+}
+
+function render() {
+  const counts = { Invited: 0, 'Signed Up': 0, Active: 0, 'Not Interested': 0 };
+  invites.forEach(i => { counts[i.status] = (counts[i.status] || 0) + 1; });
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="num">${invites.length}</div><div class="label">Total</div></div>
+    <div class="stat"><div class="num">${counts['Invited']}</div><div class="label">Invited</div></div>
+    <div class="stat"><div class="num">${counts['Signed Up']}</div><div class="label">Signed Up</div></div>
+    <div class="stat"><div class="num">${counts['Active']}</div><div class="label">Active</div></div>
+  `;
+
+  const listWrap = document.getElementById('listWrap');
+  if (!invites.length) {
+    listWrap.innerHTML = '<div class="empty-state">No one added yet — use the form above when you give someone the access code.</div>';
+    return;
+  }
+
+  listWrap.innerHTML = invites.map(inv => `
+    <div class="row">
+      <div class="row-left">
+        <div class="row-name">${escapeHtml(inv.name)}</div>
+        <div class="row-contact">${escapeHtml(inv.contact || '')}</div>
+        <div class="row-date">Invited ${formatDate(inv.date_invited)}</div>
+        ${inv.notes ? `<div class="row-notes">${escapeHtml(inv.notes)}</div>` : ''}
+      </div>
+      <div class="row-right">
+        <span class="badge ${badgeClass(inv.status)}">${escapeHtml(inv.status)}</span>
+        <select class="status-select" onchange="updateStatus('${inv.id}', this.value)">
+          ${['Invited', 'Signed Up', 'Active', 'Not Interested'].map(s =>
+            `<option value="${s}" ${s === inv.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <button class="check-btn" onclick="checkSignup('${inv.id}', '${escapeHtml(inv.contact || '')}')">Check signup</button>
+        <button class="delete-btn" onclick="deleteInvite('${inv.id}')" title="Remove">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addInvite() {
+  const name = document.getElementById('newName').value.trim();
+  const contact = document.getElementById('newContact').value.trim();
+  const notes = document.getElementById('newNotes').value.trim();
+  if (!name) { alert('Enter at least a name.'); return; }
+
+  try {
+    const { error } = await sb.rpc('admin_add_invite', { p_name: name, p_contact: contact, p_notes: notes });
+    if (error) throw error;
+    document.getElementById('newName').value = '';
+    document.getElementById('newContact').value = '';
+    document.getElementById('newNotes').value = '';
+    await loadInvites();
+  } catch (err) {
+    console.error('Could not add invite:', err);
+    alert('Could not save that entry. Try again.');
+  }
+}
+
+async function updateStatus(id, status) {
+  const inv = invites.find(i => i.id === id);
+  try {
+    const { error } = await sb.rpc('admin_update_invite', { p_id: id, p_status: status, p_notes: inv ? inv.notes : null });
+    if (error) throw error;
+    await loadInvites();
+  } catch (err) {
+    console.error('Could not update status:', err);
+    alert('Could not save that change.');
+  }
+}
+
+async function checkSignup(id, contact) {
+  if (!contact || !contact.includes('@')) {
+    alert('Add an email address for this person to check signup status.');
+    return;
+  }
+  try {
+    const { data, error } = await sb.rpc('admin_check_signup', { p_contact: contact });
+    if (error) throw error;
+    if (data) {
+      const inv = invites.find(i => i.id === id);
+      await sb.rpc('admin_update_invite', { p_id: id, p_status: 'Signed Up', p_notes: inv ? inv.notes : null });
+      await loadInvites();
+      alert('Found it — marked as Signed Up.');
+    } else {
+      alert('No matching account found yet.');
+    }
+  } catch (err) {
+    console.error('Could not check signup:', err);
+    alert('Could not check right now. Try again.');
+  }
+}
+
+async function deleteInvite(id) {
+  if (!confirm('Remove this entry?')) return;
+  try {
+    const { error } = await sb.rpc('admin_delete_invite', { p_id: id });
+    if (error) throw error;
+    await loadInvites();
+  } catch (err) {
+    console.error('Could not delete:', err);
+    alert('Could not remove that entry.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
