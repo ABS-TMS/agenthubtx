@@ -33,6 +33,10 @@
   .column { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; min-width: 250px; max-width: 250px; flex-shrink: 0; }
   .column-header { padding: 12px 14px; font-size: 12.5px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
   .column-count { font-size: 11px; color: var(--gray-500); font-weight: 400; text-transform: none; }
+  .rename-cat-btn { background: none; border: none; color: var(--gray-500); font-size: 12px; cursor: pointer; padding: 0 0 0 8px; margin-left: auto; }
+  .rename-cat-btn:hover { color: var(--navy); }
+  .delete-cat-btn { background: none; border: none; color: var(--gray-500); font-size: 13px; cursor: pointer; padding: 0 0 0 6px; }
+  .delete-cat-btn:hover { color: #A32D2D; }
   .column-body { padding: 10px; min-height: 60px; }
   .column.drag-over .column-body { background: var(--teal-light); border-radius: 0 0 8px 8px; }
 
@@ -119,7 +123,7 @@ function render() {
     return `
       <div class="column" data-category="${escapeHtml(cat)}"
            ondragover="onColumnDragOver(event)" ondragleave="onColumnDragLeave(event)" ondrop="onColumnDrop(event, '${escapeHtml(cat)}')">
-        <div class="column-header">${escapeHtml(cat)} <span class="column-count">${items.length}</span></div>
+        <div class="column-header">${escapeHtml(cat)} <span class="column-count">${items.length}</span><button class="rename-cat-btn" onclick="renameCategory('${escapeHtml(cat)}')" title="Rename category">✎</button>${cat !== 'General' ? `<button class="delete-cat-btn" onclick="deleteCategory('${escapeHtml(cat)}')" title="Delete category">✕</button>` : ''}</div>
         <div class="column-body">
           ${items.map(t => `
             <div class="card" draggable="true" data-id="${t.id}"
@@ -163,6 +167,46 @@ async function onColumnDrop(e, newCategory) {
   render();
   await saveTool(tool);
   draggedId = null;
+}
+
+async function renameCategory(oldName) {
+  const newName = prompt(`Rename "${oldName}" to:`, oldName);
+  if (!newName || !newName.trim() || newName.trim() === oldName) return;
+  const trimmed = newName.trim();
+
+  if (categoryOrder.includes(trimmed)) {
+    alert(`"${trimmed}" already exists — merge tools by dragging them there instead, or pick a different name.`);
+    return;
+  }
+
+  const items = tools.filter(t => t.category === oldName);
+  for (const tool of items) {
+    tool.category = trimmed;
+    await saveTool(tool);
+  }
+
+  categoryOrder = categoryOrder.map(c => c === oldName ? trimmed : c);
+  render();
+}
+
+async function deleteCategory(cat) {
+  const items = tools.filter(t => t.category === cat);
+  const msg = items.length
+    ? `Delete "${cat}"? ${items.length} tool(s) will move to General.`
+    : `Delete empty category "${cat}"?`;
+  if (!confirm(msg)) return;
+
+  if (!categoryOrder.includes('General')) categoryOrder.push('General');
+
+  for (const tool of items) {
+    tool.category = 'General';
+    const itemsInGeneral = tools.filter(t => t.category === 'General');
+    tool.sort_order = (Math.max(0, ...itemsInGeneral.map(t => t.sort_order)) || 0) + 10;
+    await saveTool(tool);
+  }
+
+  categoryOrder = categoryOrder.filter(c => c !== cat);
+  render();
 }
 
 async function saveTool(tool) {
