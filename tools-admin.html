@@ -104,20 +104,65 @@ async function init() {
     return;
   }
   tools = data || [];
-  categoryOrder = [...new Set(tools.map(t => t.category))];
+
+  const { data: catData, error: catError } = await sb
+    .from('tool_categories')
+    .select('name')
+    .order('sort_order');
+  if (catError) {
+    document.getElementById('loadingState').innerHTML = '<p>Could not load categories. Refresh to try again.</p>';
+    return;
+  }
+  categoryOrder = (catData || []).map(c => c.name);
+  // Safety net: include any category a tool has that's somehow missing from the table
+  tools.forEach(t => { if (!categoryOrder.includes(t.category)) categoryOrder.push(t.category); });
 
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   render();
+  setupScrollSlider();
 }
 
-function addCategory() {
+function setupScrollSlider() {
+  const board = document.getElementById('board');
+  const slider = document.getElementById('scrollSlider');
+  const wrap = document.getElementById('scrollSliderWrap');
+
+  function maybeShowSlider() {
+    const overflowing = board.scrollWidth > board.clientWidth + 4;
+    wrap.style.display = overflowing ? 'block' : 'none';
+  }
+
+  slider.addEventListener('input', () => {
+    const maxScroll = board.scrollWidth - board.clientWidth;
+    board.scrollLeft = (slider.value / 100) * maxScroll;
+  });
+
+  board.addEventListener('scroll', () => {
+    const maxScroll = board.scrollWidth - board.clientWidth;
+    slider.value = maxScroll > 0 ? (board.scrollLeft / maxScroll) * 100 : 0;
+  });
+
+  maybeShowSlider();
+  window.addEventListener('resize', maybeShowSlider);
+  new MutationObserver(maybeShowSlider).observe(board, { childList: true, subtree: true });
+}
+
+async function addCategory() {
   const input = document.getElementById('newCategoryInput');
   const name = input.value.trim();
   if (!name || categoryOrder.includes(name)) return;
-  categoryOrder.push(name);
-  input.value = '';
-  render();
+
+  try {
+    const { error } = await sb.rpc('admin_add_category', { p_name: name });
+    if (error) throw error;
+    categoryOrder.push(name);
+    input.value = '';
+    render();
+  } catch (err) {
+    console.error('Could not add category:', err);
+    alert('Could not save that category. Refresh and try again.');
+  }
 }
 
 function render() {
@@ -183,14 +228,16 @@ async function renameCategory(oldName) {
     return;
   }
 
-  const items = tools.filter(t => t.category === oldName);
-  for (const tool of items) {
-    tool.category = trimmed;
-    await saveTool(tool);
+  try {
+    const { error } = await sb.rpc('admin_rename_category', { p_old_name: oldName, p_new_name: trimmed });
+    if (error) throw error;
+    tools.filter(t => t.category === oldName).forEach(t => { t.category = trimmed; });
+    categoryOrder = categoryOrder.map(c => c === oldName ? trimmed : c);
+    render();
+  } catch (err) {
+    console.error('Could not rename category:', err);
+    alert('Could not save that rename. Refresh and try again.');
   }
-
-  categoryOrder = categoryOrder.map(c => c === oldName ? trimmed : c);
-  render();
 }
 
 async function deleteCategory(cat) {
@@ -200,17 +247,18 @@ async function deleteCategory(cat) {
     : `Delete empty category "${cat}"?`;
   if (!confirm(msg)) return;
 
-  if (!categoryOrder.includes('General')) categoryOrder.push('General');
+  try {
+    const { error } = await sb.rpc('admin_delete_category', { p_name: cat });
+    if (error) throw error;
 
-  for (const tool of items) {
-    tool.category = 'General';
-    const itemsInGeneral = tools.filter(t => t.category === 'General');
-    tool.sort_order = (Math.max(0, ...itemsInGeneral.map(t => t.sort_order)) || 0) + 10;
-    await saveTool(tool);
+    if (!categoryOrder.includes('General')) categoryOrder.push('General');
+    items.forEach(t => { t.category = 'General'; });
+    categoryOrder = categoryOrder.filter(c => c !== cat);
+    render();
+  } catch (err) {
+    console.error('Could not delete category:', err);
+    alert('Could not save that deletion. Refresh and try again.');
   }
-
-  categoryOrder = categoryOrder.filter(c => c !== cat);
-  render();
 }
 
 async function saveTool(tool) {
