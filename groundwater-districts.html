@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groundwater Conservation Districts | AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 28px 24px; }
+  .header-inner { max-width: 900px; margin: 0 auto; }
+  .brand { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .brand span { color: var(--gold); }
+  h1 { color: #fff; font-size: 22px; }
+  .back-link { display: inline-block; margin-top: 10px; font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 26px 20px 60px; }
+
+  .updated { font-size: 12px; color: var(--gray-500); margin-bottom: 14px; }
+
+  .disclaimer { background: #FCEBEB; border: 1px solid #E9B8B8; border-radius: 8px; padding: 14px 16px; font-size: 12.5px; color: #7a2b2b; line-height: 1.55; margin-bottom: 20px; }
+
+  .intro-note { background: #E6F1FB; border: 1px solid #B5D4F4; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #0C447C; margin-bottom: 24px; line-height: 1.55; }
+
+  h2 { color: var(--navy); font-size: 17px; margin: 28px 0 6px; }
+  .section-sub { font-size: 12.5px; color: var(--gray-500); margin-bottom: 14px; }
+
+  .dfw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  @media (max-width: 640px) { .dfw-grid { grid-template-columns: 1fr; } }
+  .dfw-card { background: var(--white); border: 1px solid #E5E3DA; border-left: 4px solid var(--gold); border-radius: 8px; padding: 12px 14px; }
+  .dfw-district { font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .dfw-counties { font-size: 12.5px; color: var(--gray-500); margin-bottom: 4px; }
+  .dfw-name { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .dfw-date { font-size: 11px; font-weight: 400; color: var(--gray-500); }
+  .dfw-link { font-size: 12px; color: #185FA5; text-decoration: none; word-break: break-all; }
+  .dfw-link:hover { text-decoration: underline; }
+
+  .no-districts-note { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: var(--gray-500); margin: 10px 0 20px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; overflow: hidden; font-size: 13px; }
+  thead th { background: var(--navy); color: #fff; text-align: left; padding: 9px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody td { padding: 8px 10px; border-top: 1px solid #EFEDE5; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFAF8; }
+  td.num { color: var(--gray-500); width: 30px; }
+  td.name { font-weight: 600; color: var(--navy); width: 220px; }
+  td.date { color: var(--gray-500); white-space: nowrap; width: 90px; }
+  .no-link { color: var(--gray-500); font-style: italic; font-size: 12px; }
+  .site-title { font-size: 12.5px; }
+
+  .search-box { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--gray-300); font-size: 13.5px; margin-bottom: 14px; font-family: inherit; }
+
+  .other-list { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 14px 16px; }
+  .other-list div { padding: 6px 0; border-bottom: 1px solid #EFEDE5; font-size: 13.5px; }
+  .other-list div:last-child { border-bottom: none; }
+  .other-list a { color: var(--navy); font-weight: 600; text-decoration: none; }
+  .other-list a:hover { text-decoration: underline; }
+
+  .no-results { display: none; text-align: center; padding: 20px; color: var(--gray-500); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <h1>Groundwater Conservation Districts</h1>
+    <a class="back-link" href="tools-directory.html">&larr; Back to Tools Directory</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="updated">Confirmed as of 7/19/2026</div>
+
+  <div class="disclaimer">
+    <strong>Not legal advice.</strong> This reference does not take the place of your own research and carries no warranty or guarantee of accuracy. If you or your broker are unsure how a district applies to a property, or don't understand the contract, addenda, or disclosure requirements involved, consult an attorney who understands these responsibilities.
+  </div>
+
+  <div class="intro-note">
+    Groundwater district boundaries don't follow county lines cleanly — the same district can cover multiple counties, and a single county can span more than one district. Always verify the specific district for a property yourself. This list is organized around the <strong>"SELLER'S DISCLOSURE ABOUT GROUNDWATER AND SURFACE WATER RIGHTS"</strong> form and Paragraph 1B of the contract, which defines a Groundwater District as: a local or regional Groundwater Conservation District, Underground Water Conservation District, Subsidence District, or other special district or authority that regulates the drilling or operation of water wells. Not all land in Texas is subject to a Groundwater District.
+  </div>
+
+  <h2>DFW Area Quick Reference</h2>
+  <p class="section-sub">The most common districts for Dallas-Fort Worth area transactions, organized by county.</p>
+
+  <div class="dfw-grid">
+
+    <div class="dfw-card">
+      <div class="dfw-district">District 59</div>
+      <div class="dfw-counties">Henderson County, Anderson County, Cherokee County</div>
+      <div class="dfw-name">Neches &amp; Trinity Valleys GCD <span class="dfw-date">— confirmed 11/6/2001</span></div>
+      <a class="dfw-link" href="https://ntvgcd.org" target="_blank" rel="noopener">ntvgcd.org</a>
+    </div>
+    <div class="dfw-card">
+      <div class="dfw-district">District 61</div>
+      <div class="dfw-counties">Denton County, Collin County, Cooke County</div>
+      <div class="dfw-name">North Texas GCD <span class="dfw-date">— confirmed 12/1/2009</span></div>
+      <a class="dfw-link" href="http://www.northtexasgcd.org" target="_blank" rel="noopener">www.northtexasgcd.org</a>
+    </div>
+    <div class="dfw-card">
+      <div class="dfw-district">District 62</div>
+      <div class="dfw-counties">Tarrant County</div>
+      <div class="dfw-name">Northern Trinity GCD <span class="dfw-date">— confirmed 5/15/2007</span></div>
+      <a class="dfw-link" href="https://ntgcd.com" target="_blank" rel="noopener">ntgcd.com</a>
+    </div>
+    <div class="dfw-card">
+      <div class="dfw-district">District 71</div>
+      <div class="dfw-counties">Johnson County, Ellis County, Hill County, Somervell County</div>
+      <div class="dfw-name">Prairielands GCD <span class="dfw-date">— confirmed 9/1/2009</span></div>
+      <a class="dfw-link" href="https://www.prairielandsgcd.org" target="_blank" rel="noopener">www.prairielandsgcd.org</a>
+    </div>
+    <div class="dfw-card">
+      <div class="dfw-district">District 74</div>
+      <div class="dfw-counties">Grayson County, Fannin County</div>
+      <div class="dfw-name">Red River GCD <span class="dfw-date">— confirmed 9/1/2009</span></div>
+      <a class="dfw-link" href="https://redrivergcd.org" target="_blank" rel="noopener">redrivergcd.org</a>
+    </div>
+    <div class="dfw-card">
+      <div class="dfw-district">District 94</div>
+      <div class="dfw-counties">Montague County, Wise County, Parker County, Hood County</div>
+      <div class="dfw-name">Upper Trinity GCD <span class="dfw-date">— confirmed 11/6/2007</span></div>
+      <a class="dfw-link" href="https://uppertrinitygcd.com" target="_blank" rel="noopener">uppertrinitygcd.com</a>
+    </div>
+  </div>
+
+  <div class="no-districts-note">
+    <strong>Dallas, Rockwall, Hunt, Kaufman, Van Zandt,</strong> and some other DFW-area counties are <strong>not</strong> in a conservation district. Always confirm against the current district map rather than assuming based on this list.
+  </div>
+
+  <h2>All Confirmed Districts (Statewide)</h2>
+  <p class="section-sub">All 98 confirmed Groundwater Conservation Districts, alphabetically. Search by name below.</p>
+
+  <input type="text" class="search-box" id="districtSearch" placeholder="Search by district name...">
+
+  <table id="districtTable">
+    <thead>
+      <tr><th>#</th><th>District</th><th>Confirmed</th><th>Website</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td class="num">1</td>
+        <td class="name">Bandera County River Authority &amp; Groundwater District</td>
+        <td class="date">11/7/1989</td>
+        <td class="site"><span class="site-title">Bandera County River Authority &amp; Groundwater District – BCRAGD</span></td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td class="name">Barton Springs/Edwards Aquifer CD</td>
+        <td class="date">8/13/1987</td>
+        <td class="site"><span class="site-title">Barton Springs-Edwards Aquifer Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">3</td>
+        <td class="name">Bee GCD</td>
+        <td class="date">1/20/2001</td>
+        <td class="site"><span class="site-title">Bee GCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">4</td>
+        <td class="name">Blanco-Pedernales GCD</td>
+        <td class="date">1/23/2001</td>
+        <td class="site"><span class="site-title">Homepage Blanco-Pedernales Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">5</td>
+        <td class="name">Bluebonnet GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Bluebonnet Groundwater Conservation District (GCD) - Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">6</td>
+        <td class="name">Brazoria County GCD</td>
+        <td class="date">11/8/2005</td>
+        <td class="site"><span class="site-title">Home - Brazoria County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">7</td>
+        <td class="name">Brazos Valley GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Brazos Valley Groundwater Conservation District | Protecting and conserving the groundwater resources of Brazos and Robertson Counties.</span></td>
+      </tr>
+      <tr>
+        <td class="num">8</td>
+        <td class="name">Brewster County GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Brewster County GCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">9</td>
+        <td class="name">Brush Country GCD</td>
+        <td class="date">11/3/2009</td>
+        <td class="site"><span class="site-title">Brush Country Groundwater Conser</span></td>
+      </tr>
+      <tr>
+        <td class="num">10</td>
+        <td class="name">Calhoon County GCD</td>
+        <td class="date">11/4/2014</td>
+        <td class="site"><span class="site-title">Calhoun County Groundwater Conservation District Felder Water Well</span></td>
+      </tr>
+      <tr>
+        <td class="num">11</td>
+        <td class="name">Central Texas GCD</td>
+        <td class="date">9/24/2005</td>
+        <td class="site"><span class="site-title">The Central Texas Groundwater Conservation District | Protecting and Enhancing the Groundwater Resources of Burnet County</span></td>
+      </tr>
+      <tr>
+        <td class="num">12</td>
+        <td class="name">Clear Fork GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Clear Fork Groundwater Conservation District in Roby, TX - Contact Information and Public Records</span></td>
+      </tr>
+      <tr>
+        <td class="num">13</td>
+        <td class="name">Clearwater UWCD</td>
+        <td class="date">8/21/1999</td>
+        <td class="site"><span class="site-title">Notice to Purchaser Form ~ Clearwater Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">14</td>
+        <td class="name">Coastal Bend GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Home - Coastal Bend Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">15</td>
+        <td class="name">Coastal Plains GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Home - Coastal Plains Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">16</td>
+        <td class="name">Coke County UWCD</td>
+        <td class="date">11/4/1986</td>
+        <td class="site"><span class="site-title">Coke County, Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">17</td>
+        <td class="name">Colorado County GCD</td>
+        <td class="date">11/6/2007</td>
+        <td class="site"><span class="site-title">Home | Colorado County GCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">18</td>
+        <td class="name">Comal Trinity GCD</td>
+        <td class="date">6/17/2015</td>
+        <td class="site"><span class="site-title">Comal Trinity Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">19</td>
+        <td class="name">Corpus Christi ASRCD</td>
+        <td class="date">6/17/2005</td>
+        <td class="site"><span class="site-title">Corpus Christi Aquifer Storage and Recovery Conservation District - Texas Land Conservation Assistance Network</span></td>
+      </tr>
+      <tr>
+        <td class="num">20</td>
+        <td class="name">Cow Creek GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Cow Creek Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">21</td>
+        <td class="name">Crockett County GCD</td>
+        <td class="date">1/26/1991</td>
+        <td class="site"><span class="site-title">Homepage Crockett County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">22</td>
+        <td class="name">Culberson County GCD</td>
+        <td class="date">5/2/1998</td>
+        <td class="site"><span class="site-title">Contact - Culberson County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">23</td>
+        <td class="name">Duval County GCD</td>
+        <td class="date">7/25/2009</td>
+        <td class="site"><span class="site-title">Duval County Groundwater Conservation District | Benavides, Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">24</td>
+        <td class="name">Evergreen UWCD</td>
+        <td class="date">8/30/1965</td>
+        <td class="site"><span class="site-title">Evergreen Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">25</td>
+        <td class="name">Fayette County GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">HOME | fayettecountygcd</span></td>
+      </tr>
+      <tr>
+        <td class="num">26</td>
+        <td class="name">Garza County UWCD</td>
+        <td class="date">11/5/1996</td>
+        <td class="site"><span class="site-title">Garza County Underground Water Conservation District - Texas Land Conservation Assistance Network</span></td>
+      </tr>
+      <tr>
+        <td class="num">27</td>
+        <td class="name">Gateway GCD</td>
+        <td class="date">5/3/2003</td>
+        <td class="site"><span class="site-title">www.gatewaygroundwater.com</span></td>
+      </tr>
+      <tr>
+        <td class="num">28</td>
+        <td class="name">Glasscock GCD</td>
+        <td class="date">8/22/1981</td>
+        <td class="site"><span class="site-title">Glasscock Groundwater Conservation District :: Glasscock Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">29</td>
+        <td class="name">Goliad County GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Goliad County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">30</td>
+        <td class="name">Gonzales County UWCD</td>
+        <td class="date">11/2/1994</td>
+        <td class="site"><span class="site-title">Home | Gonzales County Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">31</td>
+        <td class="name">Guadalupe County GCD</td>
+        <td class="date">11/14/1999</td>
+        <td class="site"><span class="site-title">gcgcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">32</td>
+        <td class="name">Hays Trinity GCD</td>
+        <td class="date">5/3/2003</td>
+        <td class="site"><span class="site-title">Hays Trinity Groundwater Conservation District – Northern Hays County Groundwater Conservation District information.</span></td>
+      </tr>
+      <tr>
+        <td class="num">33</td>
+        <td class="name">Headwaters GCD</td>
+        <td class="date">11/5/1991</td>
+        <td class="site"><span class="site-title">Headwaters Groundwater Conservation District - Texas Land Conservation Assistance Network</span></td>
+      </tr>
+      <tr>
+        <td class="num">34</td>
+        <td class="name">Hemphill County UWCD</td>
+        <td class="date">11/4/1997</td>
+        <td class="site"><span class="site-title">Hemphill County Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">35</td>
+        <td class="name">Hickory UWCD No. 1</td>
+        <td class="date">8/14/1982</td>
+        <td class="site"><span class="site-title">Homepage Hickory Underground Water Conservation District No. 1</span></td>
+      </tr>
+      <tr>
+        <td class="num">36</td>
+        <td class="name">High Plains UWCD No.1</td>
+        <td class="date">9/29/1951</td>
+        <td class="site"><span class="site-title">Homepage High Plains Underground Water Conservation District #1</span></td>
+      </tr>
+      <tr>
+        <td class="num">37</td>
+        <td class="name">Hill Country UWCD</td>
+        <td class="date">8/8/1987</td>
+        <td class="site"><span class="site-title">hcuwcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">38</td>
+        <td class="name">Hudspeth County UWCD No. 1</td>
+        <td class="date">10/5/1957</td>
+        <td class="site"><span class="no-link">No web link listed in source — search district name directly</span></td>
+      </tr>
+      <tr>
+        <td class="num">39</td>
+        <td class="name">Irion County WCD</td>
+        <td class="date">8/2/1985</td>
+        <td class="site"><span class="no-link">No web link listed in source — search district name directly</span></td>
+      </tr>
+      <tr>
+        <td class="num">40</td>
+        <td class="name">Jeff Davis County UWCD</td>
+        <td class="date">11/2/1993</td>
+        <td class="site"><span class="site-title">Jeff Davis County Underground Water Conservation District - Texas Land Conservation Assistance Network</span></td>
+      </tr>
+      <tr>
+        <td class="num">41</td>
+        <td class="name">Kenedy County GCD</td>
+        <td class="date">11/2/2004</td>
+        <td class="site"><span class="site-title">Kenedy County Groundwater Conservation District | Kenedy County GCD | Sarita, Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">42</td>
+        <td class="name">Kimble County GCD</td>
+        <td class="date">5/3/2002</td>
+        <td class="site"><span class="site-title">Kimble County GCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">43</td>
+        <td class="name">Kinney County GCD</td>
+        <td class="date">1/12/2002</td>
+        <td class="site"><span class="site-title">Homepage Kinney County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">44</td>
+        <td class="name">Lipan-Kickapoo WCD</td>
+        <td class="date">11/3/1987</td>
+        <td class="site"><span class="site-title">lipan-kickapoo</span></td>
+      </tr>
+      <tr>
+        <td class="num">45</td>
+        <td class="name">Live Oak UWCD</td>
+        <td class="date">11/7/1989</td>
+        <td class="site"><span class="site-title">www.louwcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">46</td>
+        <td class="name">Llano Estacado UWCD</td>
+        <td class="date">11/3/1998</td>
+        <td class="site"><span class="site-title">Llano Estacado Underground Water Conservation District :: Seminole, TX :: Gaines County</span></td>
+      </tr>
+      <tr>
+        <td class="num">47</td>
+        <td class="name">Lone Star GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Https://lonestargcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">48</td>
+        <td class="name">Lone Wolf GCD</td>
+        <td class="date">2/2/2002</td>
+        <td class="site"><span class="site-title">https://www.lonewoldgwcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">49</td>
+        <td class="name">Lost Pines GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Lost Pines GCD, TX | Official Website</span></td>
+      </tr>
+      <tr>
+        <td class="num">50</td>
+        <td class="name">Lower Trinity GCD</td>
+        <td class="date">11/7/2006</td>
+        <td class="site"><span class="site-title">Lower Trinity Groundwater Conservation District | water well registration | 602 East Church Street, Livingston, TX 77351, USA</span></td>
+      </tr>
+      <tr>
+        <td class="num">51</td>
+        <td class="name">McMullen GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">McMullen Groundwater Conservation District (BGCD) – McMullen County</span></td>
+      </tr>
+      <tr>
+        <td class="num">52</td>
+        <td class="name">Medina County GCD</td>
+        <td class="date">8/26/1991</td>
+        <td class="site"><span class="site-title">mcgcd – mcgcd Medina County Groundwater Conservation District tagline</span></td>
+      </tr>
+      <tr>
+        <td class="num">53</td>
+        <td class="name">Menard County UWD</td>
+        <td class="date">8/14/1999</td>
+        <td class="site"><span class="site-title">Menard County UWD :: Menard County UWD</span></td>
+      </tr>
+      <tr>
+        <td class="num">54</td>
+        <td class="name">Mesa UWCD</td>
+        <td class="date">1/20/1990</td>
+        <td class="site"><span class="site-title">www.mesauwcd.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">55</td>
+        <td class="name">Mesquite GCD</td>
+        <td class="date">11/4/1986</td>
+        <td class="site"><span class="site-title">Mesquite Groundwater Conservation District | Serving all of Collingsworth and Hall Counties and parts of Northern Childress County and Eastern Briscoe County</span></td>
+      </tr>
+      <tr>
+        <td class="num">56</td>
+        <td class="name">Mid-East Texas GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Homepage Mid-East Texas Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">57</td>
+        <td class="name">Middle Pecos GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Middle Pecos GCD – Conserving Water for Our Future Generations</span></td>
+      </tr>
+      <tr>
+        <td class="num">58</td>
+        <td class="name">Middle Trinity GCD</td>
+        <td class="date">5/4/2002</td>
+        <td class="site"><span class="site-title">Middle Pecos GCD – Conserving Water for Our Future Generations</span></td>
+      </tr>
+      <tr>
+        <td class="num">59</td>
+        <td class="name">Neches &amp; Trinity Valleys GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Home | Neches &amp; Trinity Valleys Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">60</td>
+        <td class="name">North Plains GCD</td>
+        <td class="date">1/2/1955</td>
+        <td class="site"><span class="site-title">Home - North Plains Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">61</td>
+        <td class="name">North Texas GCD</td>
+        <td class="date">12/1/2009</td>
+        <td class="site"><span class="site-title">North Texas Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">62</td>
+        <td class="name">Northern Trinity GCD</td>
+        <td class="date">5/15/2007</td>
+        <td class="site"><span class="site-title">Northern Trinity Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">63</td>
+        <td class="name">Panhandle GCD</td>
+        <td class="date">1/21/1956</td>
+        <td class="site"><span class="site-title">Panhandle Groundwater Conservation District | Groundwater District | Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">64</td>
+        <td class="name">Panola County GCD</td>
+        <td class="date">11/6/2007</td>
+        <td class="site"><span class="site-title">Panola County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">65</td>
+        <td class="name">Pecan Valley GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Pecan Valley Groundwater Conservation District | DeWitt County Texas water</span></td>
+      </tr>
+      <tr>
+        <td class="num">66</td>
+        <td class="name">Permian Basin UWCD</td>
+        <td class="date">9/21/1985</td>
+        <td class="site"><span class="site-title">Homepage Permian Basin Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">67</td>
+        <td class="name">Pineywoods GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Pineywoods Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">68</td>
+        <td class="name">Plateau UWC and Supply District</td>
+        <td class="date">3/4/1974</td>
+        <td class="site"><span class="site-title">Plateau UWC&amp;SD :: Plateau UWCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">69</td>
+        <td class="name">Plum Creek CD</td>
+        <td class="date">5/1/1993</td>
+        <td class="site"><span class="site-title">Plum Creek Conservation District - Plum Creek Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">70</td>
+        <td class="name">Post Oak Savannah GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Homepage Post Oak Savannah Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">71</td>
+        <td class="name">Prairielands GCD</td>
+        <td class="date">9/1/2009</td>
+        <td class="site"><span class="site-title">Home - Prairielands Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">72</td>
+        <td class="name">Presidio County UWCD</td>
+        <td class="date">8/31/1999</td>
+        <td class="site"><span class="site-title">www.PCUWCD.org</span></td>
+      </tr>
+      <tr>
+        <td class="num">73</td>
+        <td class="name">Real-Edwards C and R District</td>
+        <td class="date">5/30/19</td>
+        <td class="site"><span class="site-title">Real Edwards Groundwater Rules | RECRD</span></td>
+      </tr>
+      <tr>
+        <td class="num">74</td>
+        <td class="name">Red River GCD</td>
+        <td class="date">9/1/2009</td>
+        <td class="site"><span class="site-title">Red River Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">75</td>
+        <td class="name">Red Sands GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Home - The Red Sands Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">76</td>
+        <td class="name">Reeves County GCD</td>
+        <td class="date">11/3/2015</td>
+        <td class="site"><span class="site-title">Reeves County Groundwater Conservation District – Official Site</span></td>
+      </tr>
+      <tr>
+        <td class="num">77</td>
+        <td class="name">Refugio GCD</td>
+        <td class="date">11/6/2001</td>
+        <td class="site"><span class="site-title">Homepage Refugio Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">78</td>
+        <td class="name">Rolling Plains GCD</td>
+        <td class="date">1/26/1999</td>
+        <td class="site"><span class="site-title">Home - Rolling Plains Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">79</td>
+        <td class="name">Rusk County GCD</td>
+        <td class="date">6/5/2004</td>
+        <td class="site"><span class="site-title">Rusk County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">80</td>
+        <td class="name">San Patricio County GCD</td>
+        <td class="date">5/12/2007</td>
+        <td class="site"><span class="site-title">Home</span></td>
+      </tr>
+      <tr>
+        <td class="num">81</td>
+        <td class="name">Sandy Land UWCD</td>
+        <td class="date">11/7/1989</td>
+        <td class="site"><span class="site-title">Sandy Land – Preserve. Conserve. Protect.</span></td>
+      </tr>
+      <tr>
+        <td class="num">82</td>
+        <td class="name">Santa Rita UWCD</td>
+        <td class="date">8/19/1989</td>
+        <td class="site"><span class="site-title">Homepage Santa Rita Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">83</td>
+        <td class="name">Saratoga UWCD</td>
+        <td class="date">11/7/1989</td>
+        <td class="site"><span class="site-title">SARATOGA UNDERGROUND WATER CONSERVATION DISTRICT - Saratoga Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">84</td>
+        <td class="name">South Plains UWCD</td>
+        <td class="date">2/8/1992</td>
+        <td class="site"><span class="site-title">Home - South Plains Underground Water District</span></td>
+      </tr>
+      <tr>
+        <td class="num">85</td>
+        <td class="name">Southeast Texas GCD</td>
+        <td class="date">11/2/2004</td>
+        <td class="site"><span class="site-title">Home - Southeast Texas Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">86</td>
+        <td class="name">Southern Trinity GCD</td>
+        <td class="date">6/19/2009</td>
+        <td class="site"><span class="site-title">Southern Trinity Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">87</td>
+        <td class="name">Southwestern Travis County GCD</td>
+        <td class="date">11/5/2019</td>
+        <td class="site"><span class="site-title">Southwestern Travis County GCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">88</td>
+        <td class="name">Starr County GCD</td>
+        <td class="date">1/6/2007</td>
+        <td class="site"><span class="site-title">Starr County Groundwater Conservation District – Keep yourself updated with latest about the SCGCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">89</td>
+        <td class="name">Sterling County UWCD</td>
+        <td class="date">11/3/1987</td>
+        <td class="site"><span class="site-title">Sterling County UWCD :: Sterling County UWCD</span></td>
+      </tr>
+      <tr>
+        <td class="num">90</td>
+        <td class="name">Sutton County UWCD</td>
+        <td class="date">4/5/1986</td>
+        <td class="site"><span class="site-title">Sutton County UWCD :: Sutton County Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">91</td>
+        <td class="name">Terrell County GCD</td>
+        <td class="date">11/6/2012</td>
+        <td class="site"><span class="site-title">Terrell County, Texas</span></td>
+      </tr>
+      <tr>
+        <td class="num">92</td>
+        <td class="name">Texana GCD</td>
+        <td class="date">11/6/2012</td>
+        <td class="site"><span class="site-title">Homepage Texana Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">93</td>
+        <td class="name">Trinity Glen Rose GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Trinity Glen Rose Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">94</td>
+        <td class="name">Upper Trinity GCD</td>
+        <td class="date">11/6/2007</td>
+        <td class="site"><span class="site-title">Home - Upper Trinity Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">95</td>
+        <td class="name">Uvalde County UWCD</td>
+        <td class="date">9/1/1993</td>
+        <td class="site"><span class="site-title">Homepage Uvalde County Underground Water Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">96</td>
+        <td class="name">Victoria County GCD</td>
+        <td class="date">8/5/2005</td>
+        <td class="site"><span class="site-title">Homepage Victoria County Groundwater Conservation District</span></td>
+      </tr>
+      <tr>
+        <td class="num">97</td>
+        <td class="name">Wes-Tex GCD</td>
+        <td class="date">11/5/2002</td>
+        <td class="site"><span class="site-title">Wes-Tex Groundwater Conservation District – Protecting our most valuable resource</span></td>
+      </tr>
+      <tr>
+        <td class="num">98</td>
+        <td class="name">Wintergarden GCD</td>
+        <td class="date">1/17/1998</td>
+        <td class="site"><span class="site-title">Home - Wintergarden Groundwater Conservation District</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="no-results" id="noResults">No districts match your search.</div>
+
+  <h2>Other Districts</h2>
+  <p class="section-sub">Special-purpose districts and statewide resources outside the standard GCD list.</p>
+
+  <div class="other-list">
+    <div><a href="https://data.edwardsaquifer.org" target="_blank" rel="noopener">Edwards Aquifer Authority</a> — data.edwardsaquifer.org</div>
+    <div><a href="https://www.hgsubsidence.org" target="_blank" rel="noopener">Harris-Galveston Subsidence District</a></div>
+    <div><a href="https://www.fbsubsidence.org" target="_blank" rel="noopener">Fort Bend Subsidence District</a></div>
+    <div><a href="https://www.twdb.texas.gov/groundwater/conservation_districts/index.asp" target="_blank" rel="noopener">Texas Water Development Board</a> — statewide district map</div>
+  </div>
+
+</div>
+
+<script>
+  const searchInput = document.getElementById('districtSearch');
+  const rows = document.querySelectorAll('#districtTable tbody tr');
+  const noResults = document.getElementById('noResults');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+    rows.forEach(row => {
+      const name = row.querySelector('.name').textContent.toLowerCase();
+      const match = name.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+  });
+</script>
+
+</body>
+</html>
