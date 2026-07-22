@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Community Pages | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  header.top { background: var(--navy); color: var(--white); padding: 16px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--gold); }
+  header.top a { color: var(--white); text-decoration: none; font-size: 14px; }
+  header.top .brand { font-weight: 700; }
+  header.top .brand span { color: var(--gold); }
+
+  h1 { font-size: 22px; color: var(--navy); margin-bottom: 4px; }
+  .sub { font-size: 13.5px; color: var(--gray-500); margin-bottom: 20px; }
+
+  .card { background: var(--white); border-radius: 12px; padding: 22px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
+  .card h2 { font-size: 16px; color: var(--navy); margin-bottom: 14px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .field label span { font-weight: 400; color: var(--gray-500); }
+  .field input, .field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 14px; font-family: inherit; }
+
+  .row2 { display: flex; gap: 12px; }
+  .row2 .field { flex: 1; }
+
+  .btn { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  .btn:hover { opacity: 0.92; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-small { background: none; border: 1px solid var(--gray-300); color: var(--gray-700); border-radius: 6px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+
+  .dyn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .dyn-row input { flex: 1; padding: 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; }
+
+  .msg { font-size: 13px; margin-top: 10px; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { color: #1a7a3c; }
+  .msg.err { color: var(--red); }
+
+  .page-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--off); }
+  .page-item:last-child { border-bottom: none; }
+  .page-item .name { font-weight: 700; color: var(--navy); font-size: 14.5px; }
+  .page-item .link { font-size: 12.5px; }
+  .page-item .link a { color: var(--gray-500); }
+  .empty { color: var(--gray-500); font-size: 13.5px; padding: 10px 0; }
+
+  #loginGate, #loadingState { text-align: center; padding: 80px 16px; }
+  #loginGate a { color: var(--navy); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Agent<span>HubTX</span></div>
+  <a href="dashboard.html">&larr; Back to Hub</a>
+</header>
+
+<div id="loadingState"><p>Loading...</p></div>
+
+<div id="loginGate" style="display:none;">
+  <p>Please <a href="login.html">log in</a> to manage your community pages.</p>
+</div>
+
+<div id="pageContent" style="display:none;">
+  <div class="wrap">
+    <h1>My Community Pages</h1>
+    <p class="sub">Create a self-serve landing page for a subdivision you're farming — instant home value estimate, community news, and a local service directory. No CMA request step; the estimate shows immediately.</p>
+
+    <div class="card">
+      <h2>Your Public Profile</h2>
+      <p style="font-size:13px; color:var(--gray-500); margin-bottom:14px;">Your name, phone, and photo show up on every community page you create — fill this out once.</p>
+      <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:14px;">
+        <img id="myPhotoPreview" style="display:none; width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); flex-shrink:0;">
+        <div id="myPhotoPlaceholder" style="width:56px; height:56px; border-radius:50%; background:var(--off); border:1px dashed var(--gray-300); display:flex; align-items:center; justify-content:center; color:var(--gray-500); font-size:12px; text-align:center; flex-shrink:0;">No photo</div>
+        <div style="flex:1;">
+          <input type="url" id="myPhotoUrl" placeholder="https://... (link to your photo)" style="margin-bottom:8px;">
+        </div>
+      </div>
+      <div class="field"><label>Your Name</label><input type="text" id="myDisplayName" placeholder="Full name"></div>
+      <div class="field"><label>Your Phone <span>(optional)</span></label><input type="tel" id="myPhone" placeholder="(555) 555-5555"></div>
+      <button class="btn-small" onclick="saveMyProfile()">Save Profile</button>
+      <div class="msg" id="myProfileMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="fp-form-heading">Create a New Page</h2>
+
+      <div class="field"><label>Subdivision Name</label><input type="text" id="fp-subdivision" placeholder="e.g. Willow Creek"></div>
+      <div class="field"><label>City</label><input type="text" id="fp-city" placeholder="e.g. Denton, TX"></div>
+
+      <div class="row2">
+        <div class="field"><label>Estimate Low ($)</label><input type="number" id="fp-est-low" placeholder="350000"></div>
+        <div class="field"><label>Estimate High ($)</label><input type="number" id="fp-est-high" placeholder="425000"></div>
+      </div>
+
+      <div class="field"><label>Community News/Update <span>(optional)</span></label>
+        <textarea id="fp-news" rows="2" placeholder="What's happening in the neighborhood right now"></textarea>
+      </div>
+
+      <div class="field"><label>Neighbor Spotlight Business <span>(optional)</span></label>
+        <input type="text" id="fp-spotlight-name" placeholder="Business name" style="margin-bottom:8px;">
+        <textarea id="fp-spotlight-blurb" rows="2" placeholder="Short blurb about them"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Trusted Local Services <span>(optional — add a few)</span></label>
+        <div id="fp-directory-rows"></div>
+        <button class="btn-small" onclick="addDirectoryRow()">+ Add Service</button>
+      </div>
+
+      <div class="field">
+        <label>Local Resources <span>(optional — weather, school district, HOA site, local news)</span></label>
+        <div id="fp-resource-rows"></div>
+        <button class="btn-small" onclick="addResourceRow()">+ Add Resource</button>
+      </div>
+
+      <div class="field">
+        <label>Local Events <span>(optional — HOA meetings, school dates, garage sale weekends)</span></label>
+        <div id="fp-event-rows"></div>
+        <button class="btn-small" onclick="addEventRow()">+ Add Event</button>
+      </div>
+
+      <div class="field">
+        <label>Community Photos <span>(optional — a couple of neighborhood photos)</span></label>
+        <div id="fp-photo-rows"></div>
+        <button class="btn-small" id="fp-add-photo-btn" onclick="addPhotoRow()">+ Add Photo</button>
+      </div>
+
+      <button class="btn" id="fp-submit" onclick="createCommunityPage()" style="margin-top:10px;">Create Page</button>
+      <button class="btn-small" onclick="previewCommunityPage()" style="margin-top:10px; margin-left:8px;">👁 Preview</button>
+      <button class="btn-small" id="fp-cancel-edit" onclick="cancelEdit()" style="display:none; margin-top:10px; margin-left:8px;">Cancel Edit</button>
+      <div class="msg" id="fp-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>My Existing Pages</h2>
+      <div id="community-page-list"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let currentAgentName = null;
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('loginGate').style.display = 'block';
+      return;
+    }
+
+    currentUser = session.user;
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'block';
+    loadCommunityPages();
+    loadMyProfile();
+  }
+
+  async function loadMyProfile() {
+    try {
+      const { data, error } = await sb.rpc('get_my_public_profile');
+      if (error) throw error;
+      if (data) {
+        currentAgentName = data.display_name || currentUser.email;
+        document.getElementById('myDisplayName').value = data.display_name || '';
+        document.getElementById('myPhone').value = data.phone || '';
+        if (data.photo_url) {
+          document.getElementById('myPhotoUrl').value = data.photo_url;
+          document.getElementById('myPhotoPreview').src = data.photo_url;
+          document.getElementById('myPhotoPreview').style.display = 'block';
+          document.getElementById('myPhotoPlaceholder').style.display = 'none';
+        }
+      } else {
+        currentAgentName = currentUser.email;
+      }
+    } catch (err) {
+      currentAgentName = currentUser.email;
+    }
+  }
+
+  async function saveMyProfile() {
+    const name = document.getElementById('myDisplayName').value.trim();
+    const phone = document.getElementById('myPhone').value.trim();
+    const photoUrl = document.getElementById('myPhotoUrl').value.trim();
+    const msgEl = document.getElementById('myProfileMsg');
+
+    try {
+      const { error } = await sb.rpc('save_my_public_profile', {
+        p_display_name: name || null, p_phone: phone || null, p_photo_url: photoUrl || null,
+      });
+      if (error) throw error;
+      currentAgentName = name || currentUser.email;
+      if (photoUrl) {
+        document.getElementById('myPhotoPreview').src = photoUrl;
+        document.getElementById('myPhotoPreview').style.display = 'block';
+        document.getElementById('myPhotoPlaceholder').style.display = 'none';
+      }
+      msgEl.textContent = 'Saved! This now shows on every community page you create.';
+      msgEl.className = 'msg show ok';
+    } catch (err) {
+      msgEl.textContent = 'Failed to save: ' + err.message;
+      msgEl.className = 'msg show err';
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function showMsg(id, text, isError) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  // ---- Dynamic rows: directory / resources / events --------------------
+  let dirRowCount = 0, resRowCount = 0, evtRowCount = 0;
+
+  function addDirectoryRow() {
+    const id = dirRowCount++;
+    const row = document.createElement('div');
+    row.id = `dir-row-${id}`;
+    row.className = 'dyn-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Category (e.g. Plumber)" class="dir-cat">
+      <input type="text" placeholder="Business name" class="dir-name">
+      <input type="tel" placeholder="Phone" class="dir-phone">
+      <button class="btn-small" onclick="document.getElementById('dir-row-${id}').remove()">✕</button>
+    `;
+    document.getElementById('fp-directory-rows').appendChild(row);
+  }
+
+  function addResourceRow() {
+    const id = resRowCount++;
+    const row = document.createElement('div');
+    row.id = `res-row-${id}`;
+    row.className = 'dyn-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Name (e.g. Weather)" class="res-name">
+      <input type="url" placeholder="https://..." class="res-url" style="flex:2;">
+      <button class="btn-small" onclick="document.getElementById('res-row-${id}').remove()">✕</button>
+    `;
+    document.getElementById('fp-resource-rows').appendChild(row);
+  }
+
+  function addEventRow() {
+    const id = evtRowCount++;
+    const row = document.createElement('div');
+    row.id = `evt-row-${id}`;
+    row.className = 'dyn-row';
+    row.innerHTML = `
+      <input type="date" class="evt-date">
+      <input type="text" placeholder="Event name" class="evt-name" style="flex:1.5;">
+      <input type="text" placeholder="Details (optional)" class="evt-desc" style="flex:1.5;">
+      <button class="btn-small" onclick="document.getElementById('evt-row-${id}').remove()">✕</button>
+    `;
+    document.getElementById('fp-event-rows').appendChild(row);
+  }
+
+  let photoRowCount = 0;
+  const MAX_PHOTOS = 4;
+
+  function addPhotoRow() {
+    const container = document.getElementById('fp-photo-rows');
+    if (container.children.length >= MAX_PHOTOS) return;
+
+    const id = photoRowCount++;
+    const row = document.createElement('div');
+    row.id = `photo-row-${id}`;
+    row.className = 'dyn-row';
+    row.style.flexWrap = 'wrap';
+    row.innerHTML = `
+      <input type="url" placeholder="https://... (image link)" class="photo-url" style="flex:1; min-width:180px;">
+      <span style="align-self:center; font-size:12px; color:var(--gray-500);">or</span>
+      <label class="btn-small" style="cursor:pointer;">
+        Upload
+        <input type="file" accept="image/*" class="photo-file" style="display:none;" onchange="uploadPhotoFile(this, '${id}')">
+      </label>
+      <button class="btn-small" onclick="document.getElementById('photo-row-${id}').remove(); updatePhotoAddButton();">✕</button>
+      <span class="photo-upload-status" id="photo-status-${id}" style="flex-basis:100%; font-size:12px; color:var(--gray-500);"></span>
+    `;
+    container.appendChild(row);
+    updatePhotoAddButton();
+  }
+
+  async function uploadPhotoFile(input, rowId) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById(`photo-status-${rowId}`);
+    statusEl.textContent = 'Uploading...';
+
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${currentUser.id}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await sb.storage.from('community-photos').upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = sb.storage.from('community-photos').getPublicUrl(path);
+      const row = document.getElementById(`photo-row-${rowId}`);
+      row.querySelector('.photo-url').value = urlData.publicUrl;
+      statusEl.textContent = 'Uploaded ✓';
+    } catch (err) {
+      statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+  }
+
+  function updatePhotoAddButton() {
+    const container = document.getElementById('fp-photo-rows');
+    const btn = document.getElementById('fp-add-photo-btn');
+    if (!btn) return;
+    if (container.children.length >= MAX_PHOTOS) {
+      btn.disabled = true;
+      btn.textContent = `Max ${MAX_PHOTOS} photos`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = '+ Add Photo';
+    }
+  }
+
+  function gatherFormData() {
+    const directory = [];
+    document.querySelectorAll('#fp-directory-rows .dyn-row').forEach(row => {
+      const cat = row.querySelector('.dir-cat').value.trim();
+      const name = row.querySelector('.dir-name').value.trim();
+      const phone = row.querySelector('.dir-phone').value.trim();
+      if (name) directory.push({ category: cat, name, phone });
+    });
+
+    const resources = [];
+    document.querySelectorAll('#fp-resource-rows .dyn-row').forEach(row => {
+      const name = row.querySelector('.res-name').value.trim();
+      const url = row.querySelector('.res-url').value.trim();
+      if (name && url) resources.push({ name, url });
+    });
+
+    const events = [];
+    document.querySelectorAll('#fp-event-rows .dyn-row').forEach(row => {
+      const date = row.querySelector('.evt-date').value;
+      const name = row.querySelector('.evt-name').value.trim();
+      const description = row.querySelector('.evt-desc').value.trim();
+      if (date && name) events.push({ date, name, description });
+    });
+
+    const photos = [];
+    document.querySelectorAll('#fp-photo-rows .dyn-row').forEach(row => {
+      const url = row.querySelector('.photo-url').value.trim();
+      if (url) photos.push(url);
+    });
+
+    return {
+      subdivision: document.getElementById('fp-subdivision').value.trim(),
+      city: document.getElementById('fp-city').value.trim(),
+      estLow: parseFloat(document.getElementById('fp-est-low').value),
+      estHigh: parseFloat(document.getElementById('fp-est-high').value),
+      news: document.getElementById('fp-news').value.trim(),
+      spotlightName: document.getElementById('fp-spotlight-name').value.trim(),
+      spotlightBlurb: document.getElementById('fp-spotlight-blurb').value.trim(),
+      directory, resources, events, photos,
+    };
+  }
+
+  // Live preview using whatever's currently typed in the form -- opens in a
+  // new tab, no save required, so an agent can see roughly what their page
+  // will look like before committing to Create Page.
+  function previewCommunityPage() {
+    const f = gatherFormData();
+    const money = n => '$' + Math.round(n).toLocaleString();
+    const hasEstimate = !isNaN(f.estLow) && !isNaN(f.estHigh);
+    const noPhotos = f.photos.length === 0;
+
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <!DOCTYPE html><html><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Preview</title>
+      <style>
+        :root {
+          --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+          --white: #ffffff; --off: #F7F6F3;
+          --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--off);color:var(--gray-700);line-height:1.6;}
+        .wrap{max-width:600px;margin:0 auto;padding:0 16px 60px;}
+        .banner{background:var(--gold);color:var(--navy);text-align:center;padding:8px;font-size:12.5px;font-weight:700;}
+        header.hero{background:linear-gradient(160deg,var(--navy),var(--navy-mid));color:#fff;padding:28px 16px 60px;text-align:center;}
+        header.hero h1{font-size:26px;margin-bottom:6px;}
+        header.hero p{color:#cdd8e6;font-size:14px;}
+        .photo-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+        .photo-gallery img{width:100%;height:110px;object-fit:cover;border-radius:10px;display:block;}
+        .estimate-card{background:var(--white);border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:28px 24px;text-align:center;margin-top:${noPhotos ? '-60px' : '20px'};}
+        .estimate-card h2{font-size:18px;color:var(--navy);margin-bottom:4px;}
+        .estimate-card .sub{font-size:13px;color:var(--gray-500);margin-bottom:18px;}
+        .estimate-card .value{font-size:32px;font-weight:800;color:var(--navy);margin:18px 0 4px;}
+        .estimate-card .caption{font-size:12px;color:var(--gray-500);}
+        .btn-placeholder{background:var(--gold);color:var(--navy);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:700;display:inline-block;width:100%;}
+        section{margin-top:28px;}
+        section h3{font-size:15px;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;}
+        .card{background:var(--white);border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:10px;}
+        .card h4{font-size:15px;color:var(--gray-700);margin-bottom:4px;}
+        .card p{font-size:13.5px;color:var(--gray-500);}
+        .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+        .tile{background:var(--white);border-radius:12px;padding:16px 12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-decoration:none;color:inherit;}
+        .tile .tile-icon{width:40px;height:40px;border-radius:9px;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin:0 auto 6px;}
+        .tile .tile-cat{font-size:10px;color:var(--gold);text-transform:uppercase;font-weight:700;}
+        .tile .tile-name{font-size:13px;font-weight:600;color:var(--gray-700);}
+        .tile .tile-sub{font-size:11.5px;color:var(--gray-500);}
+        footer{text-align:center;margin-top:40px;font-size:12.5px;color:var(--gray-500);}
+        footer img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid var(--gold);}
+        footer .agent{font-weight:700;color:var(--navy);}
+      </style></head><body>
+      <div class="banner">PREVIEW &mdash; not saved yet</div>
+      <header class="hero">
+        <h1>${f.subdivision || 'Your Subdivision'}</h1>
+        <p>${f.city || ''}</p>
+      </header>
+      <div class="wrap">
+        ${f.photos.length ? `<div class="photo-gallery">${f.photos.map(p => `<img src="${p}" alt="">`).join('')}</div>` : ''}
+
+        <div class="estimate-card">
+          <h2>What's your home worth?</h2>
+          <div class="sub">Get an instant estimate for homes in this neighborhood.</div>
+          ${hasEstimate
+            ? `<div class="value">${money(f.estLow)} &ndash; ${money(f.estHigh)}</div><div class="caption">Estimated range based on recent neighborhood activity</div>`
+            : `<span class="btn-placeholder">Get My Estimate</span><p style="font-size:12px;color:var(--gray-500);margin-top:10px;">(Enter Estimate Low/High to preview the range)</p>`}
+        </div>
+
+        ${f.events.length ? `<section><h3>Upcoming in the Neighborhood</h3>${f.events.map(e => `<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;"><h4>${e.name}</h4><span style="font-size:12.5px;color:var(--gold);font-weight:700;">${e.date}</span></div>${e.description ? `<p>${e.description}</p>` : ''}</div>`).join('')}</section>` : ''}
+
+        ${f.news ? `<section><h3>What's Happening in the Neighborhood</h3><div class="card"><p>${f.news}</p></div></section>` : ''}
+
+        ${f.spotlightName ? `<section><h3>Neighbor Spotlight</h3><div class="card"><h4>${f.spotlightName}</h4><p>${f.spotlightBlurb || ''}</p></div></section>` : ''}
+
+        ${f.directory.length ? `<section><h3>Trusted Local Services</h3><div class="tile-grid">${f.directory.map(d => `<div class="tile"><div class="tile-icon">${(d.category || d.name || '?').charAt(0).toUpperCase()}</div><div class="tile-cat">${d.category || ''}</div><div class="tile-name">${d.name || ''}</div><div class="tile-sub">${d.phone || ''}</div></div>`).join('')}</div></section>` : ''}
+
+        ${f.resources.length ? `<section><h3>Local Resources</h3><div class="tile-grid">${f.resources.map(r => `<div class="tile"><div class="tile-icon">${(r.name || '?').charAt(0).toUpperCase()}</div><div class="tile-name">${r.name || ''}</div></div>`).join('')}</div></section>` : ''}
+
+        <footer>
+          <p>Brought to you by <span class="agent">${currentAgentName || 'your agent'}</span></p>
+          <p>${currentUser.email || ''}</p>
+        </footer>
+      </div>
+      </body></html>
+    `);
+    win.document.close();
+  }
+
+  function slugify(subdivision, agentName) {
+    const clean = s => (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return `${clean(subdivision)}-${clean(agentName)}`;
+  }
+
+  let editingPageId = null;
+
+  async function createCommunityPage() {
+    const f = gatherFormData();
+    const btn = document.getElementById('fp-submit');
+
+    if (!f.subdivision) {
+      showMsg('fp-msg', 'Subdivision name is required.', true);
+      return;
+    }
+
+    // Editing an existing page -- update in place, no slug/create logic.
+    if (editingPageId) {
+      btn.disabled = true;
+      try {
+        const { error } = await sb.rpc('update_community_page', {
+          p_id: editingPageId,
+          p_subdivision_name: f.subdivision,
+          p_city: f.city || null,
+          p_estimate_low: isNaN(f.estLow) ? null : f.estLow,
+          p_estimate_high: isNaN(f.estHigh) ? null : f.estHigh,
+          p_news_blurb: f.news || null,
+          p_spotlight_name: f.spotlightName || null,
+          p_spotlight_blurb: f.spotlightBlurb || null,
+          p_service_directory: f.directory,
+          p_local_resources: f.resources,
+          p_local_events: f.events,
+          p_community_photos: f.photos,
+        });
+        if (error) throw error;
+        showMsg('fp-msg', 'Page updated!', false);
+        cancelEdit();
+        loadCommunityPages();
+      } catch (err) {
+        showMsg('fp-msg', 'Failed to update: ' + err.message, true);
+      }
+      btn.disabled = false;
+      return;
+    }
+
+    let slug = slugify(f.subdivision, currentAgentName);
+
+    // If this slug is already taken (e.g. same subdivision as an existing
+    // page of yours), append -2, -3, etc. instead of failing outright.
+    try {
+      const { data: existing } = await sb
+        .from('community_pages')
+        .select('slug')
+        .like('slug', `${slug}%`);
+      if (existing && existing.length) {
+        const taken = new Set(existing.map(r => r.slug));
+        if (taken.has(slug)) {
+          let n = 2;
+          while (taken.has(`${slug}-${n}`)) n++;
+          slug = `${slug}-${n}`;
+        }
+      }
+    } catch (err) {
+      // If the check itself fails, fall through and let the insert
+      // surface any real error -- this de-dup is a nicety, not required.
+    }
+
+    btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('create_community_page', {
+        p_slug: slug,
+        p_subdivision_name: f.subdivision,
+        p_city: f.city || null,
+        p_estimate_low: isNaN(f.estLow) ? null : f.estLow,
+        p_estimate_high: isNaN(f.estHigh) ? null : f.estHigh,
+        p_news_blurb: f.news || null,
+        p_spotlight_name: f.spotlightName || null,
+        p_spotlight_blurb: f.spotlightBlurb || null,
+        p_service_directory: f.directory,
+        p_local_resources: f.resources,
+        p_local_events: f.events,
+        p_community_photos: f.photos,
+      });
+      if (error) throw error;
+
+      showMsg('fp-msg', 'Page created!', false);
+      ['fp-subdivision','fp-city','fp-est-low','fp-est-high','fp-news','fp-spotlight-name','fp-spotlight-blurb']
+        .forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fp-directory-rows').innerHTML = '';
+      document.getElementById('fp-resource-rows').innerHTML = '';
+      document.getElementById('fp-event-rows').innerHTML = '';
+      document.getElementById('fp-photo-rows').innerHTML = '';
+      loadCommunityPages();
+    } catch (err) {
+      showMsg('fp-msg', 'Failed to create page: ' + err.message, true);
+    }
+    btn.disabled = false;
+  }
+
+  async function loadCommunityPages() {
+    const list = document.getElementById('community-page-list');
+    try {
+      const { data, error } = await sb
+        .from('community_pages')
+        .select('*')
+        .eq('agent_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      if (!data || !data.length) {
+        list.innerHTML = '<div class="empty">You haven&rsquo;t created any community pages yet.</div>';
+        return;
+      }
+
+      const pageUrl = slug => `${window.location.origin}/community.html?sub=${encodeURIComponent(slug)}`;
+
+      list.innerHTML = data.map(p => {
+        const url = pageUrl(p.slug);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+        return `
+        <div class="page-item">
+          <img src="${qrUrl}" alt="QR code for ${escapeHtml(p.subdivision_name)}" style="width:64px; height:64px; border-radius:6px; border:1px solid var(--gray-300);">
+          <div style="flex:1; margin-left:12px;">
+            <div class="name">${escapeHtml(p.subdivision_name)}${p.city ? ' — ' + escapeHtml(p.city) : ''}</div>
+            <div class="link"><a href="${url}" target="_blank">${url}</a></div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-small" onclick="editCommunityPage('${p.id}')">Edit</button>
+            <button class="btn-small" onclick="navigator.clipboard.writeText('${url}'); showMsg('fp-msg','Link copied.', false)">Copy Link</button>
+            <a class="btn-small" href="${qrUrl}" download="${escapeHtml(p.slug)}-qr.png" style="text-decoration:none; display:inline-block;">Download QR</a>
+            <button class="btn-small" style="border-color:var(--red); color:var(--red);" onclick="deleteCommunityPage('${p.id}', '${escapeHtml(p.subdivision_name)}')">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      list.innerHTML = '<div class="empty">Could not load your pages.</div>';
+    }
+  }
+
+  async function editCommunityPage(id) {
+    try {
+      const { data: p, error } = await sb.from('community_pages').select('*').eq('id', id).maybeSingle();
+      if (error || !p) throw error || new Error('Page not found');
+
+      document.getElementById('fp-subdivision').value = p.subdivision_name || '';
+      document.getElementById('fp-city').value = p.city || '';
+      document.getElementById('fp-est-low').value = p.estimate_low ?? '';
+      document.getElementById('fp-est-high').value = p.estimate_high ?? '';
+      document.getElementById('fp-news').value = p.news_blurb || '';
+      document.getElementById('fp-spotlight-name').value = p.spotlight_name || '';
+      document.getElementById('fp-spotlight-blurb').value = p.spotlight_blurb || '';
+
+      document.getElementById('fp-directory-rows').innerHTML = '';
+      (p.service_directory || []).forEach(d => {
+        addDirectoryRow();
+        const row = document.getElementById('fp-directory-rows').lastElementChild;
+        row.querySelector('.dir-cat').value = d.category || '';
+        row.querySelector('.dir-name').value = d.name || '';
+        row.querySelector('.dir-phone').value = d.phone || '';
+      });
+
+      document.getElementById('fp-resource-rows').innerHTML = '';
+      (p.local_resources || []).forEach(r => {
+        addResourceRow();
+        const row = document.getElementById('fp-resource-rows').lastElementChild;
+        row.querySelector('.res-name').value = r.name || '';
+        row.querySelector('.res-url').value = r.url || '';
+      });
+
+      document.getElementById('fp-event-rows').innerHTML = '';
+      (p.local_events || []).forEach(e => {
+        addEventRow();
+        const row = document.getElementById('fp-event-rows').lastElementChild;
+        row.querySelector('.evt-date').value = e.date || '';
+        row.querySelector('.evt-name').value = e.name || '';
+        row.querySelector('.evt-desc').value = e.description || '';
+      });
+
+      document.getElementById('fp-photo-rows').innerHTML = '';
+      (p.community_photos || []).forEach(url => {
+        addPhotoRow();
+        const row = document.getElementById('fp-photo-rows').lastElementChild;
+        row.querySelector('.photo-url').value = url;
+      });
+
+      editingPageId = id;
+      document.getElementById('fp-form-heading').textContent = `Editing: ${p.subdivision_name}`;
+      document.getElementById('fp-submit').textContent = 'Save Changes';
+      document.getElementById('fp-cancel-edit').style.display = 'inline-block';
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      showMsg('fp-msg', 'Could not load page for editing: ' + err.message, true);
+    }
+  }
+
+  function cancelEdit() {
+    editingPageId = null;
+    document.getElementById('fp-form-heading').textContent = 'Create a New Page';
+    document.getElementById('fp-submit').textContent = 'Create Page';
+    document.getElementById('fp-cancel-edit').style.display = 'none';
+    ['fp-subdivision','fp-city','fp-est-low','fp-est-high','fp-news','fp-spotlight-name','fp-spotlight-blurb']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fp-directory-rows').innerHTML = '';
+    document.getElementById('fp-resource-rows').innerHTML = '';
+    document.getElementById('fp-event-rows').innerHTML = '';
+    document.getElementById('fp-photo-rows').innerHTML = '';
+  }
+
+  async function deleteCommunityPage(id, name) {
+    if (!confirm(`Delete the "${name}" page? This can't be undone.`)) return;
+    try {
+      const { error } = await sb.rpc('delete_community_page', { p_id: id });
+      if (error) throw error;
+      showMsg('fp-msg', 'Page deleted.', false);
+      loadCommunityPages();
+    } catch (err) {
+      showMsg('fp-msg', 'Failed to delete: ' + err.message, true);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
