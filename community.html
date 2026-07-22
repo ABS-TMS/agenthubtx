@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Neighborhood | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-dark: #071e38; --navy-mid: #1A3A5C;
+    --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 60px; }
+
+  header.hero { background: linear-gradient(160deg, var(--navy), var(--navy-mid)); color: var(--white); padding: 28px 16px 60px; text-align: center; }
+  header.hero h1 { font-size: 26px; margin-bottom: 6px; }
+  header.hero p { color: #cdd8e6; font-size: 14px; }
+  .hero-widgets { display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .widget-chip { font-size: 12px; color: #cdd8e6; }
+  .widget-chip .temp { color: var(--gold); font-weight: 700; }
+
+  .estimate-card { background: var(--white); border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); padding: 28px 24px; margin-top: 20px; text-align: center; }
+  .wrap.no-photos .estimate-card { margin-top: -60px; }
+  .estimate-card h2 { font-size: 18px; color: var(--navy); margin-bottom: 4px; }
+  .estimate-card .sub { font-size: 13px; color: var(--gray-500); margin-bottom: 18px; }
+  .estimate-range { display: none; margin: 18px 0; }
+  .estimate-range .value { font-size: 32px; font-weight: 800; color: var(--navy); }
+  .estimate-range .caption { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+  .btn { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 14px 20px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
+  .btn:hover { opacity: 0.92; }
+  .btn-outline { background: none; border: 1.5px solid var(--gray-300); color: var(--gray-700); }
+
+  section { margin-top: 28px; }
+  section h3 { font-size: 15px; color: var(--navy); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+  .card { background: var(--white); border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card + .card { margin-top: 10px; }
+  .card h4 { font-size: 15px; color: var(--gray-700); margin-bottom: 4px; }
+  .card p { font-size: 13.5px; color: var(--gray-500); }
+
+  .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .tile { background: var(--white); border-radius: 12px; padding: 16px 12px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .tile .tile-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--gold); color: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+  .tile .tile-cat { font-size: 10px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: .03em; }
+  .tile .tile-name { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+  .tile .tile-sub { font-size: 11.5px; color: var(--gray-500); }
+
+  .lead-form { display: none; }
+  .lead-form input { width: 100%; padding: 12px; font-size: 15px; border: 1px solid var(--gray-300); border-radius: 8px; margin-bottom: 10px; }
+  .lead-note { font-size: 12px; color: var(--gray-500); margin-top: 10px; text-align: center; }
+
+  footer { text-align: center; margin-top: 40px; font-size: 12.5px; color: var(--gray-500); }
+  footer .agent { font-weight: 700; color: var(--navy); }
+
+  .msg { font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { color: #1a7a3c; }
+  .msg.err { color: #a32d2d; }
+
+  #loadingState, #notFoundState { text-align: center; padding: 80px 16px; color: var(--gray-500); }
+  .photo-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; position: relative; z-index: 1; }
+  .photo-gallery img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; display: block; }
+</style>
+</head>
+<body>
+
+<div id="loadingState"><p>Loading your neighborhood...</p></div>
+
+<div id="notFoundState" style="display:none;">
+  <h2 style="color:var(--navy); margin-bottom:8px;">Page not found</h2>
+  <p>This neighborhood page isn't set up yet. Check the link and try again.</p>
+</div>
+
+<div id="pageContent" style="display:none;">
+  <header class="hero">
+    <h1 id="hSubdivision">Your Neighborhood</h1>
+    <p id="hCity"></p>
+    <div class="hero-widgets" id="heroWidgets">
+      <span class="widget-chip" id="clockWidget"></span>
+      <span class="widget-chip" id="weatherWidget"></span>
+      <span class="widget-chip" id="mortgageWidget"></span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="photo-gallery" id="photoGallery" style="display:none;"></div>
+
+    <div class="estimate-card">
+      <h2>What's your home worth?</h2>
+      <div class="sub" id="estimateSub">Get an instant estimate for homes in this neighborhood.</div>
+      <button class="btn" id="estimateBtn" onclick="showEstimate()">Get My Estimate</button>
+
+      <div class="estimate-range" id="estimateRange">
+        <div class="value" id="estimateValue">$--</div>
+        <div class="caption">Estimated range based on recent neighborhood activity</div>
+      </div>
+
+      <div class="lead-form" id="leadForm">
+        <input type="text" id="leadName" placeholder="Your name (optional)">
+        <input type="email" id="leadEmail" placeholder="Email for the full detailed report" required>
+        <input type="text" id="leadAddress" placeholder="Your address (optional)">
+        <button class="btn btn-outline" onclick="submitLead()">Send Me the Full Report</button>
+        <div class="msg" id="leadMsg"></div>
+      </div>
+    </div>
+
+    <section id="newsSection" style="display:none;">
+      <h3>What's Happening in the Neighborhood</h3>
+      <div class="card"><p id="newsBlurb"></p></div>
+    </section>
+
+    <section id="spotlightSection" style="display:none;">
+      <h3>Neighbor Spotlight</h3>
+      <div class="card">
+        <h4 id="spotlightName"></h4>
+        <p id="spotlightBlurb"></p>
+      </div>
+    </section>
+
+    <section id="eventsSection" style="display:none;">
+      <h3>Upcoming in the Neighborhood</h3>
+      <div id="eventsList"></div>
+    </section>
+
+    <section id="directorySection" style="display:none;">
+      <h3>Trusted Local Services</h3>
+      <div class="tile-grid" id="directoryList"></div>
+    </section>
+
+    <section id="resourcesSection" style="display:none;">
+      <h3>Local Resources</h3>
+      <div class="tile-grid" id="resourcesList"></div>
+    </section>
+
+    <footer>
+      <img id="fAgentPhoto" style="display:none; width:56px; height:56px; border-radius:50%; object-fit:cover; margin-bottom:8px; border:2px solid var(--gold);">
+      <p>Brought to you by <span class="agent" id="fAgentName"></span></p>
+      <p id="fAgentContact" style="display:none;"></p>
+    </footer>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentPage = null;
+
+  function money(n) {
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  function formatEventDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // ---- Hero widgets: clock, local weather, mortgage rate ---------------
+  // Fails silently if a widget can't load, since none of this should ever
+  // block the page.
+  function updateClock() {
+    const el = document.getElementById('clockWidget');
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', {
+      timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit'
+    });
+    const tz = now.toLocaleTimeString('en-US', {
+      timeZone: 'America/Chicago', timeZoneName: 'short'
+    }).split(' ').pop();
+    el.innerHTML = `<span class="temp">${time}</span> ${tz}`;
+  }
+
+  const WEATHER_CODES = {
+    0: '☀️ Clear', 1: '🌤️ Mostly Clear', 2: '⛅ Partly Cloudy', 3: '☁️ Cloudy',
+    45: '🌫️ Fog', 48: '🌫️ Fog',
+    51: '🌦️ Drizzle', 53: '🌦️ Drizzle', 55: '🌦️ Drizzle',
+    61: '🌧️ Light Rain', 63: '🌧️ Rain', 65: '🌧️ Heavy Rain',
+    71: '🌨️ Snow', 73: '🌨️ Snow', 75: '🌨️ Heavy Snow',
+    80: '🌦️ Showers', 81: '🌦️ Showers', 82: '🌦️ Heavy Showers',
+    95: '⛈️ Storms', 96: '⛈️ Storms', 99: '⛈️ Storms',
+  };
+
+  // Geocodes the subdivision's city via Open-Meteo's free geocoding API,
+  // then pulls current weather for that location -- so each community page
+  // shows weather for its own city, not a hardcoded one.
+  async function loadWeather(city) {
+    const el = document.getElementById('weatherWidget');
+    try {
+      let lat = 33.2148, lon = -97.1331, label = 'Denton'; // fallback
+      if (city) {
+        const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&country=US`);
+        const geoData = await geoResp.json();
+        if (geoData.results && geoData.results[0]) {
+          lat = geoData.results[0].latitude;
+          lon = geoData.results[0].longitude;
+          label = geoData.results[0].name;
+        }
+      }
+      const resp = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America%2FChicago`
+      );
+      const data = await resp.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const wlabel = WEATHER_CODES[data.current.weather_code] || '';
+      el.innerHTML = `${wlabel} <span class="temp">${temp}°F</span> · ${label}`;
+    } catch (err) {
+      el.style.display = 'none';
+    }
+  }
+
+  const MORTGAGE_API_KEY = '92H2QyOXbSoFAL1LxSTUl0EnTZdiAyAgCmhl6vLZ';
+
+  async function loadMortgageRate() {
+    const el = document.getElementById('mortgageWidget');
+    try {
+      const resp = await fetch('https://api.api-ninjas.com/v2/mortgagerate', {
+        headers: { 'X-Api-Key': MORTGAGE_API_KEY }
+      });
+      const data = await resp.json();
+      const latest = Array.isArray(data) ? data[0] : data;
+      if (!latest || !latest.frm_30) { el.style.display = 'none'; return; }
+      el.innerHTML = `🏦 30yr <span class="temp">${latest.frm_30}%</span>`;
+    } catch (err) {
+      el.style.display = 'none';
+    }
+  }
+
+  async function loadAgentProfile(agentId) {
+    if (!agentId) return;
+    try {
+      const { data, error } = await sb.rpc('get_public_profile_by_agent', { p_agent_id: agentId });
+      if (error) throw error;
+      if (data && data.photo_url) {
+        const img = document.getElementById('fAgentPhoto');
+        img.src = data.photo_url;
+        img.style.display = 'inline-block';
+      }
+      if (data && data.display_name) {
+        document.getElementById('fAgentName').textContent = data.display_name;
+      }
+      if (data && data.phone) {
+        const contactEl = document.getElementById('fAgentContact');
+        contactEl.textContent = data.phone;
+        contactEl.style.display = 'block';
+      }
+    } catch (err) {
+      // No profile set yet -- footer just shows what we already have.
+    }
+  }
+
+  async function loadCommunityPage() {
+    const slug = new URLSearchParams(window.location.search).get('sub');
+    if (!slug) { showNotFound(); return; }
+
+    try {
+      const { data, error } = await sb.rpc('get_community_page_by_slug', { p_slug: slug });
+      if (error || !data) { showNotFound(); return; }
+
+      currentPage = data;
+      renderPage(data);
+    } catch (err) {
+      showNotFound();
+    }
+  }
+
+  function showNotFound() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('notFoundState').style.display = 'block';
+  }
+
+  function renderPage(p) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'block';
+
+    document.getElementById('hSubdivision').textContent = p.subdivision_name;
+    document.getElementById('hCity').textContent = p.city || '';
+
+    document.getElementById('fAgentName').textContent = 'your agent';
+    loadAgentProfile(p.agent_id);
+
+    const photos = Array.isArray(p.community_photos) ? p.community_photos : [];
+    if (photos.length) {
+      const gallery = document.getElementById('photoGallery');
+      gallery.style.display = 'grid';
+      gallery.innerHTML = photos.map(url => `<img src="${escapeHtml(url)}" alt="">`).join('');
+    } else {
+      document.querySelector('.wrap').classList.add('no-photos');
+    }
+
+    if (p.news_blurb) {
+      document.getElementById('newsSection').style.display = 'block';
+      document.getElementById('newsBlurb').textContent = p.news_blurb;
+    }
+
+    if (p.spotlight_name) {
+      document.getElementById('spotlightSection').style.display = 'block';
+      document.getElementById('spotlightName').textContent = p.spotlight_name;
+      document.getElementById('spotlightBlurb').textContent = p.spotlight_blurb || '';
+    }
+
+    updateClock();
+    setInterval(updateClock, 30000);
+    loadWeather(p.city);
+    loadMortgageRate();
+
+    const events = Array.isArray(p.local_events) ? p.local_events : [];
+    const today = new Date().toISOString().slice(0, 10);
+    const upcoming = events.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+    if (upcoming.length) {
+      document.getElementById('eventsSection').style.display = 'block';
+      document.getElementById('eventsList').innerHTML = upcoming.map(e => `
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <h4>${escapeHtml(e.name || '')}</h4>
+            <span style="font-size:12.5px; color:var(--gold); font-weight:700;">${formatEventDate(e.date)}</span>
+          </div>
+          ${e.description ? `<p>${escapeHtml(e.description)}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    const directory = Array.isArray(p.service_directory) ? p.service_directory : [];
+    if (directory.length) {
+      document.getElementById('directorySection').style.display = 'block';
+      const list = document.getElementById('directoryList');
+      list.innerHTML = directory.map(item => `
+        <div class="tile">
+          <div class="tile-icon">${escapeHtml((item.category || item.name || '?').charAt(0).toUpperCase())}</div>
+          <div class="tile-cat">${escapeHtml(item.category || '')}</div>
+          <div class="tile-name">${escapeHtml(item.name || '')}</div>
+          <div class="tile-sub">${escapeHtml(item.phone || '')}</div>
+        </div>
+      `).join('');
+    }
+
+    const resources = Array.isArray(p.local_resources) ? p.local_resources : [];
+    if (resources.length) {
+      document.getElementById('resourcesSection').style.display = 'block';
+      const list = document.getElementById('resourcesList');
+      list.innerHTML = resources.map(item => `
+        <a class="tile" href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener">
+          <div class="tile-icon">${escapeHtml((item.name || '?').charAt(0).toUpperCase())}</div>
+          <div class="tile-name">${escapeHtml(item.name || '')}</div>
+        </a>
+      `).join('');
+    }
+  }
+
+  // Instant, no-wait estimate -- the whole point is a button click gives a
+  // real number immediately, never a "request submitted" ticket.
+  function showEstimate() {
+    if (!currentPage) return;
+    const low = currentPage.estimate_low;
+    const high = currentPage.estimate_high;
+    if (low == null || high == null) {
+      document.getElementById('estimateSub').textContent = 'Estimate not available for this neighborhood yet.';
+      return;
+    }
+    document.getElementById('estimateValue').textContent = `${money(low)} – ${money(high)}`;
+    document.getElementById('estimateRange').style.display = 'block';
+    document.getElementById('estimateBtn').style.display = 'none';
+    // The email ask is a soft, optional upsell for a fuller report --
+    // never a gate on seeing the range above.
+    document.getElementById('leadForm').style.display = 'block';
+  }
+
+  async function submitLead() {
+    const name = document.getElementById('leadName').value.trim();
+    const email = document.getElementById('leadEmail').value.trim();
+    const address = document.getElementById('leadAddress').value.trim();
+    const msgEl = document.getElementById('leadMsg');
+
+    if (!email) {
+      msgEl.textContent = 'Please enter an email address.';
+      msgEl.className = 'msg show err';
+      return;
+    }
+
+    try {
+      const { error } = await sb.rpc('submit_community_lead', {
+        p_community_page_id: currentPage.id,
+        p_name: name || null,
+        p_email: email,
+        p_address: address || null,
+      });
+      if (error) throw error;
+      msgEl.textContent = "Thanks! You'll hear from us soon.";
+      msgEl.className = 'msg show ok';
+      document.getElementById('leadForm').querySelectorAll('input, button').forEach(el => el.disabled = true);
+    } catch (err) {
+      msgEl.textContent = 'Something went wrong -- please try again.';
+      msgEl.className = 'msg show err';
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  loadCommunityPage();
+</script>
+</body>
+</html>
