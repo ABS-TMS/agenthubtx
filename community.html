@@ -211,14 +211,10 @@
     }
   }
 
-  const MORTGAGE_API_KEY = '92H2QyOXbSoFAL1LxSTUl0EnTZdiAyAgCmhl6vLZ';
-
   async function loadMortgageRate() {
     const el = document.getElementById('mortgageWidget');
     try {
-      const resp = await fetch('https://api.api-ninjas.com/v2/mortgagerate', {
-        headers: { 'X-Api-Key': MORTGAGE_API_KEY }
-      });
+      const resp = await fetch('/.netlify/functions/mortgage-rate');
       const data = await resp.json();
       const latest = Array.isArray(data) ? data[0] : data;
       if (!latest || !latest.frm_30) { el.style.display = 'none'; return; }
