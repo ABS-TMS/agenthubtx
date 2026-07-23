@@ -110,6 +110,10 @@
       if (data.session) {
         // Email confirmation is off -- straight in.
         window.location.href = 'setup.html';
+      } else if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        // Supabase returns an empty identities array when the email already belongs
+        // to an existing (already confirmed) account -- no new confirmation email is sent.
+        showMsg('An account with this email already exists. Try signing in, or use "Forgot password?" on the sign-in page if you need to reset it.', true);
       } else {
         showMsg('Check your email to confirm your account, then sign in.', false);
       }
