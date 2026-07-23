@@ -88,6 +88,8 @@
         </div>
       </div>
       <div class="field"><label>Your Name</label><input type="text" id="myDisplayName" placeholder="Full name"></div>
+      <div class="field"><label>Sponsoring Broker <span style="color:var(--red); font-weight:700;">(required)</span></label><input type="text" id="myBrokerName" placeholder="Your sponsoring broker's name" required></div>
+      <p style="font-size:11.5px; color:var(--gray-500); margin:-8px 0 12px;">Required by TREC advertising rules — your broker's name must appear alongside yours on any page like this.</p>
       <div class="field"><label>Your Phone <span>(optional)</span></label><input type="tel" id="myPhone" placeholder="(555) 555-5555"></div>
       <button class="btn-small" onclick="saveMyProfile()">Save Profile</button>
       <div class="msg" id="myProfileMsg"></div>
@@ -157,6 +159,7 @@
 
   let currentUser = null;
   let currentAgentName = null;
+  let currentBrokerName = null;
 
   async function init() {
     const { data: { session } } = await sb.auth.getSession();
@@ -181,7 +184,9 @@
       if (error) throw error;
       if (data) {
         currentAgentName = data.display_name || currentUser.email;
+        currentBrokerName = data.broker_name || null;
         document.getElementById('myDisplayName').value = data.display_name || '';
+        document.getElementById('myBrokerName').value = data.broker_name || '';
         document.getElementById('myPhone').value = data.phone || '';
         if (data.photo_url) {
           document.getElementById('myPhotoUrl').value = data.photo_url;
@@ -199,16 +204,24 @@
 
   async function saveMyProfile() {
     const name = document.getElementById('myDisplayName').value.trim();
+    const brokerName = document.getElementById('myBrokerName').value.trim();
     const phone = document.getElementById('myPhone').value.trim();
     const photoUrl = document.getElementById('myPhotoUrl').value.trim();
     const msgEl = document.getElementById('myProfileMsg');
 
+    if (!brokerName) {
+      msgEl.textContent = 'Sponsoring broker name is required before saving.';
+      msgEl.className = 'msg show err';
+      return;
+    }
+
     try {
       const { error } = await sb.rpc('save_my_public_profile', {
-        p_display_name: name || null, p_phone: phone || null, p_photo_url: photoUrl || null,
+        p_display_name: name || null, p_phone: phone || null, p_photo_url: photoUrl || null, p_broker_name: brokerName,
       });
       if (error) throw error;
       currentAgentName = name || currentUser.email;
+      currentBrokerName = brokerName;
       if (photoUrl) {
         document.getElementById('myPhotoPreview').src = photoUrl;
         document.getElementById('myPhotoPreview').style.display = 'block';
@@ -428,7 +441,8 @@
         .tile .tile-sub{font-size:11.5px;color:var(--gray-500);}
         footer{text-align:center;margin-top:40px;font-size:12.5px;color:var(--gray-500);}
         footer img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid var(--gold);}
-        footer .agent{font-weight:700;color:var(--navy);}
+        footer .agent{font-weight:700;color:var(--navy);font-size:16px;}
+        footer .broker{font-size:12px;color:var(--gray-500);}
       </style></head><body>
       <div class="banner">PREVIEW &mdash; not saved yet</div>
       <header class="hero">
@@ -458,6 +472,7 @@
 
         <footer>
           <p>Brought to you by <span class="agent">${currentAgentName || 'your agent'}</span></p>
+          <p class="broker">Sponsored by ${currentBrokerName || '(add your sponsoring broker above)'}</p>
           <p>${currentUser.email || ''}</p>
         </footer>
       </div>
@@ -479,6 +494,12 @@
 
     if (!f.subdivision) {
       showMsg('fp-msg', 'Subdivision name is required.', true);
+      return;
+    }
+
+    if (!currentBrokerName) {
+      showMsg('fp-msg', 'Add your sponsoring broker name in "Your Public Profile" above before creating a page — it\'s required by TREC advertising rules.', true);
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
