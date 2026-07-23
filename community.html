@@ -52,7 +52,8 @@
   .lead-note { font-size: 12px; color: var(--gray-500); margin-top: 10px; text-align: center; }
 
   footer { text-align: center; margin-top: 40px; font-size: 12.5px; color: var(--gray-500); }
-  footer .agent { font-weight: 700; color: var(--navy); }
+  footer .agent { font-weight: 700; color: var(--navy); font-size: 16px; }
+  footer .broker { font-size: 12px; color: var(--gray-500); }
 
   .msg { font-size: 13px; margin-top: 10px; text-align: center; display: none; }
   .msg.show { display: block; }
@@ -137,6 +138,7 @@
     <footer>
       <img id="fAgentPhoto" style="display:none; width:56px; height:56px; border-radius:50%; object-fit:cover; margin-bottom:8px; border:2px solid var(--gold);">
       <p>Brought to you by <span class="agent" id="fAgentName"></span></p>
+      <p class="broker" id="fBrokerName" style="display:none;"></p>
       <p id="fAgentContact" style="display:none;"></p>
     </footer>
   </div>
@@ -241,6 +243,11 @@
         const contactEl = document.getElementById('fAgentContact');
         contactEl.textContent = data.phone;
         contactEl.style.display = 'block';
+      }
+      if (data && data.broker_name) {
+        const brokerEl = document.getElementById('fBrokerName');
+        brokerEl.textContent = `Sponsored by ${data.broker_name}`;
+        brokerEl.style.display = 'block';
       }
     } catch (err) {
       // No profile set yet -- footer just shows what we already have.
