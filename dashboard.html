@@ -223,11 +223,11 @@
     const el = document.getElementById('weatherWidget');
     if (!el) return;
     try {
-      const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=30.2672&longitude=-97.7431&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America%2FChicago');
+      const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=32.8998&longitude=-97.0403&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America%2FChicago');
       const data = await resp.json();
       const temp = Math.round(data.current.temperature_2m);
       const label = WEATHER_CODES[data.current.weather_code] || '';
-      el.innerHTML = `${label} <span class="val">${temp}°F</span> · Austin`;
+      el.innerHTML = `${label} <span class="val">${temp}°F</span> · DFW`;
     } catch (err) {
       el.style.display = 'none';
     }
