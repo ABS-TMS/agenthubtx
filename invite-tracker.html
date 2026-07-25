@@ -43,6 +43,10 @@
   .row-contact { font-size: 12.5px; color: var(--gray-500); }
   .row-date { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
   .row-notes { font-size: 12px; color: var(--gray-700); margin-top: 6px; font-style: italic; }
+  .row-login { font-size: 11.5px; margin-top: 4px; font-weight: 600; }
+  .row-login.login-yes { color: var(--teal); }
+  .row-login.login-noaccount { color: var(--gray-500); }
+  .row-login.login-notyet { color: var(--amber); }
 
   .row-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12px; font-weight: 600; }
@@ -51,11 +55,19 @@
   .badge-signedup { background: var(--teal-light); color: var(--teal); }
   .badge-active { background: #E1EEFB; color: #185FA5; }
   .badge-notinterested { background: var(--red-light); color: var(--red); }
+  .edit-btn { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--navy); }
   .check-btn { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--navy); }
   .deactivate-btn { background: none; border: 1px solid var(--red); border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--red); }
   .deactivate-btn.is-reactivate { border-color: var(--teal); color: var(--teal); }
   .delete-btn { background: none; border: none; color: var(--gray-500); font-size: 15px; cursor: pointer; }
   .delete-btn:hover { color: var(--red); }
+
+  .edit-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  .edit-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .edit-form input { flex: 1; min-width: 140px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 13px; }
+  .edit-form-actions { display: flex; gap: 8px; }
+  .save-btn { background: var(--gold); color: var(--navy); border: none; border-radius: 6px; padding: 7px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .cancel-btn { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 7px 16px; font-size: 12.5px; cursor: pointer; color: var(--gray-700); }
 
   .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 13.5px; }
 </style>
@@ -101,6 +113,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ADMIN_EMAIL = 'mike@urocketrealty.com';
 
 let invites = [];
+let editingId = null;
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -144,6 +157,42 @@ async function loadInvites() {
   }
   invites = data || [];
   render();
+  await loadLoginStatuses();
+}
+
+async function loadLoginStatuses() {
+  const emails = invites
+    .map(i => (i.contact || '').trim())
+    .filter(c => c.includes('@'));
+  if (!emails.length) return;
+
+  try {
+    const { data, error } = await sb.rpc('admin_get_login_statuses', { p_contacts: emails });
+    if (error) throw error;
+    const byEmail = {};
+    (data || []).forEach(row => { byEmail[row.contact.toLowerCase()] = row; });
+    invites.forEach(inv => {
+      const key = (inv.contact || '').trim().toLowerCase();
+      inv.login_info = byEmail[key] || null;
+    });
+    render();
+  } catch (err) {
+    console.error('Could not load login statuses:', err);
+  }
+}
+
+function loginStatusHtml(inv) {
+  const contact = (inv.contact || '').trim();
+  if (!contact.includes('@')) return '';
+  const info = inv.login_info;
+  if (!info) return `<div class="row-login login-noaccount">Checking login status…</div>`;
+  if (!info.user_exists) {
+    return `<div class="row-login login-noaccount">No account yet</div>`;
+  }
+  if (info.last_sign_in_at) {
+    return `<div class="row-login login-yes">Logged in — last ${formatDate(info.last_sign_in_at)}</div>`;
+  }
+  return `<div class="row-login login-notyet">Account created, never logged in</div>`;
 }
 
 function render() {
@@ -163,12 +212,33 @@ function render() {
     return;
   }
 
-  listWrap.innerHTML = invites.map(inv => `
+  listWrap.innerHTML = invites.map(inv => {
+    if (inv.id === editingId) {
+      return `
+        <div class="row">
+          <div class="edit-form">
+            <div class="edit-form-row">
+              <input type="text" id="editName-${inv.id}" value="${escapeHtml(inv.name)}" placeholder="Name">
+              <input type="text" id="editContact-${inv.id}" value="${escapeHtml(inv.contact || '')}" placeholder="Email or phone">
+            </div>
+            <div class="edit-form-row">
+              <input type="text" id="editNotes-${inv.id}" value="${escapeHtml(inv.notes || '')}" placeholder="Notes (optional)">
+            </div>
+            <div class="edit-form-actions">
+              <button class="save-btn" onclick="saveEdit('${inv.id}')">Save</button>
+              <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    return `
     <div class="row">
       <div class="row-left">
         <div class="row-name">${escapeHtml(inv.name)}</div>
-        <div class="row-contact">${escapeHtml(inv.contact || '')}</div>
+        <div class="row-contact">${escapeHtml(inv.contact || '') || 'No email or phone on file'}</div>
         <div class="row-date">Invited ${formatDate(inv.date_invited)}</div>
+        ${loginStatusHtml(inv)}
         ${inv.notes ? `<div class="row-notes">${escapeHtml(inv.notes)}</div>` : ''}
       </div>
       <div class="row-right">
@@ -177,12 +247,41 @@ function render() {
           ${['Invited', 'Signed Up', 'Active', 'Not Interested'].map(s =>
             `<option value="${s}" ${s === inv.status ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
+        <button class="edit-btn" onclick="startEdit('${inv.id}')">Edit</button>
         <button class="check-btn" onclick="checkSignup('${inv.id}', '${escapeHtml(inv.contact || '')}')">Check signup</button>
         <button class="deactivate-btn ${inv.is_banned ? 'is-reactivate' : ''}" onclick="toggleBan('${inv.id}', '${escapeHtml(inv.contact || '')}', ${!!inv.is_banned})">${inv.is_banned ? 'Reactivate' : 'Deactivate'}</button>
         <button class="delete-btn" onclick="deleteInvite('${inv.id}')" title="Remove">✕</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
+}
+
+function startEdit(id) {
+  editingId = id;
+  render();
+}
+
+function cancelEdit() {
+  editingId = null;
+  render();
+}
+
+async function saveEdit(id) {
+  const name = document.getElementById(`editName-${id}`).value.trim();
+  const contact = document.getElementById(`editContact-${id}`).value.trim();
+  const notes = document.getElementById(`editNotes-${id}`).value.trim();
+  if (!name) { alert('Name is required.'); return; }
+
+  try {
+    const { error } = await sb.rpc('admin_edit_invite', { p_id: id, p_name: name, p_contact: contact, p_notes: notes });
+    if (error) throw error;
+    editingId = null;
+    await loadInvites();
+  } catch (err) {
+    console.error('Could not save changes:', err);
+    alert('Could not save that change. Try again.');
+  }
 }
 
 async function addInvite() {
