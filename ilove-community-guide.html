@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Community Site: How It Works | AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE; --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.6; }
+
+  header.top { background: var(--navy); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--gold); flex-wrap: wrap; gap: 10px; }
+  header.top .brand { color: #fff; font-weight: 700; font-size: 15px; }
+  header.top .brand span { color: var(--gold); }
+  header.top a.back { color: var(--gray-300); text-decoration: none; font-size: 13px; }
+  header.top a.back:hover { color: #fff; }
+
+  .hero { background: linear-gradient(160deg, var(--navy), #1A3A5C); color: #fff; padding: 40px 24px 46px; text-align: center; }
+  .hero h1 { font-size: 26px; margin-bottom: 10px; }
+  .hero p { color: #cdd8e6; font-size: 14.5px; max-width: 540px; margin: 0 auto; }
+  .hero .cta { display: inline-block; margin-top: 20px; background: var(--gold); color: var(--navy); padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 70px; }
+
+  .why-band {
+    background: var(--white); border: 1px solid #E5E3DA; border-radius: 12px;
+    padding: 24px 26px; margin-bottom: 34px;
+  }
+  .why-band h2 { color: var(--navy); font-size: 18px; margin-bottom: 10px; }
+  .why-band p { font-size: 14px; color: var(--gray-700); margin-bottom: 10px; }
+  .why-band p:last-child { margin-bottom: 0; }
+  .why-band strong { color: var(--navy); }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .section-head h2 { color: var(--navy); font-size: 19px; }
+
+  .card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; padding: 18px 20px; margin-bottom: 12px; }
+  .card h3 { font-size: 14.5px; color: var(--navy); margin-bottom: 6px; }
+  .card p { font-size: 13.5px; color: var(--gray-700); }
+  .card p + p { margin-top: 8px; }
+  .card code { background: var(--off); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; color: var(--navy); }
+
+  .tip-card { background: #FFF8E8; border: 1px solid #EFD9A0; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; font-size: 13.5px; color: #7A5A12; }
+  .tip-card strong { display: block; margin-bottom: 4px; color: #5A3F0A; }
+
+  .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .do-dont .col { border-radius: 10px; padding: 16px 18px; }
+  .do-dont .do { background: var(--teal-light); border: 1px solid #BCE3D3; }
+  .do-dont .dont { background: #FCEBEB; border: 1px solid #E9C7C7; }
+  .do-dont h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px; }
+  .do-dont .do h3 { color: var(--teal); }
+  .do-dont .dont h3 { color: var(--red); }
+  .do-dont ul { padding-left: 18px; font-size: 13px; }
+  .do-dont li { margin-bottom: 6px; }
+
+  .faq-item { border-bottom: 1px solid #E5E3DA; padding: 14px 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-item h3 { font-size: 14px; color: var(--navy); margin-bottom: 6px; }
+  .faq-item p { font-size: 13.5px; color: var(--gray-700); }
+
+  @media (max-width: 640px) {
+    .do-dont { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Agent<span>HubTX</span></div>
+  <a class="back" href="dashboard.html">&larr; Back to Hub</a>
+</header>
+
+<div class="hero">
+  <h1>My Community Site: How It Works</h1>
+  <p>A local business directory you run for a subdivision you're farming — built for fast, low-cost recognition and goodwill, not a hard sell.</p>
+  <a class="cta" href="ilove-community-setup.html">Set Up Your Site &rarr;</a>
+</div>
+
+<div class="wrap">
+
+  <div class="why-band">
+    <h2>Why this works</h2>
+    <p>Recognition normally takes months of repeated touches — mailers, postcards, sphere calls. A sticker on someone's window or bumper works differently: it's recognition that compounds passively, every day, without you doing anything after the initial drop-off.</p>
+    <p><strong>The mechanics matter more than the sticker itself.</strong> You deliver it in person — that's the actual relationship moment, the sticker is just the reason to knock on the door. It's free with zero ask attached, which is exactly why people say yes without thinking twice. And you're the named person behind it, not an anonymous directory, so the goodwill accrues to you.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="step-num">1</div><h2>Set up your site</h2></div>
+    <div class="card">
+      <h3>Open "My Community Site" from the Tools Directory</h3>
+      <p>Fill out the community name, city, your bio, and your contact info once. Add a photo — upload one from your computer, or paste a link if it's already hosted somewhere.</p>
+      <p>You'll get three links back immediately: a <strong>public directory</strong> link, a <strong>merchant sign-up</strong> link, and an <strong>admin</strong> link. Save all three somewhere you'll find them again.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="step-num">2</div><h2>Get decals and stickers printed</h2></div>
+    <div class="card">
+      <h3>Two versions, one campaign</h3>
+      <p>A window decal for merchants who join the directory, and a bumper sticker for any resident who wants one — both branded "I &hearts; [Your Community]." Any local print shop or online sticker printer can produce these cheaply in bulk.</p>
+      <p>Put your merchant sign-up link and your directory link somewhere visible on the sticker or decal itself, so it keeps working even after you've handed it out.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="step-num">3</div><h2>Hand them out yourself</h2></div>
+    <div class="card">
+      <h3>This is the actual relationship-building step</h3>
+      <p>Walk into local businesses and offer a free directory listing plus a window decal — no strings attached. Give residents a bumper sticker the same way, at a community event, door to door, or anywhere you'd normally hand out a business card.</p>
+      <p>The delivery is the point. A mailed sticker builds nothing; a sticker you hand someone, with your name attached, builds recognition and goodwill in one motion.</p>
+    </div>
+    <div class="tip-card">
+      <strong>Keep it a real no-ask.</strong> Don't attach a pitch, a follow-up call, or "let me know if you ever want to sell." The moment it feels like marketing, it stops working the way it's supposed to.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="step-num">4</div><h2>Review and approve submissions</h2></div>
+    <div class="card">
+      <h3>Nothing goes live without your review</h3>
+      <p>When a merchant submits themselves through your sign-up link, it lands as <strong>pending</strong> in your admin page — not live on the directory until you approve it. That keeps the directory spam-free and gives you a natural reason to reach out to every new business personally.</p>
+      <p>Your admin page also tracks resident sticker requests separately, with a <strong>Mark Delivered</strong> toggle so you know who still needs a drop-off.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="step-num">5</div><h2>Track what the goodwill turns into</h2></div>
+    <div class="card">
+      <h3>Use the Notes field on every listing and request</h3>
+      <p>Every merchant listing and every sticker request has a notes field in your admin page. When someone eventually calls you — a referral, a listing lead, a question — jot it down: <code>"referred by Sarah at the bakery"</code>, <code>"became a buyer lead 3 months later."</code></p>
+      <p>Without this, the campaign's real return is invisible. With it, after six months you'll actually know whether the stickers are converting into business, not just guess.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 style="margin-left:0;">Do / Don't</h2></div>
+    <div class="do-dont">
+      <div class="col do">
+        <h3>Do</h3>
+        <ul>
+          <li>Deliver stickers and decals in person</li>
+          <li>Approve listings promptly — a fast "you're live!" builds goodwill on its own</li>
+          <li>Log notes the moment something happens, not months later from memory</li>
+          <li>Keep your bio and photo current — it's the face of the whole site</li>
+        </ul>
+      </div>
+      <div class="col dont">
+        <h3>Don't</h3>
+        <ul>
+          <li>Attach a sales pitch to the sticker hand-off</li>
+          <li>Auto-approve listings without a quick look — spam ruins trust fast</li>
+          <li>Mail stickers instead of delivering them — you lose the actual moment</li>
+          <li>Let the directory sit stale — an empty "no businesses yet" page undercuts the whole idea</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 style="margin-left:0;">Common Questions</h2></div>
+    <div class="card" style="padding:6px 20px;">
+      <div class="faq-item">
+        <h3>Can I run more than one community site?</h3>
+        <p>Yes — create a separate site for each subdivision you're farming. Each gets its own links, its own directory, and its own set of listings.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What if a merchant asks to be un-listed?</h3>
+        <p>Open your admin page and delete their listing. It's immediate and permanent.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Does the directory cost anything to run?</h3>
+        <p>No — it's included free as part of AgentHubTX. Printing the physical stickers/decals is the only real cost, and that's on you to source locally.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Can someone else see my listings or sticker requests?</h3>
+        <p>No — your admin page only shows data for communities you created. Another agent running their own site can't see yours, and vice versa.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
