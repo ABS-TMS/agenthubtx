@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">List Your Business | I &hearts; Community</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+    --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
+
+  header.top { background: var(--navy); padding: 18px 24px; text-align: center; }
+  header.top a { color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; }
+  header.top a span { color: var(--gold); }
+
+  .wrap { max-width: 560px; margin: 0 auto; padding: 40px 20px 70px; }
+  h1 { color: var(--navy); font-size: 26px; margin-bottom: 8px; }
+  .sub { color: var(--gray-500); font-size: 14.5px; margin-bottom: 28px; }
+
+  .decal-note {
+    background: #FFF8E8; border: 1px solid #EFD9A0; border-radius: 10px;
+    padding: 14px 18px; font-size: 13.5px; color: #7A5A12; margin-bottom: 26px;
+  }
+
+  .card { background: var(--white); border-radius: 12px; padding: 26px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .field label span { font-weight: 400; color: var(--gray-500); }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 13px; border: 1px solid var(--gray-300); border-radius: 7px;
+    font-size: 14.5px; font-family: inherit;
+  }
+  .field textarea { resize: vertical; }
+  .row2 { display: flex; gap: 12px; }
+  .row2 .field { flex: 1; }
+
+  .btn { width: 100%; background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .msg { font-size: 13.5px; margin-top: 14px; display: none; text-align: center; }
+  .msg.show { display: block; }
+  .msg.ok { color: #1a7a3c; }
+  .msg.err { color: var(--red); }
+
+  #successState { display: none; text-align: center; padding: 40px 20px; }
+  #successState h2 { color: var(--navy); font-size: 22px; margin-bottom: 10px; }
+  #successState p { color: var(--gray-500); font-size: 14.5px; max-width: 420px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<header class="top"><a href="#" id="backLink">I <span>&hearts;</span> Community</a></header>
+
+<div class="wrap">
+  <div id="formState">
+    <h1>List Your Business</h1>
+    <p class="sub">Free to join. A quick review, then you're live in the directory.</p>
+
+    <div class="decal-note" id="decalNote">
+      &#127894; I personally review every submission. Once you're approved, I'll drop off a free window decal for your storefront myself.
+    </div>
+
+    <div class="card">
+      <div class="field"><label>Business Name *</label><input type="text" id="f-name" placeholder="e.g. The Fairway Grill"></div>
+
+      <div class="field">
+        <label>Category *</label>
+        <select id="f-category">
+          <option value="">Select a category&hellip;</option>
+          <option>Restaurant / Food</option>
+          <option>Home Services</option>
+          <option>Health & Wellness</option>
+          <option>Retail / Shopping</option>
+          <option>Professional Services</option>
+          <option>Beauty & Personal Care</option>
+          <option>Automotive</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field"><label>Description <span>(what you do, in a sentence or two)</span></label>
+        <textarea id="f-description" rows="3" placeholder="Tell your neighbors what you offer"></textarea>
+      </div>
+
+      <div class="row2">
+        <div class="field"><label>Phone</label><input type="tel" id="f-phone" placeholder="(940) 555-0123"></div>
+        <div class="field"><label>Website <span>(optional)</span></label><input type="url" id="f-website" placeholder="https://..."></div>
+      </div>
+
+      <div class="field"><label>Address <span>(optional)</span></label><input type="text" id="f-address" placeholder="Street address, Denton, TX"></div>
+
+      <div class="field"><label>Photo Link <span>(optional — storefront or logo)</span></label><input type="url" id="f-photo" placeholder="https://..."></div>
+
+      <div class="row2">
+        <div class="field"><label>Your Name *</label><input type="text" id="f-contact-name" placeholder="For our records, not shown publicly"></div>
+        <div class="field"><label>Your Email *</label><input type="email" id="f-contact-email" placeholder="you@business.com"></div>
+      </div>
+
+      <button class="btn" id="submitBtn" onclick="submitListing()">Submit for Review</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <div id="successState">
+    <h2>Thanks &mdash; you're in the queue!</h2>
+    <p>I review every new listing myself, usually within a day or two. Once you're approved, I'll reach out personally about dropping off your free window decal &mdash; and I'd love to introduce myself in the meantime.</p>
+    <p style="margin-top: 16px; font-size: 13px; color: var(--gray-500);" id="successSignature"></p>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const DEFAULT_SLUG = 'robson';
+  const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
+
+  let site = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  async function loadSite() {
+    try {
+      const { data, error } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      site = (data && data[0]) || null;
+    } catch (err) {
+      console.error('Could not load community site:', err);
+    }
+    renderSiteCopy();
+  }
+
+  function renderSiteCopy() {
+    const brand = (site && site.brand_name) || 'I \u2764 Community';
+    const agentName = (site && site.agent_name) || '';
+    const agentEmail = (site && site.agent_contact_email) || '';
+
+    document.getElementById('pageTitle').textContent = `List Your Business | ${brand}`;
+    document.getElementById('backLink').innerHTML = brand.includes('\u2764')
+      ? escapeHtml(brand).replace('\u2764', '<span>&hearts;</span>')
+      : `${escapeHtml(brand)} <span>&hearts;</span>`;
+    document.getElementById('backLink').href = `ilove-community-directory.html?c=${encodeURIComponent(COMMUNITY_SLUG)}`;
+    document.getElementById('decalNote').innerHTML = `&#127894; ${agentName ? escapeHtml(agentName) + ' personally reviews' : 'I personally review'} every submission. Once you're approved, ${agentName ? 'they' : "I'"}ll drop off a free window decal for your storefront${agentName ? '' : ' myself'}.`;
+    document.getElementById('successSignature').textContent = agentName ? `\u2014 ${agentName}${agentEmail ? ', ' + agentEmail : ''}` : '';
+  }
+
+  function showMsg(text, isError) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  async function submitListing() {
+    const name = document.getElementById('f-name').value.trim();
+    const category = document.getElementById('f-category').value;
+    const description = document.getElementById('f-description').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const website = document.getElementById('f-website').value.trim();
+    const address = document.getElementById('f-address').value.trim();
+    const photo = document.getElementById('f-photo').value.trim();
+    const contactName = document.getElementById('f-contact-name').value.trim();
+    const contactEmail = document.getElementById('f-contact-email').value.trim();
+    const btn = document.getElementById('submitBtn');
+
+    if (!name || !category || !contactName || !contactEmail) {
+      showMsg('Please fill in business name, category, your name, and your email.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('submit_directory_listing', {
+        p_community_slug: COMMUNITY_SLUG,
+        p_business_name: name,
+        p_category: category,
+        p_description: description || null,
+        p_phone: phone || null,
+        p_website: website || null,
+        p_address: address || null,
+        p_photo_url: photo || null,
+        p_contact_name: contactName,
+        p_contact_email: contactEmail,
+      });
+      if (error) throw error;
+
+      document.getElementById('formState').style.display = 'none';
+      document.getElementById('successState').style.display = 'block';
+    } catch (err) {
+      showMsg('Could not submit: ' + err.message, true);
+      btn.disabled = false;
+    }
+  }
+
+  loadSite();
+</script>
+</body>
+</html>
