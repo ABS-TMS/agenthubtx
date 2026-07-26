@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">I &hearts; Community | Local Business Directory</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+    --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.55; }
+
+  header.hero {
+    background: linear-gradient(160deg, var(--navy), var(--navy-mid));
+    color: #fff; padding: 60px 20px 70px; text-align: center;
+  }
+  .heart { color: var(--gold); }
+  header.hero h1 { font-size: 34px; margin-bottom: 10px; }
+  header.hero p { color: #cdd8e6; font-size: 16px; max-width: 520px; margin: 0 auto; }
+  .hero-cta { margin-top: 26px; }
+  .btn { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 13px 24px; font-size: 14.5px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn-outline { border: 1.5px solid rgba(255,255,255,0.5); color: #fff; border-radius: 8px; padding: 12px 22px; font-size: 14.5px; font-weight: 600; text-decoration: none; display: inline-block; margin-left: 10px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 70px; }
+
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .filter-chip {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 20px;
+    padding: 7px 16px; font-size: 13px; font-weight: 600; color: var(--gray-700); cursor: pointer;
+  }
+  .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); }
+  .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
+  .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
+  .biz-meta { font-size: 12.5px; color: var(--gray-700); }
+  .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-500); }
+
+  .decal-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; text-align: center; margin: 50px 0;
+  }
+  .decal-band h2 { color: var(--navy); font-size: 22px; margin-bottom: 10px; }
+  .decal-band p { color: var(--gray-500); font-size: 14.5px; max-width: 480px; margin: 0 auto 20px; }
+
+  .about-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; margin: 50px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+  }
+  .about-photo {
+    width: 96px; height: 96px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 3px solid var(--gold); background: var(--off);
+  }
+  .about-photo-placeholder {
+    width: 96px; height: 96px; border-radius: 50%; flex-shrink: 0;
+    background: var(--navy); color: var(--gold); display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 700; border: 3px solid var(--gold);
+  }
+  .about-body { flex: 1; min-width: 220px; }
+  .about-eyebrow { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .about-name { font-size: 19px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .about-bio { font-size: 13.5px; color: var(--gray-500); margin-bottom: 12px; }
+  .about-contact { font-size: 13px; color: var(--navy); font-weight: 600; }
+  .about-contact a { color: var(--navy); text-decoration: none; }
+
+  .sticker-band {
+    background: var(--navy); border-radius: 14px; padding: 32px; margin: 50px 0;
+    color: #fff; text-align: center;
+  }
+  .sticker-band h2 { font-size: 22px; margin-bottom: 8px; }
+  .sticker-band p { color: #cdd8e6; font-size: 14.5px; max-width: 480px; margin: 0 auto 22px; }
+  .sticker-form { max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .sticker-form input {
+    padding: 11px 13px; border: none; border-radius: 7px; font-size: 14px;
+    font-family: inherit; background: #fff; color: var(--gray-700);
+  }
+  .sticker-form button {
+    background: var(--gold); color: var(--navy); border: none; border-radius: 8px;
+    padding: 13px; font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  }
+  .sticker-msg { font-size: 13px; margin-top: 10px; display: none; }
+  .sticker-msg.show { display: block; }
+  .sticker-msg.ok { color: var(--gold); }
+  .sticker-msg.err { color: #ff9b9b; }
+
+  footer { text-align: center; padding: 30px 20px; font-size: 12.5px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1 id="heroBrand">I <span class="heart">&hearts;</span> Community</h1>
+  <p>The local directory of businesses that keep <span id="heroCommunityName">this community</span> running &mdash; restaurants, services, and shops, all in one place, started by your neighbor <span id="heroAgentName">a local Realtor</span>.</p>
+  <div class="hero-cta">
+    <a class="btn" id="listBusinessCta" href="ilove-community-merchant-signup.html">List Your Business &rarr;</a>
+    <a class="btn-outline" href="#directory">Browse the Directory</a>
+  </div>
+</header>
+
+<div class="wrap" id="directory">
+  <div class="filter-bar" id="filterBar"></div>
+  <div class="directory-grid" id="directoryGrid">
+    <div class="empty-state">Loading the directory&hellip;</div>
+  </div>
+
+  <div class="about-band" id="aboutBand"></div>
+
+  <div class="sticker-band">
+    <h2 id="stickerHeading">Live here? Get a free bumper sticker.</h2>
+    <p id="stickerSub">No catch &mdash; just show your community pride. Give me your name and email or address, and I'll get you one.</p>
+    <div class="sticker-form">
+      <input type="text" id="s-name" placeholder="Full name">
+      <input type="email" id="s-email" placeholder="Email (or leave address below)">
+      <input type="text" id="s-address" placeholder="Address (or leave email above)">
+      <button onclick="submitStickerRequest()">Send Me a Sticker</button>
+      <div class="sticker-msg" id="stickerMsg"></div>
+    </div>
+  </div>
+
+  <div class="decal-band">
+    <h2 id="decalHeading">Own a business here?</h2>
+    <p id="decalSub">Join the directory free and get a window decal for your storefront &mdash; help your neighbors find you, and help the whole community find each other.</p>
+    <a class="btn" style="background: var(--navy); color: #fff;" id="decalCta" href="ilove-community-merchant-signup.html">Get Listed &rarr;</a>
+  </div>
+</div>
+
+<footer id="pageFooter">A community project</footer>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Default community for this deployment -- if you give this community its
+  // own dedicated domain, just change DEFAULT_SLUG to match and every visitor
+  // gets that community with no URL parameter needed. The ?c= param (used by
+  // the shared AgentHubTX preview links) always overrides this default.
+  const DEFAULT_SLUG = 'robson';
+  const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
+
+  let site = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  async function loadSite() {
+    try {
+      const { data, error } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      site = (data && data[0]) || null;
+      renderSite();
+    } catch (err) {
+      console.error('Could not load community site:', err);
+    }
+  }
+
+  function renderSite() {
+    const brand = (site && site.brand_name) || 'I \u2764 Community';
+    const communityName = (site && site.community_name) || 'this community';
+    const agentName = (site && site.agent_name) || 'a local Realtor';
+
+    document.getElementById('pageTitle').textContent = `${brand} | Local Business Directory`;
+    document.getElementById('heroBrand').innerHTML = brand.includes('\u2764')
+      ? escapeHtml(brand).replace('\u2764', '<span class="heart">&hearts;</span>')
+      : `${escapeHtml(brand)} <span class="heart">&hearts;</span>`;
+    document.getElementById('heroCommunityName').textContent = communityName;
+    document.getElementById('heroAgentName').textContent = agentName;
+    document.getElementById('stickerHeading').textContent = `Live in ${communityName}? Get a free bumper sticker.`;
+    document.getElementById('stickerSub').textContent = `No catch \u2014 just show your ${communityName} pride. Give me your name and email or address, and I'll get you one.`;
+    document.getElementById('decalHeading').textContent = `Own a business in ${communityName}?`;
+    document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
+    document.getElementById('decalCta').href = `ilove-community-merchant-signup.html?c=${encodeURIComponent(COMMUNITY_SLUG)}`;
+    document.getElementById('listBusinessCta').href = `ilove-community-merchant-signup.html?c=${encodeURIComponent(COMMUNITY_SLUG)}`;
+    document.getElementById('pageFooter').textContent = `${brand} \u00b7 a community project for ${communityName}${site && site.city ? ', ' + site.city : ''}`;
+
+    const initials = agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const photoUrl = site && site.agent_photo_url;
+    const bio = (site && site.agent_bio) || '';
+    const phone = (site && site.agent_phone) || '';
+    const email = (site && site.agent_contact_email) || '';
+
+    document.getElementById('aboutBand').innerHTML = `
+      ${photoUrl
+        ? `<img class="about-photo" src="${escapeHtml(photoUrl)}" alt="${escapeHtml(agentName)}">`
+        : `<div class="about-photo-placeholder">${escapeHtml(initials)}</div>`}
+      <div class="about-body">
+        <div class="about-eyebrow">Who's Behind ${escapeHtml(brand)}</div>
+        <div class="about-name">${escapeHtml(agentName)}</div>
+        ${bio ? `<div class="about-bio">${escapeHtml(bio)}</div>` : ''}
+        <div class="about-contact">${escapeHtml(phone)}${phone && email ? ' &middot; ' : ''}${email ? `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>` : ''}</div>
+      </div>
+    `;
+  }
+
+  let allListings = [];
+  let activeCategory = 'All';
+
+  async function loadDirectory() {
+    const grid = document.getElementById('directoryGrid');
+    try {
+      const { data, error } = await sb.rpc('get_approved_listings', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      allListings = data || [];
+      renderFilters();
+      renderGrid();
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state">Could not load the directory right now. Please try again shortly.</div>';
+      console.error(err);
+    }
+  }
+
+  function renderFilters() {
+    const cats = ['All', ...new Set(allListings.map(b => b.category).filter(Boolean))];
+    document.getElementById('filterBar').innerHTML = cats.map(c =>
+      `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
+    ).join('');
+  }
+
+  function setCategory(cat) {
+    activeCategory = cat;
+    renderFilters();
+    renderGrid();
+  }
+  window.setCategory = setCategory;
+
+  function renderGrid() {
+    const grid = document.getElementById('directoryGrid');
+    const items = activeCategory === 'All' ? allListings : allListings.filter(b => b.category === activeCategory);
+
+    if (!items.length) {
+      grid.innerHTML = `<div class="empty-state">${allListings.length ? 'No businesses in this category yet.' : 'No businesses listed yet &mdash; be the first!'}</div>`;
+      return;
+    }
+
+    grid.innerHTML = items.map(b => `
+      <div class="biz-card">
+        ${b.photo_url ? `<img class="biz-photo" src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}">` : ''}
+        ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
+        <div class="biz-name">${escapeHtml(b.business_name)}</div>
+        ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
+        <div class="biz-meta">
+          ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
+          ${b.website ? `<a href="${escapeHtml(b.website)}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
+          ${b.address ? escapeHtml(b.address) : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showStickerMsg(text, isError) {
+    const el = document.getElementById('stickerMsg');
+    el.textContent = text;
+    el.className = 'sticker-msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  async function submitStickerRequest() {
+    const name = document.getElementById('s-name').value.trim();
+    const email = document.getElementById('s-email').value.trim();
+    const address = document.getElementById('s-address').value.trim();
+
+    if (!name) {
+      showStickerMsg('Please enter your name.', true);
+      return;
+    }
+    if (!email && !address) {
+      showStickerMsg('Add an email or address so I know where to send it.', true);
+      return;
+    }
+
+    try {
+      const { error } = await sb.rpc('submit_sticker_request', {
+        p_community_slug: COMMUNITY_SLUG,
+        p_full_name: name,
+        p_email: email || null,
+        p_phone: null,
+        p_address: address || null,
+      });
+      if (error) throw error;
+      showStickerMsg("You're on the list \u2014 I'll get a sticker to you soon!", false);
+      document.getElementById('s-name').value = '';
+      document.getElementById('s-email').value = '';
+      document.getElementById('s-address').value = '';
+    } catch (err) {
+      showStickerMsg('Could not submit: ' + err.message, true);
+    }
+  }
+
+  loadSite();
+  loadDirectory();
+</script>
+</body>
+</html>
