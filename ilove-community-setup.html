@@ -97,7 +97,19 @@
         <div class="field"><label>Your Contact Email</label><input type="email" id="f-agent-email" placeholder="defaults to your login email"></div>
       </div>
 
-      <div class="field"><label>Your Photo <span>(optional — link to a hosted photo)</span></label><input type="url" id="f-agent-photo" placeholder="https://..."></div>
+      <div class="field">
+        <label>Your Photo <span>(optional — paste a link, or upload one)</span></label>
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
+          <img id="agentPhotoPreview" style="display:none; width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--gold);">
+          <div id="agentPhotoPlaceholder" style="width:56px; height:56px; border-radius:50%; background:var(--off); border:1px dashed var(--gray-300); display:flex; align-items:center; justify-content:center; color:var(--gray-500); font-size:11px; text-align:center; flex-shrink:0;">No photo</div>
+          <label class="btn-small" style="cursor:pointer;">
+            Upload from Computer
+            <input type="file" accept="image/*" id="f-agent-photo-file" style="display:none;" onchange="uploadAgentPhoto(this)">
+          </label>
+          <span id="photoUploadStatus" style="font-size:12px; color:var(--gray-500);"></span>
+        </div>
+        <input type="url" id="f-agent-photo" placeholder="https://... (or upload above)" oninput="previewAgentPhotoUrl()">
+      </div>
 
       <button class="btn" id="submit-btn" onclick="saveSite()">Create Site</button>
       <button class="btn-small" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none; margin-left:8px;">Cancel Edit</button>
@@ -135,6 +147,46 @@
     const el = document.getElementById('form-msg');
     el.textContent = text;
     el.className = 'msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  function setAgentPhotoPreview(url) {
+    const img = document.getElementById('agentPhotoPreview');
+    const placeholder = document.getElementById('agentPhotoPlaceholder');
+    if (url) {
+      img.src = url;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
+  }
+
+  function previewAgentPhotoUrl() {
+    setAgentPhotoPreview(document.getElementById('f-agent-photo').value.trim());
+  }
+
+  async function uploadAgentPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('photoUploadStatus');
+    statusEl.textContent = 'Uploading...';
+
+    try {
+      const ext = file.name.split('.').pop();
+      const safeEmail = (currentEmail || 'agent').replace(/[^a-z0-9]/gi, '_');
+      const path = `agents/${safeEmail}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await sb.storage.from('directory-photos').upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = sb.storage.from('directory-photos').getPublicUrl(path);
+      document.getElementById('f-agent-photo').value = urlData.publicUrl;
+      setAgentPhotoPreview(urlData.publicUrl);
+      statusEl.textContent = 'Uploaded \u2713';
+    } catch (err) {
+      statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+    input.value = '';
   }
 
   async function init() {
@@ -256,6 +308,7 @@
         showMsg('Site created!', false);
         ['f-community','f-city','f-brand','f-agent-name','f-agent-bio','f-agent-phone','f-agent-email','f-agent-photo']
           .forEach(id => document.getElementById(id).value = '');
+        setAgentPhotoPreview('');
       }
       loadMySites();
     } catch (err) {
@@ -275,6 +328,7 @@
     document.getElementById('f-agent-phone').value = s.agent_phone || '';
     document.getElementById('f-agent-email').value = s.agent_contact_email || '';
     document.getElementById('f-agent-photo').value = s.agent_photo_url || '';
+    setAgentPhotoPreview(s.agent_photo_url || '');
 
     editingId = id;
     document.getElementById('form-heading').textContent = `Editing: ${s.community_name}`;
@@ -290,6 +344,7 @@
     document.getElementById('cancel-edit-btn').style.display = 'none';
     ['f-community','f-city','f-brand','f-agent-name','f-agent-bio','f-agent-phone','f-agent-email','f-agent-photo']
       .forEach(id => document.getElementById(id).value = '');
+    setAgentPhotoPreview('');
   }
 
   async function deleteSite(id, name) {
