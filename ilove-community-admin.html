@@ -47,6 +47,17 @@
   .badge-rejected { background: var(--red-light); color: var(--red); }
 
   .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .notes-row { display: flex; gap: 8px; margin-top: 10px; }
+  .notes-row input {
+    flex: 1; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: 12.5px; font-family: inherit;
+  }
+  .notes-row button {
+    background: none; border: 1px solid var(--gray-300); border-radius: 6px;
+    padding: 6px 12px; font-size: 11.5px; font-weight: 600; color: var(--navy); cursor: pointer;
+  }
+  .notes-row button:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-small { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--navy); }
   .btn-approve { border-color: var(--teal); color: var(--teal); }
   .btn-reject { border-color: var(--red); color: var(--red); }
@@ -199,6 +210,10 @@
           <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
           <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
         </div>
+        <div class="notes-row">
+          <input type="text" id="notes-listing-${l.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(l.notes || '')}" oninput="document.getElementById('save-notes-listing-${l.id}').disabled = false;">
+          <button id="save-notes-listing-${l.id}" disabled onclick="saveListingNotes('${l.id}')">Save</button>
+        </div>
       </div>
     `).join('');
   }
@@ -220,6 +235,20 @@
       await loadListings();
     } catch (err) {
       alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function saveListingNotes(id) {
+    const input = document.getElementById(`notes-listing-${id}`);
+    const btn = document.getElementById(`save-notes-listing-${id}`);
+    try {
+      const { error } = await sb.rpc('admin_update_listing_notes', { p_id: id, p_notes: input.value.trim() || null });
+      if (error) throw error;
+      const listing = listings.find(l => l.id === id);
+      if (listing) listing.notes = input.value.trim();
+      btn.disabled = true;
+    } catch (err) {
+      alert('Could not save notes: ' + err.message);
     }
   }
 
@@ -277,6 +306,10 @@
           <button class="btn-small ${r.fulfilled ? 'sent' : ''}" onclick="toggleStickerRequestFulfilled('${r.id}', ${!r.fulfilled})">${r.fulfilled ? '&#10003; Delivered' : 'Mark Delivered'}</button>
           <button class="btn-small btn-reject" onclick="deleteStickerRequest('${r.id}', '${escapeHtml(r.full_name)}')">Delete</button>
         </div>
+        <div class="notes-row">
+          <input type="text" id="notes-sticker-${r.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(r.notes || '')}" oninput="document.getElementById('save-notes-sticker-${r.id}').disabled = false;">
+          <button id="save-notes-sticker-${r.id}" disabled onclick="saveStickerRequestNotes('${r.id}')">Save</button>
+        </div>
       </div>
     `).join('');
   }
@@ -288,6 +321,20 @@
       await loadStickerRequests();
     } catch (err) {
       alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function saveStickerRequestNotes(id) {
+    const input = document.getElementById(`notes-sticker-${id}`);
+    const btn = document.getElementById(`save-notes-sticker-${id}`);
+    try {
+      const { error } = await sb.rpc('admin_update_sticker_request_notes', { p_id: id, p_notes: input.value.trim() || null });
+      if (error) throw error;
+      const req = stickerRequests.find(r => r.id === id);
+      if (req) req.notes = input.value.trim();
+      btn.disabled = true;
+    } catch (err) {
+      alert('Could not save notes: ' + err.message);
     }
   }
 
