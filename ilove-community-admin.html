@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Directory Admin | I &hearts; Community</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --amber: #B8860B; --amber-light: #FFF3D6;
+    --red: #A32D2D; --red-light: #FCEBEB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; color: #fff; }
+  header .brand { font-weight: 700; font-size: 15px; }
+  header .brand span { color: var(--gold); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 70px; }
+
+  #loginState { max-width: 340px; margin: 80px auto; text-align: center; }
+  #loginState input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 14.5px; margin-bottom: 10px; }
+  #loginState button { width: 100%; background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  #loginState .err { color: var(--red); font-size: 13px; margin-top: 10px; }
+
+  #deniedState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+
+  .stats-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 10px 16px; font-size: 12.5px; flex: 1; min-width: 100px; text-align: center; }
+  .stat .num { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .stat .label { color: var(--gray-500); font-size: 11px; text-transform: uppercase; }
+
+  .row { background: var(--white); border: 1px solid #E5E3DA; border-radius: 9px; padding: 16px 18px; margin-bottom: 10px; }
+  .row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .biz-name { font-weight: 700; color: var(--navy); font-size: 15px; }
+  .biz-cat { font-size: 11.5px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .biz-meta { font-size: 12.5px; color: var(--gray-500); margin-top: 4px; }
+  .biz-contact { font-size: 12px; color: var(--gray-700); margin-top: 6px; }
+
+  .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; }
+  .badge-pending { background: var(--amber-light); color: var(--amber); }
+  .badge-approved { background: var(--teal-light); color: var(--teal); }
+  .badge-rejected { background: var(--red-light); color: var(--red); }
+
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-small { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--navy); }
+  .btn-approve { border-color: var(--teal); color: var(--teal); }
+  .btn-reject { border-color: var(--red); color: var(--red); }
+  .btn-sticker.sent { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 13.5px; }
+
+  .section-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 34px 0 14px; }
+  .section-title:first-of-type { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<header><div class="brand" id="pageBrand">I <span>&hearts;</span> Community &middot; Directory Admin</div></header>
+
+<div id="loginState">
+  <h2 style="color:var(--navy); margin-bottom:16px;">Admin Login</h2>
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPassword" placeholder="Password">
+  <button onclick="doLogin()">Sign In</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="deniedState" style="display:none;">
+  <h2 style="color:var(--navy); margin-bottom:10px;">Not authorized</h2>
+  <p>Your login isn't the owner of this community site. Log in with the account you used to create it in "My Community Site."</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="wrap">
+    <div class="section-title">Merchant Listings</div>
+    <div class="stats-row" id="statsRow"></div>
+    <div id="listWrap"></div>
+
+    <div class="section-title">Resident Sticker Requests</div>
+    <div class="stats-row" id="stickerStatsRow"></div>
+    <div id="stickerListWrap"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const DEFAULT_SLUG = 'robson';
+  const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
+
+  let listings = [];
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+  function formatDate(d) {
+    if (!d) return '';
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // Access is checked by the RPCs themselves (ownership against
+  // community_sites), not a hardcoded email here -- whichever agent owns
+  // this community_slug can manage it. A logged-in agent who doesn't own it
+  // simply gets "not authorized" back from the first RPC call.
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      document.getElementById('loginState').style.display = 'block';
+      return;
+    }
+    await showApp();
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginErr');
+    errEl.textContent = '';
+    try {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      document.getElementById('loginState').style.display = 'none';
+      await showApp();
+    } catch (err) {
+      errEl.textContent = 'Sign-in failed: ' + err.message;
+    }
+  }
+
+  async function showApp() {
+    try {
+      const { data: siteData } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
+      const site = siteData && siteData[0];
+      if (site) document.getElementById('pageBrand').innerHTML = `${escapeHtml(site.brand_name || site.community_name)} <span>&hearts;</span> &middot; Directory Admin`;
+    } catch (err) { /* cosmetic only -- fall through to default heading */ }
+
+    document.getElementById('app').style.display = 'block';
+    try {
+      await loadListings();
+      await loadStickerRequests();
+    } catch (err) {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('deniedState').style.display = 'block';
+    }
+  }
+
+  async function loadListings() {
+    try {
+      const { data, error } = await sb.rpc('admin_get_all_listings', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      listings = data || [];
+      render();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('listWrap').innerHTML = `<div class="empty-state">Could not load listings: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function render() {
+    const counts = { pending: 0, approved: 0, rejected: 0 };
+    listings.forEach(l => { counts[l.status] = (counts[l.status] || 0) + 1; });
+
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat"><div class="num">${listings.length}</div><div class="label">Total</div></div>
+      <div class="stat"><div class="num">${counts.pending}</div><div class="label">Pending</div></div>
+      <div class="stat"><div class="num">${counts.approved}</div><div class="label">Approved</div></div>
+      <div class="stat"><div class="num">${counts.rejected}</div><div class="label">Rejected</div></div>
+    `;
+
+    const listWrap = document.getElementById('listWrap');
+    if (!listings.length) {
+      listWrap.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+      return;
+    }
+
+    listWrap.innerHTML = listings.map(l => `
+      <div class="row">
+        <div class="row-top">
+          <div>
+            <div class="biz-cat">${escapeHtml(l.category || '')}</div>
+            <div class="biz-name">${escapeHtml(l.business_name)}</div>
+            <div class="biz-meta">${l.phone ? escapeHtml(l.phone) + ' &middot; ' : ''}${l.website ? escapeHtml(l.website) + ' &middot; ' : ''}${l.address ? escapeHtml(l.address) : ''}</div>
+            <div class="biz-contact">Submitted by ${escapeHtml(l.contact_name || '')} (${escapeHtml(l.contact_email || '')}) on ${formatDate(l.submitted_at)}</div>
+          </div>
+          <span class="badge badge-${l.status}">${escapeHtml(l.status)}</span>
+        </div>
+        <div class="row-actions">
+          ${l.status !== 'approved' ? `<button class="btn-small btn-approve" onclick="updateStatus('${l.id}', 'approved')">Approve</button>` : ''}
+          ${l.status !== 'rejected' ? `<button class="btn-small btn-reject" onclick="updateStatus('${l.id}', 'rejected')">Reject</button>` : ''}
+          ${l.status !== 'pending' ? `<button class="btn-small" onclick="updateStatus('${l.id}', 'pending')">Back to Pending</button>` : ''}
+          <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
+          <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function updateStatus(id, status) {
+    try {
+      const { error } = await sb.rpc('admin_update_listing_status', { p_id: id, p_status: status });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function toggleSticker(id, sent) {
+    try {
+      const { error } = await sb.rpc('admin_set_sticker_sent', { p_id: id, p_sent: sent });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function deleteListing(id, name) {
+    if (!confirm(`Delete "${name}" entirely? This can't be undone.`)) return;
+    try {
+      const { error } = await sb.rpc('admin_delete_listing', { p_id: id });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
+  }
+
+  // ---- Resident sticker requests ----
+  let stickerRequests = [];
+
+  async function loadStickerRequests() {
+    try {
+      const { data, error } = await sb.rpc('admin_get_sticker_requests', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      stickerRequests = data || [];
+      renderStickerRequests();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('stickerListWrap').innerHTML = `<div class="empty-state">Could not load sticker requests: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderStickerRequests() {
+    const fulfilled = stickerRequests.filter(r => r.fulfilled).length;
+    document.getElementById('stickerStatsRow').innerHTML = `
+      <div class="stat"><div class="num">${stickerRequests.length}</div><div class="label">Total Requests</div></div>
+      <div class="stat"><div class="num">${stickerRequests.length - fulfilled}</div><div class="label">Awaiting Delivery</div></div>
+      <div class="stat"><div class="num">${fulfilled}</div><div class="label">Delivered</div></div>
+    `;
+
+    const wrap = document.getElementById('stickerListWrap');
+    if (!stickerRequests.length) {
+      wrap.innerHTML = '<div class="empty-state">No sticker requests yet.</div>';
+      return;
+    }
+
+    wrap.innerHTML = stickerRequests.map(r => `
+      <div class="row">
+        <div class="row-top">
+          <div>
+            <div class="biz-name">${escapeHtml(r.full_name)}</div>
+            <div class="biz-meta">${r.email ? escapeHtml(r.email) + ' &middot; ' : ''}${r.phone ? escapeHtml(r.phone) + ' &middot; ' : ''}${r.address ? escapeHtml(r.address) : ''}</div>
+            <div class="biz-contact">Requested ${formatDate(r.requested_at)}</div>
+          </div>
+          <span class="badge ${r.fulfilled ? 'badge-approved' : 'badge-pending'}">${r.fulfilled ? 'Delivered' : 'Pending'}</span>
+        </div>
+        <div class="row-actions">
+          <button class="btn-small ${r.fulfilled ? 'sent' : ''}" onclick="toggleStickerRequestFulfilled('${r.id}', ${!r.fulfilled})">${r.fulfilled ? '&#10003; Delivered' : 'Mark Delivered'}</button>
+          <button class="btn-small btn-reject" onclick="deleteStickerRequest('${r.id}', '${escapeHtml(r.full_name)}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function toggleStickerRequestFulfilled(id, fulfilled) {
+    try {
+      const { error } = await sb.rpc('admin_set_sticker_request_fulfilled', { p_id: id, p_fulfilled: fulfilled });
+      if (error) throw error;
+      await loadStickerRequests();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function deleteStickerRequest(id, name) {
+    if (!confirm(`Delete the request from "${name}"?`)) return;
+    try {
+      const { error } = await sb.rpc('admin_delete_sticker_request', { p_id: id });
+      if (error) throw error;
+      await loadStickerRequests();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
