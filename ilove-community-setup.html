@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Community Site | AgentHubTX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441; --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+
+  header.top { background: var(--navy); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--gold); }
+  header.top .brand { color: #fff; font-weight: 700; }
+  header.top .brand span { color: var(--gold); }
+  header.top a { color: #fff; text-decoration: none; font-size: 13.5px; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; color: var(--navy); margin-bottom: 4px; }
+  .sub { font-size: 13.5px; color: var(--gray-500); margin-bottom: 20px; }
+
+  .card { background: var(--white); border-radius: 12px; padding: 22px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
+  .card h2 { font-size: 16px; color: var(--navy); margin-bottom: 14px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .field label span { font-weight: 400; color: var(--gray-500); }
+  .field input, .field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 14px; font-family: inherit; }
+  .row2 { display: flex; gap: 12px; }
+  .row2 .field { flex: 1; }
+
+  .btn { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-small { background: none; border: 1px solid var(--gray-300); color: var(--gray-700); border-radius: 6px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+
+  .msg { font-size: 13px; margin-top: 10px; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { color: #1a7a3c; }
+  .msg.err { color: var(--red); }
+
+  .site-item { padding: 14px 0; border-bottom: 1px solid var(--off); }
+  .site-item:last-child { border-bottom: none; }
+  .site-item .name { font-weight: 700; color: var(--navy); font-size: 14.5px; }
+  .site-item .links { font-size: 12px; margin-top: 6px; }
+  .site-item .links a { color: var(--gray-500); margin-right: 10px; }
+  .site-item .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .empty { color: var(--gray-500); font-size: 13.5px; padding: 10px 0; }
+
+  #loginGate, #loadingState { text-align: center; padding: 80px 16px; }
+  #loginGate a { color: var(--navy); font-weight: 700; }
+
+  .howto { background: #FFF8E8; border: 1px solid #EFD9A0; border-radius: 10px; padding: 14px 18px; font-size: 13px; color: #7A5A12; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Agent<span>HubTX</span></div>
+  <a href="dashboard.html">&larr; Back to Hub</a>
+</header>
+
+<div id="loadingState"><p>Loading...</p></div>
+<div id="loginGate" style="display:none;">
+  <p>Please <a href="login.html">log in</a> to set up your community site.</p>
+</div>
+
+<div id="pageContent" style="display:none;">
+  <div class="wrap">
+    <h1>My Community Site</h1>
+    <p class="sub">Create a local business directory for a community you're farming &mdash; merchants list themselves, residents can request a free bumper sticker, and you're the visible face of it.</p>
+
+    <div class="howto">
+      &#128161; Give merchants and residents your public directory link and your merchant sign-up link (both shown below once your site is created) &mdash; e.g. print them on the "I &hearts; [Community]" window decals and bumper stickers you hand out.
+    </div>
+
+    <div class="card">
+      <h2 id="form-heading">Create a New Community Site</h2>
+
+      <div class="row2">
+        <div class="field"><label>Community / Subdivision Name</label><input type="text" id="f-community" placeholder="e.g. Robson Ranch"></div>
+        <div class="field"><label>City</label><input type="text" id="f-city" placeholder="e.g. Denton, TX"></div>
+      </div>
+
+      <div class="field"><label>Site Name <span>(auto-suggested, editable)</span></label><input type="text" id="f-brand" placeholder="e.g. I \u2764 Robson"></div>
+
+      <div class="field"><label>Your Name</label><input type="text" id="f-agent-name" placeholder="Your full name"></div>
+
+      <div class="field"><label>Your Bio <span>(shown on the public site)</span></label>
+        <textarea id="f-agent-bio" rows="3" placeholder="A sentence or two about your connection to this community"></textarea>
+      </div>
+
+      <div class="row2">
+        <div class="field"><label>Your Phone</label><input type="tel" id="f-agent-phone" placeholder="(940) 555-0148"></div>
+        <div class="field"><label>Your Contact Email</label><input type="email" id="f-agent-email" placeholder="defaults to your login email"></div>
+      </div>
+
+      <div class="field"><label>Your Photo <span>(optional — link to a hosted photo)</span></label><input type="url" id="f-agent-photo" placeholder="https://..."></div>
+
+      <button class="btn" id="submit-btn" onclick="saveSite()">Create Site</button>
+      <button class="btn-small" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none; margin-left:8px;">Cancel Edit</button>
+      <div class="msg" id="form-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>My Community Sites</h2>
+      <div id="site-list"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Where the public-facing pages live -- update if you deploy them under a
+  // different path or a dedicated per-community domain.
+  const DIRECTORY_PAGE = 'ilove-community-directory.html';
+  const SIGNUP_PAGE = 'ilove-community-merchant-signup.html';
+  const ADMIN_PAGE = 'ilove-community-admin.html';
+
+  let currentEmail = null;
+  let editingId = null;
+  let mySites = [];
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+  function showMsg(text, isError) {
+    const el = document.getElementById('form-msg');
+    el.textContent = text;
+    el.className = 'msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('loginGate').style.display = 'block';
+      return;
+    }
+    currentEmail = session.user.email;
+    document.getElementById('f-agent-email').placeholder = currentEmail;
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'block';
+    loadMySites();
+  }
+
+  // Auto-suggest a brand name as the community name is typed, unless the
+  // agent has already typed their own brand name.
+  document.addEventListener('DOMContentLoaded', () => {
+    const communityInput = document.getElementById('f-community');
+    const brandInput = document.getElementById('f-brand');
+    let brandTouched = false;
+    brandInput.addEventListener('input', () => { brandTouched = true; });
+    communityInput.addEventListener('input', () => {
+      if (brandTouched) return;
+      const first = communityInput.value.trim().split(/\s+/)[0];
+      brandInput.value = first ? `I \u2764 ${first}` : '';
+    });
+  });
+
+  async function loadMySites() {
+    const list = document.getElementById('site-list');
+    try {
+      const { data, error } = await sb.rpc('get_my_community_sites');
+      if (error) throw error;
+      mySites = data || [];
+      renderSites();
+    } catch (err) {
+      list.innerHTML = `<div class="empty">Could not load your sites: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderSites() {
+    const list = document.getElementById('site-list');
+    if (!mySites.length) {
+      list.innerHTML = '<div class="empty">You haven&rsquo;t created a community site yet.</div>';
+      return;
+    }
+
+    list.innerHTML = mySites.map(s => {
+      const dirUrl = `${DIRECTORY_PAGE}?c=${encodeURIComponent(s.slug)}`;
+      const signupUrl = `${SIGNUP_PAGE}?c=${encodeURIComponent(s.slug)}`;
+      const adminUrl = `${ADMIN_PAGE}?c=${encodeURIComponent(s.slug)}`;
+      return `
+      <div class="site-item">
+        <div class="name">${escapeHtml(s.brand_name || s.community_name)}</div>
+        <div style="font-size:12.5px; color:var(--gray-500);">${escapeHtml(s.community_name)}${s.city ? ' \u2014 ' + escapeHtml(s.city) : ''}</div>
+        <div class="links">
+          <a href="${dirUrl}" target="_blank">Public Site</a>
+          <a href="${signupUrl}" target="_blank">Merchant Sign-up</a>
+          <a href="${adminUrl}" target="_blank">Admin</a>
+        </div>
+        <div class="actions">
+          <button class="btn-small" onclick="editSite('${s.id}')">Edit</button>
+          <button class="btn-small" onclick="navigator.clipboard.writeText(window.location.origin + '/${dirUrl}'); showMsg('Directory link copied.', false)">Copy Directory Link</button>
+          <button class="btn-small" onclick="navigator.clipboard.writeText(window.location.origin + '/${signupUrl}'); showMsg('Merchant sign-up link copied.', false)">Copy Sign-up Link</button>
+          <button class="btn-small" style="border-color:var(--red); color:var(--red);" onclick="deleteSite('${s.id}', '${escapeHtml(s.community_name)}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function saveSite() {
+    const community = document.getElementById('f-community').value.trim();
+    const city = document.getElementById('f-city').value.trim();
+    const brand = document.getElementById('f-brand').value.trim();
+    const agentName = document.getElementById('f-agent-name').value.trim();
+    const agentBio = document.getElementById('f-agent-bio').value.trim();
+    const agentPhone = document.getElementById('f-agent-phone').value.trim();
+    const agentEmail = document.getElementById('f-agent-email').value.trim();
+    const agentPhoto = document.getElementById('f-agent-photo').value.trim();
+    const btn = document.getElementById('submit-btn');
+
+    if (!community || !agentName) {
+      showMsg('Community name and your name are required.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      if (editingId) {
+        const { error } = await sb.rpc('update_community_site', {
+          p_id: editingId,
+          p_community_name: community,
+          p_city: city || null,
+          p_brand_name: brand || null,
+          p_agent_name: agentName,
+          p_agent_photo_url: agentPhoto || null,
+          p_agent_bio: agentBio || null,
+          p_agent_phone: agentPhone || null,
+          p_agent_contact_email: agentEmail || currentEmail,
+        });
+        if (error) throw error;
+        showMsg('Site updated!', false);
+        cancelEdit();
+      } else {
+        const { error } = await sb.rpc('create_community_site', {
+          p_community_name: community,
+          p_city: city || null,
+          p_agent_name: agentName,
+          p_agent_photo_url: agentPhoto || null,
+          p_agent_bio: agentBio || null,
+          p_agent_phone: agentPhone || null,
+          p_agent_contact_email: agentEmail || currentEmail,
+          p_requested_slug: null,
+        });
+        if (error) throw error;
+        showMsg('Site created!', false);
+        ['f-community','f-city','f-brand','f-agent-name','f-agent-bio','f-agent-phone','f-agent-email','f-agent-photo']
+          .forEach(id => document.getElementById(id).value = '');
+      }
+      loadMySites();
+    } catch (err) {
+      showMsg('Failed to save: ' + err.message, true);
+    }
+    btn.disabled = false;
+  }
+
+  function editSite(id) {
+    const s = mySites.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('f-community').value = s.community_name || '';
+    document.getElementById('f-city').value = s.city || '';
+    document.getElementById('f-brand').value = s.brand_name || '';
+    document.getElementById('f-agent-name').value = s.agent_name || '';
+    document.getElementById('f-agent-bio').value = s.agent_bio || '';
+    document.getElementById('f-agent-phone').value = s.agent_phone || '';
+    document.getElementById('f-agent-email').value = s.agent_contact_email || '';
+    document.getElementById('f-agent-photo').value = s.agent_photo_url || '';
+
+    editingId = id;
+    document.getElementById('form-heading').textContent = `Editing: ${s.community_name}`;
+    document.getElementById('submit-btn').textContent = 'Save Changes';
+    document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    document.getElementById('form-heading').textContent = 'Create a New Community Site';
+    document.getElementById('submit-btn').textContent = 'Create Site';
+    document.getElementById('cancel-edit-btn').style.display = 'none';
+    ['f-community','f-city','f-brand','f-agent-name','f-agent-bio','f-agent-phone','f-agent-email','f-agent-photo']
+      .forEach(id => document.getElementById(id).value = '');
+  }
+
+  async function deleteSite(id, name) {
+    if (!confirm(`Delete the "${name}" site? This can't be undone and removes access to its listings.`)) return;
+    try {
+      const { error } = await sb.rpc('delete_community_site', { p_id: id });
+      if (error) throw error;
+      showMsg('Site deleted.', false);
+      loadMySites();
+    } catch (err) {
+      showMsg('Failed to delete: ' + err.message, true);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
