@@ -237,6 +237,178 @@
     </div>
   </div>
 
+  <style>
+    .ahtx-showcase{
+      --navy:#0C3057; --navy-deep:#081F3A; --gold:#C8922A; --gold-soft:#E4C489;
+      --cream:#F4F1EA; --ink:#1C2430; --line:#D8D2C4; --ok:#3F6B3F; --ok-bg:#E9F1E9;
+      max-width:1080px;margin:0 auto;padding:40px 20px;font-family:Inter,Arial,sans-serif;
+    }
+    .ahtx-tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+    .ahtx-tab{
+      background:transparent;border:1px solid var(--navy);color:var(--navy);
+      padding:10px 18px;border-radius:24px;font-size:13.5px;font-weight:600;
+      cursor:pointer;transition:.15s ease;white-space:nowrap;
+    }
+    .ahtx-tab.active{background:var(--gold);border-color:var(--gold);color:var(--navy-deep);}
+    .ahtx-tab:hover:not(.active){background:var(--cream);}
+    .ahtx-stage{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+    @media (max-width:760px){ .ahtx-stage{grid-template-columns:1fr;} }
+    .ahtx-copy .eyebrow{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+    .ahtx-copy h3{font-size:28px;color:var(--navy);margin:0 0 14px;font-weight:700;line-height:1.2;}
+    .ahtx-copy p{color:#5C5A52;font-size:15px;line-height:1.6;margin-bottom:18px;}
+    .ahtx-copy ul{list-style:none;padding:0;margin:0;}
+    .ahtx-copy li{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:14px;color:var(--ink);}
+    .ahtx-copy li .check{color:var(--ok);flex-shrink:0;margin-top:2px;}
+    .ahtx-window{
+      background:#fff;border-radius:10px;box-shadow:0 20px 50px rgba(12,48,87,.18);
+      overflow:hidden;border:1px solid var(--line);
+    }
+    .ahtx-window-bar{
+      background:var(--navy-deep);padding:10px 14px;display:flex;align-items:center;gap:8px;
+    }
+    .ahtx-window-bar .dot{width:10px;height:10px;border-radius:50%;}
+    .ahtx-window-bar .dot.r{background:#E5605A;} .ahtx-window-bar .dot.y{background:#E8B84B;} .ahtx-window-bar .dot.g{background:#4FAE64;}
+    .ahtx-window-bar .url{color:#C9D3DF;font-size:12px;margin-left:8px;font-family:monospace;}
+    .ahtx-window-body{padding:24px;min-height:280px;position:relative;}
+    .ahtx-field label{display:block;font-size:11px;font-weight:700;color:#8A8370;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px;}
+    .ahtx-field input, .ahtx-field textarea{
+      width:100%;border:1px solid var(--line);border-radius:5px;padding:9px 11px;
+      font-size:13.5px;font-family:Inter,Arial,sans-serif;background:#FCFBF8;color:var(--ink);margin-bottom:14px;
+    }
+    .ahtx-btn{
+      width:100%;background:var(--navy-deep);color:#fff;border:none;border-radius:5px;
+      padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .ahtx-btn:hover{background:var(--navy);}
+    .ahtx-success{
+      margin-top:16px;background:var(--ok-bg);color:var(--ok);border-radius:6px;
+      padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;
+      opacity:0;transform:translateY(6px);transition:opacity .3s ease, transform .3s ease;
+    }
+    .ahtx-success.show{opacity:1;transform:translateY(0);}
+    .ahtx-panel{display:none;}
+    .ahtx-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+    @media (max-width:760px){ .ahtx-panel.active{grid-template-columns:1fr;} }
+  </style>
+
+  <div class="ahtx-showcase">
+    <div class="ahtx-tabs">
+      <button class="ahtx-tab active" data-tab="followup">Follow-Up Tracker</button>
+      <button class="ahtx-tab" data-tab="intake">Buyer Intake</button>
+      <button class="ahtx-tab" data-tab="community">My Community Site</button>
+      <button class="ahtx-tab" data-tab="ai">AI Listing Generator</button>
+    </div>
+
+    <div class="ahtx-panel active" id="panel-followup">
+      <div class="ahtx-copy">
+        <p class="eyebrow">Follow-Up Tracker</p>
+        <h3>Leads don't go cold on your watch.</h3>
+        <p>Every new lead gets an automatic touch cadence — no spreadsheet, no sticky notes, no "I'll get to it later."</p>
+        <ul>
+          <li><span class="check">✓</span> Auto-scheduled touches from day 1 through day 12</li>
+          <li><span class="check">✓</span> Editable message templates, in your own voice</li>
+          <li><span class="check">✓</span> One-tap mark-as-sent, pause, or delete</li>
+        </ul>
+      </div>
+      <div class="ahtx-window">
+        <div class="ahtx-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">agenthubtx.com/follow-up-tracker</span></div>
+        <div class="ahtx-window-body">
+          <div class="ahtx-field"><label>Lead Name</label><input type="text" value="Jordan Reyes" readonly></div>
+          <div class="ahtx-field"><label>Next Touch</label><input type="text" value="Day 3 — Check-in text" readonly></div>
+          <button class="ahtx-btn demo-trigger" data-target="success-followup">📨 Mark Touch as Sent</button>
+          <div class="ahtx-success" id="success-followup">✓ Touch sent · Day 3 of 12 complete</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ahtx-panel" id="panel-intake">
+      <div class="ahtx-copy">
+        <p class="eyebrow">Buyer Intake</p>
+        <h3>Capture a lead before you leave the open house.</h3>
+        <p>A clean intake form your buyer fills out themselves — synced straight to your dashboard, no re-typing later.</p>
+        <ul>
+          <li><span class="check">✓</span> Works on any phone, no login needed for the buyer</li>
+          <li><span class="check">✓</span> Price range, must-haves, and timeline captured up front</li>
+          <li><span class="check">✓</span> Shows up in your dashboard instantly</li>
+        </ul>
+      </div>
+      <div class="ahtx-window">
+        <div class="ahtx-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">agenthubtx.com/buyer-intake</span></div>
+        <div class="ahtx-window-body">
+          <div class="ahtx-field"><label>Buyer Name</label><input type="text" value="Priya Anand" readonly></div>
+          <div class="ahtx-field"><label>Price Range</label><input type="text" value="$375K – $450K" readonly></div>
+          <button class="ahtx-btn demo-trigger" data-target="success-intake">📋 Submit Intake</button>
+          <div class="ahtx-success" id="success-intake">✓ Intake captured · Synced to your dashboard</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ahtx-panel" id="panel-community">
+      <div class="ahtx-copy">
+        <p class="eyebrow">My Community Site</p>
+        <h3>Become the local name, not just the local agent.</h3>
+        <p>A branded "I ❤ [Your Community]" hub — local businesses list themselves, residents request stickers, you build real local presence.</p>
+        <ul>
+          <li><span class="check">✓</span> Self-serve merchant directory, you approve listings</li>
+          <li><span class="check">✓</span> Free sticker requests build a real mailing list</li>
+          <li><span class="check">✓</span> Your name and photo front and center, always</li>
+        </ul>
+      </div>
+      <div class="ahtx-window">
+        <div class="ahtx-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">ilove-yourcommunity.com</span></div>
+        <div class="ahtx-window-body">
+          <div class="ahtx-field"><label>Business Name</label><input type="text" value="Maple & Co. Coffee" readonly></div>
+          <div class="ahtx-field"><label>Category</label><input type="text" value="Local Coffee Shop" readonly></div>
+          <button class="ahtx-btn demo-trigger" data-target="success-community">➕ Add to Directory</button>
+          <div class="ahtx-success" id="success-community">✓ Listing live · 1 new listing this week</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ahtx-panel" id="panel-ai">
+      <div class="ahtx-copy">
+        <p class="eyebrow">AI Listing Description Generator</p>
+        <h3>A polished listing description in seconds, not thirty minutes.</h3>
+        <p>Give it the basics — beds, baths, standout features — and get a ready-to-post description back instantly.</p>
+        <ul>
+          <li><span class="check">✓</span> Matches the tone you want, punchy or formal</li>
+          <li><span class="check">✓</span> Copy straight into MLS, no rewriting needed</li>
+          <li><span class="check">✓</span> Same tool also drafts client emails and offer analysis</li>
+        </ul>
+      </div>
+      <div class="ahtx-window">
+        <div class="ahtx-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">agenthubtx.com/listing-description-generator</span></div>
+        <div class="ahtx-window-body">
+          <div class="ahtx-field"><label>Property</label><input type="text" value="3BR/2BA, updated kitchen, large backyard" readonly></div>
+          <button class="ahtx-btn demo-trigger" data-target="success-ai">✨ Generate Description</button>
+          <div class="ahtx-success" id="success-ai">✓ Description generated · Copied to clipboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const tabs = document.querySelectorAll('.ahtx-showcase .ahtx-tab');
+    const panels = document.querySelectorAll('.ahtx-showcase .ahtx-panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+    document.querySelectorAll('.ahtx-showcase .demo-trigger').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        document.querySelectorAll('.ahtx-showcase .ahtx-success.show').forEach(el => el.classList.remove('show'));
+        setTimeout(() => target.classList.add('show'), 150);
+      });
+    });
+  })();
+  </script>
+
   <div class="search-row">
     <input type="text" class="search-input" id="search" placeholder="Search tools — e.g. &quot;open house&quot; or &quot;buyer&quot;" oninput="renderTools()">
   </div>
