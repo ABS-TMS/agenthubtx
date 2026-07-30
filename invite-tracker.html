@@ -249,6 +249,7 @@ function render() {
         </select>
         <button class="edit-btn" onclick="startEdit('${inv.id}')">Edit</button>
         <button class="check-btn" onclick="checkSignup('${inv.id}', '${escapeHtml(inv.contact || '')}')">Check signup</button>
+        <button class="edit-btn" onclick="emailLikeFollowup('${inv.id}')" title="Open a pre-filled follow-up email in Gmail">✉ Email</button>
         <button class="deactivate-btn ${inv.is_banned ? 'is-reactivate' : ''}" onclick="toggleBan('${inv.id}', '${escapeHtml(inv.contact || '')}', ${!!inv.is_banned})">${inv.is_banned ? 'Reactivate' : 'Deactivate'}</button>
         <button class="delete-btn" onclick="deleteInvite('${inv.id}')" title="Remove">✕</button>
       </div>
@@ -365,6 +366,27 @@ async function toggleBan(id, contact, isCurrentlyBanned) {
     console.error('Could not update account access:', err);
     alert('Could not complete that action: ' + err.message);
   }
+}
+
+const LIKE_FOLLOWUP_SUBJECT = 'Saw you liked the post — no pressure, just wanted to share';
+
+function likeFollowupBody(name) {
+  const firstName = (name || '').trim().split(' ')[0] || 'there';
+  return `Hey ${firstName},\n\nSaw you liked my post about AgentHubTX — figured I'd send this along in case you want to take a quick look without having to raise your hand publicly or reply to anything.\n\nNo ask here, no sign-up form to fill out. Just wanted to make it easy to check out: agenthubtx.com\n\nIf it looks interesting, I'm happy to talk more. If not, no worries at all — just glad it caught your eye.\n\n— Mike`;
+}
+
+function emailLikeFollowup(id) {
+  const inv = invites.find(i => i.id === id);
+  if (!inv) return;
+  const contact = (inv.contact || '').trim();
+  if (!contact.includes('@')) {
+    alert('Add an email address for this person first (use Edit) before sending the follow-up email.');
+    return;
+  }
+  const subject = encodeURIComponent(LIKE_FOLLOWUP_SUBJECT);
+  const body = encodeURIComponent(likeFollowupBody(inv.name));
+  const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact)}&su=${subject}&body=${body}`;
+  window.open(url, '_blank');
 }
 
 async function deleteInvite(id) {
