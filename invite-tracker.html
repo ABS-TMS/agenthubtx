@@ -94,6 +94,7 @@
       <div class="add-row">
         <input type="text" id="newName" placeholder="Name">
         <input type="text" id="newContact" placeholder="Email or phone">
+        <input type="text" id="newOffice" placeholder="Office / brokerage">
       </div>
       <div class="add-row">
         <input type="text" id="newNotes" placeholder="Notes (optional)">
@@ -222,6 +223,9 @@ function render() {
               <input type="text" id="editContact-${inv.id}" value="${escapeHtml(inv.contact || '')}" placeholder="Email or phone">
             </div>
             <div class="edit-form-row">
+              <input type="text" id="editOffice-${inv.id}" value="${escapeHtml(inv.office || '')}" placeholder="Office / brokerage">
+            </div>
+            <div class="edit-form-row">
               <input type="text" id="editNotes-${inv.id}" value="${escapeHtml(inv.notes || '')}" placeholder="Notes (optional)">
             </div>
             <div class="edit-form-actions">
@@ -237,6 +241,7 @@ function render() {
       <div class="row-left">
         <div class="row-name">${escapeHtml(inv.name)}</div>
         <div class="row-contact">${escapeHtml(inv.contact || '') || 'No email or phone on file'}</div>
+        ${inv.office ? `<div class="row-contact">🏢 ${escapeHtml(inv.office)}</div>` : ''}
         <div class="row-date">Invited ${formatDate(inv.date_invited)}</div>
         ${loginStatusHtml(inv)}
         ${inv.notes ? `<div class="row-notes">${escapeHtml(inv.notes)}</div>` : ''}
@@ -249,7 +254,11 @@ function render() {
         </select>
         <button class="edit-btn" onclick="startEdit('${inv.id}')">Edit</button>
         <button class="check-btn" onclick="checkSignup('${inv.id}', '${escapeHtml(inv.contact || '')}')">Check signup</button>
-        <button class="edit-btn" onclick="emailLikeFollowup('${inv.id}')" title="Open a pre-filled follow-up email in Gmail">✉ Email</button>
+        <select class="status-select" id="templateSelect-${inv.id}" title="Choose which email to send">
+          ${Object.keys(EMAIL_TEMPLATES).map(k =>
+            `<option value="${k}">${EMAIL_TEMPLATES[k].label}</option>`).join('')}
+        </select>
+        <button class="edit-btn" onclick="emailLikeFollowup('${inv.id}')" title="Open the selected email in Gmail">✉ Email</button>
         <button class="deactivate-btn ${inv.is_banned ? 'is-reactivate' : ''}" onclick="toggleBan('${inv.id}', '${escapeHtml(inv.contact || '')}', ${!!inv.is_banned})">${inv.is_banned ? 'Reactivate' : 'Deactivate'}</button>
         <button class="delete-btn" onclick="deleteInvite('${inv.id}')" title="Remove">✕</button>
       </div>
@@ -272,10 +281,11 @@ async function saveEdit(id) {
   const name = document.getElementById(`editName-${id}`).value.trim();
   const contact = document.getElementById(`editContact-${id}`).value.trim();
   const notes = document.getElementById(`editNotes-${id}`).value.trim();
+  const office = document.getElementById(`editOffice-${id}`).value.trim();
   if (!name) { alert('Name is required.'); return; }
 
   try {
-    const { error } = await sb.rpc('admin_edit_invite', { p_id: id, p_name: name, p_contact: contact, p_notes: notes });
+    const { error } = await sb.rpc('admin_edit_invite', { p_id: id, p_name: name, p_contact: contact, p_notes: notes, p_office: office });
     if (error) throw error;
     editingId = null;
     await loadInvites();
@@ -289,14 +299,16 @@ async function addInvite() {
   const name = document.getElementById('newName').value.trim();
   const contact = document.getElementById('newContact').value.trim();
   const notes = document.getElementById('newNotes').value.trim();
+  const office = document.getElementById('newOffice').value.trim();
   if (!name) { alert('Enter at least a name.'); return; }
 
   try {
-    const { error } = await sb.rpc('admin_add_invite', { p_name: name, p_contact: contact, p_notes: notes });
+    const { error } = await sb.rpc('admin_add_invite', { p_name: name, p_contact: contact, p_notes: notes, p_office: office });
     if (error) throw error;
     document.getElementById('newName').value = '';
     document.getElementById('newContact').value = '';
     document.getElementById('newNotes').value = '';
+    document.getElementById('newOffice').value = '';
     await loadInvites();
   } catch (err) {
     console.error('Could not add invite:', err);
@@ -369,22 +381,38 @@ async function toggleBan(id, contact, isCurrentlyBanned) {
 }
 
 const LIKE_FOLLOWUP_SUBJECT = 'Saw you liked the post — no pressure, just wanted to share';
+const SIGNUP_FOLLOWUP_SUBJECT = "Here's how to get started — access code inside";
+const SIGNUP_URL = 'agenthubtx.com/signup.html';
+const ACCESS_CODE = '3575';
 
 function likeFollowupBody(name) {
   const firstName = (name || '').trim().split(' ')[0] || 'there';
   return `Hey ${firstName},\n\nSaw you liked my post about AgentHubTX — figured I'd send this along in case you want to take a quick look without having to raise your hand publicly or reply to anything.\n\nNo ask here, no sign-up form to fill out. Just wanted to make it easy to check out: agenthubtx.com\n\nIf it looks interesting, I'm happy to talk more. If not, no worries at all — just glad it caught your eye.\n\n— Mike`;
 }
 
+function signupFollowupBody(name) {
+  const firstName = (name || '').trim().split(' ')[0] || 'there';
+  return `Hey ${firstName},\n\nThanks for getting back to me! Here's how to get set up:\n\n1. Go to ${SIGNUP_URL}\n2. Use access code: ${ACCESS_CODE}\n\nThat'll get you in — poke around, and let me know what you think. Good, bad, "wouldn't use this" — that's exactly the kind of feedback I'm looking for right now.\n\nThanks again for being willing to kick the tires.\n\n— Mike`;
+}
+
+const EMAIL_TEMPLATES = {
+  like: { label: 'Liked, no reply yet', subject: LIKE_FOLLOWUP_SUBJECT, body: likeFollowupBody },
+  signup: { label: 'Replied — send signup info', subject: SIGNUP_FOLLOWUP_SUBJECT, body: signupFollowupBody },
+};
+
 function emailLikeFollowup(id) {
   const inv = invites.find(i => i.id === id);
   if (!inv) return;
   const contact = (inv.contact || '').trim();
   if (!contact.includes('@')) {
-    alert('Add an email address for this person first (use Edit) before sending the follow-up email.');
+    alert('Add an email address for this person first (use Edit) before sending an email.');
     return;
   }
-  const subject = encodeURIComponent(LIKE_FOLLOWUP_SUBJECT);
-  const body = encodeURIComponent(likeFollowupBody(inv.name));
+  const select = document.getElementById(`templateSelect-${id}`);
+  const templateKey = select ? select.value : 'like';
+  const template = EMAIL_TEMPLATES[templateKey] || EMAIL_TEMPLATES.like;
+  const subject = encodeURIComponent(template.subject);
+  const body = encodeURIComponent(template.body(inv.name));
   const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact)}&su=${subject}&body=${body}`;
   window.open(url, '_blank');
 }
