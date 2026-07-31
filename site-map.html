@@ -3,93 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reorganize Site Map | AgentHubTX</title>
+<title>Site Map | AgentHubTX</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
     --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
-    --teal: #0F6E56; --teal-light: #E1F5EE;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
-  input, button { font-family: inherit; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
 
-  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .brand { font-size: 15px; font-weight: 700; color: #fff; }
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 24px; }
+  .header-inner { max-width: 960px; margin: 0 auto; }
+  .brand { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
   .brand span { color: var(--gold); }
-  .back-link { font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  h1 { color: #fff; font-size: 21px; }
+  .subtitle { color: var(--gray-300); font-size: 13px; margin-top: 6px; }
+  .back-link { display: inline-block; margin-top: 10px; margin-right: 16px; font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
   .back-link:hover { color: #fff; }
 
-  #loadingState, #deniedState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 26px 20px 60px; }
 
-  .toolbar { padding: 14px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .toolbar input { padding: 8px 12px; border-radius: 7px; border: 1px solid var(--gray-300); font-size: 13px; width: 220px; }
-  .toolbar button { padding: 8px 16px; border-radius: 7px; border: none; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 13px; cursor: pointer; }
-  .save-status { font-size: 12px; color: var(--teal); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
-  .save-status.show { opacity: 1; }
+  .search-box { width: 100%; padding: 12px 16px; border: 1.5px solid #E5E3DA; border-radius: 8px; font-size: 14px; margin-bottom: 28px; background: var(--white); }
+  .search-box:focus { outline: none; border-color: var(--gold); }
 
-  .board { display: flex; gap: 14px; padding: 0 20px 40px; overflow-x: auto; align-items: flex-start; }
-  .column { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; min-width: 250px; max-width: 250px; flex-shrink: 0; }
-  .column-header { padding: 12px 14px; font-size: 12.5px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-  .column-count { font-size: 11px; color: var(--gray-500); font-weight: 400; text-transform: none; }
-  .rename-cat-btn { background: none; border: none; color: var(--gray-500); font-size: 12px; cursor: pointer; padding: 0 0 0 8px; margin-left: auto; }
-  .rename-cat-btn:hover { color: var(--navy); }
-  .delete-cat-btn { background: none; border: none; color: var(--gray-500); font-size: 13px; cursor: pointer; padding: 0 0 0 6px; }
-  .delete-cat-btn:hover { color: #A32D2D; }
-  .column-body { padding: 10px; min-height: 60px; }
-  .column.drag-over .column-body { background: var(--teal-light); border-radius: 0 0 8px 8px; }
+  h2.category { color: var(--navy); font-size: 16px; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--gold); }
+  h2.category:first-of-type { margin-top: 0; }
 
-  .card { background: var(--off); border: 1px solid #E5E3DA; border-radius: 7px; padding: 10px 12px; margin-bottom: 8px; cursor: grab; font-size: 12.5px; }
-  .card.dragging { opacity: 0.35; }
-  .card:active { cursor: grabbing; }
-  .card-title { font-weight: 600; color: var(--navy); margin-bottom: 3px; }
-  .card-desc { font-size: 11px; color: var(--gray-500); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .drop-indicator { height: 3px; background: var(--gold); border-radius: 2px; margin: 2px 0; }
+  .page-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .page-card { background: var(--white); border: 1px solid #E5E3DA; border-left: 3px solid var(--gold); border-radius: 6px; padding: 12px 14px; text-decoration: none; display: block; }
+  .page-card:hover { border-left-color: var(--navy); background: #FBFAF7; }
+  .page-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .page-desc { font-size: 12.5px; color: var(--gray-500); }
+
+  .no-results { text-align: center; padding: 50px 20px; color: var(--gray-500); font-size: 14px; }
+  #loadingState { text-align: center; padding: 60px 20px; color: var(--gray-500); }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">Agent<span>HubTX</span> · Reorganize Site Map</div>
-  <a class="back-link" href="site-map.html">&larr; Back to Site Map</a>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <h1>Site Map</h1>
+    <div class="subtitle">Every page on AgentHubTX, grouped and searchable — a reference for the team, not the agent-facing directory.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to Hub</a>
+    <a class="back-link" href="site-map-admin.html">Reorganize / Add Pages &rarr;</a>
+  </div>
 </header>
 
-<div id="loadingState"><p>Loading...</p></div>
-<div id="deniedState" style="display:none;">
-  <h2 style="color:var(--navy); margin-bottom:10px;">Not authorized</h2>
-  <p>This page is limited to the broker account.</p>
-</div>
-
-<div id="app" style="display:none;">
-  <div class="toolbar">
-    <input type="text" id="newTitle" placeholder="Page title">
-    <input type="text" id="newDesc" placeholder="Description">
-    <input type="text" id="newUrl" placeholder="filename.html">
-    <input type="text" id="newPageCategory" placeholder="Category (existing or new)">
-    <button onclick="addPage()">Add Page</button>
-    <span class="save-status" id="saveStatus">Saved</span>
+<div class="wrap">
+  <div id="loadingState">Loading...</div>
+  <div id="content" style="display:none;">
+    <input type="text" class="search-box" id="search" placeholder="Search pages — e.g. &quot;checklist&quot; or &quot;community&quot;" oninput="renderPages()">
+    <div id="results"></div>
   </div>
-  <div class="toolbar" style="padding-top:0;">
-    <input type="text" id="newCategoryInput" placeholder="New category name...">
-    <button onclick="addCategory()">Add Category</button>
-  </div>
-  <div class="board" id="board"></div>
-</div>
-
-<div id="scrollSliderWrap" style="display:none; padding: 0 20px 14px;">
-  <input type="range" id="scrollSlider" min="0" max="100" value="0" style="width:100%;">
 </div>
 
 <script>
 const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const ADMIN_EMAIL = 'mike@urocketrealty.com';
 
-let pages = [];
-let categoryOrder = [];
-let draggedId = null;
+let PAGES = [];
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -97,231 +73,55 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session || session.user.email !== ADMIN_EMAIL) {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('deniedState').style.display = 'block';
-    return;
-  }
-
+async function loadPages() {
   const { data, error } = await sb.rpc('get_site_map_pages');
   if (error) {
-    document.getElementById('loadingState').innerHTML = '<p>Could not load pages. Refresh to try again.</p>';
+    document.getElementById('loadingState').textContent = 'Could not load the site map. Try refreshing.';
     return;
   }
-  pages = data || [];
-
-  const { data: catData, error: catError } = await sb
-    .from('site_map_categories')
-    .select('name')
-    .order('sort_order');
-  if (catError) {
-    document.getElementById('loadingState').innerHTML = '<p>Could not load categories. Refresh to try again.</p>';
-    return;
-  }
-  categoryOrder = (catData || []).map(c => c.name);
-  // Safety net: include any category a tool has that's somehow missing from the table
-  pages.forEach(t => { if (!categoryOrder.includes(t.category)) categoryOrder.push(t.category); });
-
+  PAGES = data || [];
   document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  render();
-  setupScrollSlider();
+  document.getElementById('content').style.display = 'block';
+  renderPages();
 }
 
-function setupScrollSlider() {
-  const board = document.getElementById('board');
-  const slider = document.getElementById('scrollSlider');
-  const wrap = document.getElementById('scrollSliderWrap');
+function renderPages() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('results');
 
-  function maybeShowSlider() {
-    const overflowing = board.scrollWidth > board.clientWidth + 4;
-    wrap.style.display = overflowing ? 'block' : 'none';
-  }
-
-  slider.addEventListener('input', () => {
-    const maxScroll = board.scrollWidth - board.clientWidth;
-    board.scrollLeft = (slider.value / 100) * maxScroll;
+  const filtered = PAGES.filter(p => {
+    const haystack = (p.title + ' ' + (p.description || '') + ' ' + p.category).toLowerCase();
+    return !query || haystack.includes(query);
   });
 
-  board.addEventListener('scroll', () => {
-    const maxScroll = board.scrollWidth - board.clientWidth;
-    slider.value = maxScroll > 0 ? (board.scrollLeft / maxScroll) * 100 : 0;
-  });
-
-  maybeShowSlider();
-  window.addEventListener('resize', maybeShowSlider);
-  new MutationObserver(maybeShowSlider).observe(board, { childList: true, subtree: true });
-}
-
-async function addCategory() {
-  const input = document.getElementById('newCategoryInput');
-  const name = input.value.trim();
-  if (!name || categoryOrder.includes(name)) return;
-
-  try {
-    const { error } = await sb.rpc('admin_add_site_map_category', { p_name: name });
-    if (error) throw error;
-    categoryOrder.push(name);
-    input.value = '';
-    render();
-  } catch (err) {
-    console.error('Could not add category:', err);
-    alert('Could not save that category. Refresh and try again.');
-  }
-}
-
-async function addPage() {
-  const title = document.getElementById('newTitle').value.trim();
-  const description = document.getElementById('newDesc').value.trim();
-  const url = document.getElementById('newUrl').value.trim();
-  const category = document.getElementById('newPageCategory').value.trim() || 'General';
-  if (!title || !url) { alert('Title and filename are required.'); return; }
-
-  try {
-    const { error } = await sb.rpc('admin_add_site_map_page', {
-      p_title: title, p_description: description, p_url: url, p_category: category,
-    });
-    if (error) throw error;
-    document.getElementById('newTitle').value = '';
-    document.getElementById('newDesc').value = '';
-    document.getElementById('newUrl').value = '';
-    document.getElementById('newPageCategory').value = '';
-    await init();
-  } catch (err) {
-    console.error('Could not add page:', err);
-    alert('Could not save that page. Refresh and try again.');
-  }
-}
-
-function render() {
-  const board = document.getElementById('board');
-  board.innerHTML = categoryOrder.map(cat => {
-    const items = pages.filter(t => t.category === cat).sort((a, b) => a.sort_order - b.sort_order);
-    return `
-      <div class="column" data-category="${escapeHtml(cat)}"
-           ondragover="onColumnDragOver(event)" ondragleave="onColumnDragLeave(event)" ondrop="onColumnDrop(event, '${escapeHtml(cat)}')">
-        <div class="column-header">${escapeHtml(cat)} <span class="column-count">${items.length}</span><button class="rename-cat-btn" onclick="renameCategory('${escapeHtml(cat)}')" title="Rename category">✎</button>${cat !== 'General' ? `<button class="delete-cat-btn" onclick="deleteCategory('${escapeHtml(cat)}')" title="Delete category">✕</button>` : ''}</div>
-        <div class="column-body">
-          ${items.map(t => `
-            <div class="card" draggable="true" data-id="${t.id}"
-                 ondragstart="onDragStart(event, '${t.id}')" ondragend="onDragEnd(event)">
-              <div class="card-title">${escapeHtml(t.title)} <button onclick="deletePage('${t.id}')" title="Delete page" style="float:right; background:none; border:none; color:var(--gray-500); cursor:pointer; font-size:11px;">✕</button></div>
-              <div class="card-desc">${escapeHtml(t.description || '')}</div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function onDragStart(e, id) {
-  draggedId = id;
-  e.target.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-}
-function onDragEnd(e) {
-  e.target.classList.remove('dragging');
-}
-function onColumnDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
-}
-function onColumnDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
-
-async function onColumnDrop(e, newCategory) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if (!draggedId) return;
-
-  const tool = pages.find(t => t.id === draggedId);
-  if (!tool) return;
-
-  tool.category = newCategory;
-  const itemsInCategory = pages.filter(t => t.category === newCategory);
-  tool.sort_order = (Math.max(0, ...itemsInCategory.map(t => t.sort_order)) || 0) + 10;
-
-  render();
-  await saveTool(tool);
-  draggedId = null;
-}
-
-async function renameCategory(oldName) {
-  const newName = prompt(`Rename "${oldName}" to:`, oldName);
-  if (!newName || !newName.trim() || newName.trim() === oldName) return;
-  const trimmed = newName.trim();
-
-  if (categoryOrder.includes(trimmed)) {
-    alert(`"${trimmed}" already exists — merge pages by dragging them there instead, or pick a different name.`);
+  if (filtered.length === 0) {
+    resultsEl.innerHTML = '<div class="no-results">No pages match that search.</div>';
     return;
   }
 
-  try {
-    const { error } = await sb.rpc('admin_rename_site_map_category', { p_old_name: oldName, p_new_name: trimmed });
-    if (error) throw error;
-    pages.filter(t => t.category === oldName).forEach(t => { t.category = trimmed; });
-    categoryOrder = categoryOrder.map(c => c === oldName ? trimmed : c);
-    render();
-  } catch (err) {
-    console.error('Could not rename category:', err);
-    alert('Could not save that rename. Refresh and try again.');
-  }
+  const grouped = {};
+  filtered.forEach(p => {
+    if (!grouped[p.category]) grouped[p.category] = [];
+    grouped[p.category].push(p);
+  });
+
+  const orderedCats = [...new Set(filtered.map(p => p.category))];
+
+  resultsEl.innerHTML = orderedCats.map(cat => `
+    <h2 class="category">${escapeHtml(cat)}</h2>
+    <div class="page-grid">
+      ${grouped[cat].map(p => `
+        <a class="page-card" href="${escapeHtml(p.url)}">
+          <div class="page-title">${escapeHtml(p.title)}</div>
+          <div class="page-desc">${escapeHtml(p.description || p.url)}</div>
+        </a>
+      `).join('')}
+    </div>
+  `).join('');
 }
 
-async function deleteCategory(cat) {
-  const items = pages.filter(t => t.category === cat);
-  const msg = items.length
-    ? `Delete "${cat}"? ${items.length} tool(s) will move to General.`
-    : `Delete empty category "${cat}"?`;
-  if (!confirm(msg)) return;
-
-  try {
-    const { error } = await sb.rpc('admin_delete_site_map_category', { p_name: cat });
-    if (error) throw error;
-
-    if (!categoryOrder.includes('General')) categoryOrder.push('General');
-    items.forEach(t => { t.category = 'General'; });
-    categoryOrder = categoryOrder.filter(c => c !== cat);
-    render();
-  } catch (err) {
-    console.error('Could not delete category:', err);
-    alert('Could not save that deletion. Refresh and try again.');
-  }
-}
-
-async function saveTool(tool) {
-  try {
-    const { error } = await sb.rpc('admin_update_site_map_placement', {
-      p_id: tool.id,
-      p_category: tool.category,
-      p_sort_order: tool.sort_order,
-    });
-    if (error) throw error;
-    const status = document.getElementById('saveStatus');
-    status.classList.add('show');
-    setTimeout(() => status.classList.remove('show'), 1500);
-  } catch (err) {
-    console.error('Save failed:', err);
-    alert('Could not save that change. Refresh and try again.');
-  }
-}
-
-async function deletePage(id) {
-  if (!confirm('Delete this page from the site map? This does not delete the actual file, just this entry.')) return;
-  try {
-    const { error } = await sb.rpc('admin_delete_site_map_page', { p_id: id });
-    if (error) throw error;
-    pages = pages.filter(t => t.id !== id);
-    render();
-  } catch (err) {
-    console.error('Could not delete page:', err);
-    alert('Could not delete that page. Refresh and try again.');
-  }
-}
-
-init();
+loadPages();
 </script>
+
 </body>
 </html>
