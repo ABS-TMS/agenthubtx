@@ -172,13 +172,34 @@ async function loadLoginStatuses() {
     if (error) throw error;
     const byEmail = {};
     (data || []).forEach(row => { byEmail[row.contact.toLowerCase()] = row; });
-    invites.forEach(inv => {
+
+    for (const inv of invites) {
       const key = (inv.contact || '').trim().toLowerCase();
       inv.login_info = byEmail[key] || null;
-    });
+
+      // Self-correcting Active status: if Supabase shows a real login and this
+      // person isn't already marked Active (and hasn't been manually marked
+      // Not Interested), flip their status to Active automatically.
+      if (inv.login_info && inv.login_info.last_sign_in_at &&
+          inv.status !== 'Active' && inv.status !== 'Not Interested') {
+        await autoPromoteToActive(inv);
+      }
+    }
     render();
   } catch (err) {
     console.error('Could not load login statuses:', err);
+  }
+}
+
+async function autoPromoteToActive(inv) {
+  try {
+    const { error } = await sb.rpc('admin_update_invite', {
+      p_id: inv.id, p_status: 'Active', p_notes: inv.notes || null,
+    });
+    if (error) throw error;
+    inv.status = 'Active';
+  } catch (err) {
+    console.error('Could not auto-promote to Active:', err);
   }
 }
 
