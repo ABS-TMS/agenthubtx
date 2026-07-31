@@ -395,9 +395,15 @@ function signupFollowupBody(name) {
   return `Hey ${firstName},\n\nThanks for getting back to me! Here's how to get set up:\n\n1. Go to ${SIGNUP_URL}\n2. Use access code: ${ACCESS_CODE}\n\nThat'll get you in — poke around, and let me know what you think. Good, bad, "wouldn't use this" — that's exactly the kind of feedback I'm looking for right now.\n\nThanks again for being willing to kick the tires.\n\n— Mike`;
 }
 
+function checkInBody(name) {
+  const firstName = (name || '').trim().split(' ')[0] || 'there';
+  return `Hey ${firstName} — noticed you hadn't signed up yet, was the site giving you any trouble?\n\nHappy to help if so, or if now's just not a good time, no worries at all.\n\n— Mike`;
+}
+
 const EMAIL_TEMPLATES = {
   like: { label: 'Liked, no reply yet', subject: LIKE_FOLLOWUP_SUBJECT, body: likeFollowupBody },
   signup: { label: 'Replied — send signup info', subject: SIGNUP_FOLLOWUP_SUBJECT, body: signupFollowupBody },
+  checkin: { label: 'Replied yes, but hasn\'t signed up', subject: 'Quick check-in', body: checkInBody },
 };
 
 function emailLikeFollowup(id) {
