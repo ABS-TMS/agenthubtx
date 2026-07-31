@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Map | AgentHubTX</title>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.5; }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 24px; }
+  .header-inner { max-width: 960px; margin: 0 auto; }
+  .brand { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .brand span { color: var(--gold); }
+  h1 { color: #fff; font-size: 21px; }
+  .subtitle { color: var(--gray-300); font-size: 13px; margin-top: 6px; }
+  .back-link { display: inline-block; margin-top: 10px; font-size: 12.5px; color: var(--gray-300); text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 26px 20px 60px; }
+
+  .search-box { width: 100%; padding: 12px 16px; border: 1.5px solid #E5E3DA; border-radius: 8px; font-size: 14px; margin-bottom: 28px; background: var(--white); }
+  .search-box:focus { outline: none; border-color: var(--gold); }
+
+  h2.category { color: var(--navy); font-size: 16px; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--gold); }
+  h2.category:first-of-type { margin-top: 0; }
+
+  .page-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .page-card { background: var(--white); border: 1px solid #E5E3DA; border-left: 3px solid var(--gold); border-radius: 6px; padding: 12px 14px; text-decoration: none; display: block; }
+  .page-card:hover { border-left-color: var(--navy); background: #FBFAF7; }
+  .page-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .page-desc { font-size: 12.5px; color: var(--gray-500); }
+
+  .flag-note { background: #FFF6E5; border: 1px solid #E8CB8C; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; color: #6B4E14; margin-bottom: 26px; }
+  .flag-note strong { color: var(--navy); }
+
+  .no-match { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Agent<span>HubTX</span></div>
+    <h1>Site Map</h1>
+    <div class="subtitle">Every page on AgentHubTX, grouped and searchable — a reference for the team, not the agent-facing directory.</div>
+    <a class="back-link" href="dashboard.html">&larr; Back to Hub</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <input type="text" class="search-box" id="search" placeholder="Search pages — e.g. &quot;checklist&quot; or &quot;community&quot;" oninput="filterPages()">
+
+  <div class="flag-note">
+    <strong>Housekeeping flag:</strong> <code>addendum-reference-guide.html</code> and <code>trec-addenda-library.html</code> are byte-for-byte identical files. Worth confirming which one is actually linked from the site and archiving or deleting the other, so there's one source of truth instead of two copies to keep in sync.
+  </div>
+
+  <h2 class="category">Compliance &amp; Legal Guides</h2>
+  <div class="page-grid">
+    <a class="page-card" href="buyer-agent-obligations.html" data-search="buyer agent obligations trec 20-19 fiduciary duty">
+      <div class="page-title">Buyer's Agent Obligations — TREC 20-19</div>
+      <div class="page-desc">buyer-agent-obligations.html</div>
+    </a>
+    <a class="page-card" href="seller-agent-obligations.html" data-search="seller agent obligations trec 20-19 fiduciary duty">
+      <div class="page-title">Seller's Agent Obligations — TREC 20-19</div>
+      <div class="page-desc">seller-agent-obligations.html</div>
+    </a>
+    <a class="page-card" href="buyers-checklist-20-19.html" data-search="buyer checklist trec 20-19">
+      <div class="page-title">Buyer's Checklist — TREC 20-19</div>
+      <div class="page-desc">buyers-checklist-20-19.html</div>
+    </a>
+    <a class="page-card" href="sellers-checklist-20-19.html" data-search="seller checklist trec 20-19">
+      <div class="page-title">Seller's Checklist — TREC 20-19</div>
+      <div class="page-desc">sellers-checklist-20-19.html</div>
+    </a>
+    <a class="page-card" href="agents-checklist-txr1101.html" data-search="agent checklist txr 1101">
+      <div class="page-title">Agent's Checklist — TXR-1101</div>
+      <div class="page-desc">agents-checklist-txr1101.html</div>
+    </a>
+    <a class="page-card" href="sellers-guide-txr1101.html" data-search="seller guide txr 1101">
+      <div class="page-title">Seller's Guide — TXR-1101</div>
+      <div class="page-desc">sellers-guide-txr1101.html</div>
+    </a>
+    <a class="page-card" href="addendum-reference-guide.html" data-search="trec addenda reference library forms">
+      <div class="page-title">TREC Addenda Reference Library</div>
+      <div class="page-desc">addendum-reference-guide.html <em>(see flag above — duplicate of trec-addenda-library.html)</em></div>
+    </a>
+    <a class="page-card" href="advertising-rules-quick-reference.html" data-search="advertising rules marketing compliance">
+      <div class="page-title">Advertising Rules Quick Reference</div>
+      <div class="page-desc">advertising-rules-quick-reference.html</div>
+    </a>
+    <a class="page-card" href="client-data-handling-policy.html" data-search="client data handling policy privacy">
+      <div class="page-title">Client Data Handling Policy</div>
+      <div class="page-desc">client-data-handling-policy.html</div>
+    </a>
+    <a class="page-card" href="email-security-checklist.html" data-search="email security checklist phishing wire fraud">
+      <div class="page-title">Email Security Checklist</div>
+      <div class="page-desc">email-security-checklist.html</div>
+    </a>
+    <a class="page-card" href="informing-buyer-recording-devices.html" data-search="recording devices disclosure buyer">
+      <div class="page-title">Informing Your Buyer About Recording Devices</div>
+      <div class="page-desc">informing-buyer-recording-devices.html</div>
+    </a>
+    <a class="page-card" href="smart-home-recording-showings.html" data-search="smart home recording showings disclosure">
+      <div class="page-title">Smart Home Devices &amp; Recording During Showings</div>
+      <div class="page-desc">smart-home-recording-showings.html</div>
+    </a>
+    <a class="page-card" href="open-house-intermediary.html" data-search="open house intermediary notices">
+      <div class="page-title">Open Houses, Intermediary &amp; Notices</div>
+      <div class="page-desc">open-house-intermediary.html</div>
+    </a>
+  </div>
+
+  <h2 class="category">Practical Reference</h2>
+  <div class="page-grid">
+    <a class="page-card" href="groundwater-districts.html" data-search="groundwater conservation districts">
+      <div class="page-title">Groundwater Conservation Districts</div>
+      <div class="page-desc">groundwater-districts.html</div>
+    </a>
+    <a class="page-card" href="groundwater-district-questions.html" data-search="groundwater district questions ask">
+      <div class="page-title">Groundwater District Questions to Ask</div>
+      <div class="page-desc">groundwater-district-questions.html</div>
+    </a>
+    <a class="page-card" href="hoa-certificates.html" data-search="hoa management certificates">
+      <div class="page-title">HOA Management Certificates</div>
+      <div class="page-desc">hoa-certificates.html</div>
+    </a>
+    <a class="page-card" href="title-company-search.html" data-search="title company search">
+      <div class="page-title">Title Company Search</div>
+      <div class="page-desc">title-company-search.html</div>
+    </a>
+    <a class="page-card" href="inspector-search.html" data-search="inspector search license lookup trec">
+      <div class="page-title">Licensed Home Inspector Search</div>
+      <div class="page-desc">inspector-search.html</div>
+    </a>
+    <a class="page-card" href="rollback-tax-calculator.html" data-search="rollback tax calculator agricultural exemption">
+      <div class="page-title">Rollback Tax Calculator</div>
+      <div class="page-desc">rollback-tax-calculator.html</div>
+    </a>
+    <a class="page-card" href="faq-resource.html" data-search="faq questions answers">
+      <div class="page-title">FAQ Resource</div>
+      <div class="page-desc">faq-resource.html</div>
+    </a>
+  </div>
+
+  <h2 class="category">Agent Tools</h2>
+  <div class="page-grid">
+    <a class="page-card" href="offer-strength-analyzer.html" data-search="offer strength analyzer">
+      <div class="page-title">Offer Strength Analyzer</div>
+      <div class="page-desc">offer-strength-analyzer.html</div>
+    </a>
+    <a class="page-card" href="offer-comparison-worksheet.html" data-search="offer comparison worksheet multiple offers">
+      <div class="page-title">Offer Comparison Worksheet</div>
+      <div class="page-desc">offer-comparison-worksheet.html</div>
+    </a>
+    <a class="page-card" href="listing-description-generator.html" data-search="listing description generator marketing copy">
+      <div class="page-title">Listing Description Generator</div>
+      <div class="page-desc">listing-description-generator.html</div>
+    </a>
+    <a class="page-card" href="client-email-drafter.html" data-search="client email drafter templates">
+      <div class="page-title">Client Email Drafter</div>
+      <div class="page-desc">client-email-drafter.html</div>
+    </a>
+    <a class="page-card" href="followup-tracker.html" data-search="follow up tracker leads pipeline">
+      <div class="page-title">Follow-Up Tracker</div>
+      <div class="page-desc">followup-tracker.html</div>
+    </a>
+    <a class="page-card" href="invite-tracker.html" data-search="invite tracker beta agenthubtx signups office">
+      <div class="page-title">Invite Tracker</div>
+      <div class="page-desc">invite-tracker.html</div>
+    </a>
+    <a class="page-card" href="buyer-intake.html" data-search="buyer intake form new client">
+      <div class="page-title">Buyer Intake</div>
+      <div class="page-desc">buyer-intake.html</div>
+    </a>
+    <a class="page-card" href="intake.html" data-search="offer details intake form">
+      <div class="page-title">Offer Details Intake</div>
+      <div class="page-desc">intake.html</div>
+    </a>
+    <a class="page-card" href="my-iabs.html" data-search="iabs information about brokerage services">
+      <div class="page-title">My IABS</div>
+      <div class="page-desc">my-iabs.html</div>
+    </a>
+    <a class="page-card" href="ai-tools.html" data-search="ai tools list">
+      <div class="page-title">AI Tools</div>
+      <div class="page-desc">ai-tools.html</div>
+    </a>
+  </div>
+
+  <h2 class="category">Training &amp; Getting Started</h2>
+  <div class="page-grid">
+    <a class="page-card" href="getting-started.html" data-search="getting started onboarding new agent">
+      <div class="page-title">Getting Started</div>
+      <div class="page-desc">getting-started.html</div>
+    </a>
+    <a class="page-card" href="new-agent-protips.html" data-search="new agent pro tips training curriculum">
+      <div class="page-title">New Agent &amp; Pro Tips</div>
+      <div class="page-desc">new-agent-protips.html</div>
+    </a>
+    <a class="page-card" href="showing-tips-new-agents.html" data-search="showing tips new agents">
+      <div class="page-title">Showing Tips for New Agents</div>
+      <div class="page-desc">showing-tips-new-agents.html</div>
+    </a>
+    <a class="page-card" href="working-the-other-agent.html" data-search="working other agent negotiation communication">
+      <div class="page-title">Working the Other Agent</div>
+      <div class="page-desc">working-the-other-agent.html</div>
+    </a>
+    <a class="page-card" href="ai-for-agents.html" data-search="ai for real estate agents what works">
+      <div class="page-title">AI for Real Estate Agents: What Actually Works</div>
+      <div class="page-desc">ai-for-agents.html</div>
+    </a>
+    <a class="page-card" href="help-how-to-tab.html" data-search="help how to tab support">
+      <div class="page-title">Help &amp; How-To</div>
+      <div class="page-desc">help-how-to-tab.html</div>
+    </a>
+  </div>
+
+  <h2 class="category">Community Site Feature (Agent-Branded Neighborhood Pages)</h2>
+  <div class="page-grid">
+    <a class="page-card" href="ilove-community-guide.html" data-search="my community site how it works">
+      <div class="page-title">My Community Site: How It Works</div>
+      <div class="page-desc">ilove-community-guide.html</div>
+    </a>
+    <a class="page-card" href="ilove-community-setup.html" data-search="my community site setup configuration">
+      <div class="page-title">My Community Site (Setup)</div>
+      <div class="page-desc">ilove-community-setup.html</div>
+    </a>
+    <a class="page-card" href="ilove-community-admin.html" data-search="community admin listings stickers save notes">
+      <div class="page-title">Community Site Admin</div>
+      <div class="page-desc">ilove-community-admin.html</div>
+    </a>
+    <a class="page-card" href="ilove-community-directory.html" data-search="community business directory local merchants">
+      <div class="page-title">Community Business Directory</div>
+      <div class="page-desc">ilove-community-directory.html</div>
+    </a>
+    <a class="page-card" href="ilove-community-merchant-signup.html" data-search="community merchant signup local business">
+      <div class="page-title">Community Merchant Signup</div>
+      <div class="page-desc">ilove-community-merchant-signup.html</div>
+    </a>
+    <a class="page-card" href="ilove-robson-example.html" data-search="community example local business directory">
+      <div class="page-title">Community Site Example</div>
+      <div class="page-desc">ilove-robson-example.html</div>
+    </a>
+    <a class="page-card" href="my-community-pages.html" data-search="my community pages subdivision list">
+      <div class="page-title">My Community Pages</div>
+      <div class="page-desc">my-community-pages.html</div>
+    </a>
+    <a class="page-card" href="community.html" data-search="your neighborhood subdivision client facing">
+      <div class="page-title">Your Neighborhood (client-facing page)</div>
+      <div class="page-desc">community.html</div>
+    </a>
+  </div>
+
+</div>
+
+<script>
+function filterPages() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  document.querySelectorAll('.page-card').forEach(card => {
+    const haystack = (card.dataset.search + ' ' + card.textContent).toLowerCase();
+    card.style.display = !q || haystack.includes(q) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.category').forEach(cat => {
+    let next = cat.nextElementSibling;
+    let anyVisible = false;
+    while (next && !next.classList.contains('category')) {
+      if (next.classList.contains('page-grid')) {
+        anyVisible = [...next.querySelectorAll('.page-card')].some(c => c.style.display !== 'none');
+      }
+      next = next.nextElementSibling;
+    }
+    cat.style.display = anyVisible ? 'block' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>
