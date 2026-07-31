@@ -405,11 +405,17 @@ function feedbackRequestBody(name) {
   return `Hey ${firstName} — saw you logged in, thanks for actually checking it out.\n\nNo script here — just curious what your first impression was. Anything jump out as genuinely useful? Anything confusing, missing, or that made you go "eh, wouldn't use this"?\n\nHonest is way more useful to me than nice.\n\n— Mike`;
 }
 
+function confirmationFixedBody(name) {
+  const firstName = (name || '').trim().split(' ')[0] || 'there';
+  return `Hey ${firstName} — found the issue, a confirmation hiccup on our end. It's cleared now, so you should be able to log in at agenthubtx.com with the password you set.\n\nIf you don't remember it, use "Forgot password?" on the login page. Let me know if you hit any more trouble.\n\n— Mike`;
+}
+
 const EMAIL_TEMPLATES = {
   like: { label: 'Liked, no reply yet', subject: LIKE_FOLLOWUP_SUBJECT, body: likeFollowupBody },
   signup: { label: 'Replied — send signup info', subject: SIGNUP_FOLLOWUP_SUBJECT, body: signupFollowupBody },
   checkin: { label: 'Replied yes, but hasn\'t signed up', subject: 'Quick check-in', body: checkInBody },
   feedback: { label: 'Logged in — request feedback', subject: 'Quick first impressions?', body: feedbackRequestBody },
+  confirmfixed: { label: 'Confirmation issue — resolved, try again', subject: 'Fixed — you should be able to log in now', body: confirmationFixedBody },
 };
 
 function emailLikeFollowup(id) {
