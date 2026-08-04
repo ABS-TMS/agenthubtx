@@ -58,6 +58,16 @@
   .filter-row label { font-size: 12px; color: var(--gray-500); font-weight: 600; }
   .filter-row select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12.5px; }
 
+  .notify-toggle-card { background: var(--white); border: 1px solid #E5E3DA; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .notify-toggle-label { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+  .notify-toggle-sub { font-size: 11.5px; color: var(--gray-500); margin-top: 2px; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-300); transition: .2s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--teal); }
+  input:checked + .slider:before { transform: translateX(18px); }
+
   .row-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12px; font-weight: 600; }
   .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; }
@@ -97,6 +107,17 @@
 
 <div id="app" style="display:none;">
   <div class="wrap">
+
+    <div class="notify-toggle-card">
+      <div>
+        <div class="notify-toggle-label">Notify me on meaningful logins</div>
+        <div class="notify-toggle-sub">Email when someone logs in for the first time, or comes back after being quiet</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="notifyToggle" onchange="toggleNotify(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
 
     <div class="stats-row" id="statsRow"></div>
 
@@ -184,8 +205,30 @@ async function init() {
   }
 
   await loadInvites();
+  await loadNotifySetting();
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+}
+
+async function loadNotifySetting() {
+  try {
+    const { data, error } = await sb.rpc('admin_get_notify_enabled');
+    if (error) throw error;
+    document.getElementById('notifyToggle').checked = !!data;
+  } catch (err) {
+    console.error('Could not load notify setting:', err);
+  }
+}
+
+async function toggleNotify(enabled) {
+  try {
+    const { error } = await sb.rpc('admin_set_notify_enabled', { p_enabled: enabled });
+    if (error) throw error;
+  } catch (err) {
+    console.error('Could not update notify setting:', err);
+    alert('Could not save that setting. Try again.');
+    document.getElementById('notifyToggle').checked = !enabled;
+  }
 }
 
 async function loadInvites() {
