@@ -48,6 +48,16 @@
   .row-login.login-noaccount { color: var(--gray-500); }
   .row-login.login-notyet { color: var(--amber); }
 
+  .engagement-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9px; text-transform: uppercase; display: inline-block; margin-top: 5px; }
+  .engagement-active { background: var(--teal-light); color: var(--teal); }
+  .engagement-quiet { background: var(--amber-light); color: var(--amber); }
+  .engagement-never { background: #E1EEFB; color: #185FA5; }
+  .engagement-notsignedup { background: #EFEEE8; color: var(--gray-500); }
+
+  .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-row label { font-size: 12px; color: var(--gray-500); font-weight: 600; }
+  .filter-row select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12.5px; }
+
   .row-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12px; font-weight: 600; }
   .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; }
@@ -102,6 +112,17 @@
       </div>
     </div>
 
+    <div class="filter-row">
+      <label for="engagementFilter">Show:</label>
+      <select id="engagementFilter" onchange="setFilter(this.value)">
+        <option value="all">Everyone</option>
+        <option value="active">Active (logged in, last 7 days)</option>
+        <option value="quiet">Quiet (logged in, but not recently)</option>
+        <option value="never">Never logged in</option>
+        <option value="notsignedup">Not signed up</option>
+      </select>
+    </div>
+
     <div id="listWrap"></div>
 
   </div>
@@ -115,6 +136,26 @@ const ADMIN_EMAIL = 'mike@urocketrealty.com';
 
 let invites = [];
 let editingId = null;
+let currentFilter = 'all';
+
+const ACTIVE_WITHIN_DAYS = 7;
+
+function engagementStatus(inv) {
+  const contact = (inv.contact || '').trim();
+  if (!contact.includes('@')) return { key: 'notsignedup', label: 'No email on file' };
+  const info = inv.login_info;
+  if (!info || !info.user_exists) return { key: 'notsignedup', label: 'Not signed up' };
+  if (!info.last_sign_in_at) return { key: 'never', label: 'Never logged in' };
+
+  const daysSince = (Date.now() - new Date(info.last_sign_in_at).getTime()) / 86400000;
+  if (daysSince <= ACTIVE_WITHIN_DAYS) return { key: 'active', label: 'Active' };
+  return { key: 'quiet', label: 'Quiet — hasn\'t logged in recently' };
+}
+
+function setFilter(val) {
+  currentFilter = val;
+  render();
+}
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -234,7 +275,16 @@ function render() {
     return;
   }
 
-  listWrap.innerHTML = invites.map(inv => {
+  const visible = currentFilter === 'all'
+    ? invites
+    : invites.filter(inv => engagementStatus(inv).key === currentFilter);
+
+  if (!visible.length) {
+    listWrap.innerHTML = '<div class="empty-state">No one matches this filter right now.</div>';
+    return;
+  }
+
+  listWrap.innerHTML = visible.map(inv => {
     if (inv.id === editingId) {
       return `
         <div class="row">
@@ -265,6 +315,7 @@ function render() {
         ${inv.office ? `<div class="row-contact">🏢 ${escapeHtml(inv.office)}</div>` : ''}
         <div class="row-date">Invited ${formatDate(inv.date_invited)}</div>
         ${loginStatusHtml(inv)}
+        <span class="engagement-badge engagement-${engagementStatus(inv).key}">${escapeHtml(engagementStatus(inv).label)}</span>
         ${inv.notes ? `<div class="row-notes">${escapeHtml(inv.notes)}</div>` : ''}
       </div>
       <div class="row-right">
