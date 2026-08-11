@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Showing Request Builder | AgentHubTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Georgia&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0C3057;
+    --gold: #C8922A;
+    --cream: #F4F1EA;
+    --ink: #1A1A1A;
+    --muted: #6b7280;
+    --border: #e2ddd0;
+    --white: #ffffff;
+    --danger: #A32D2D;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 28px 24px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  header p {
+    margin: 6px 0 0;
+    color: #cfd9e6;
+    font-size: 14px;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+  .card .hint {
+    margin: 0 0 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #374151;
+  }
+  input, select, textarea {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+    background: var(--white);
+  }
+  .agent-only-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--danger);
+    background: #f7e3e3;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    text-transform: uppercase;
+  }
+  button.primary {
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    padding: 13px 22px;
+    border-radius: 7px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+  }
+  button.primary:hover { background: #0a2645; }
+  .output { display: none; }
+  .output.show { display: block; }
+  .output-block {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .output-block .ob-header {
+    background: var(--cream);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .output-block .ob-header span {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .output-block pre {
+    margin: 0;
+    padding: 14px;
+    white-space: pre-wrap;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .output-block.agent-facing .ob-header {
+    background: #f7e3e3;
+  }
+  .output-block.agent-facing .ob-header span { color: var(--danger); }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-sm {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    color: var(--navy);
+    text-decoration: none;
+  }
+  .btn-sm:hover { border-color: var(--gold); }
+  .btn-sm.copied { background: var(--gold); color: var(--white); border-color: var(--gold); }
+  .cad-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: var(--navy);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .cad-link:hover { border-color: var(--gold); }
+  .note {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Showing Request Builder</h1>
+  <p>Phase 1 — manual entry. Pull the listing in Matrix, enter the details below, get a client-ready email and your showing script in one pass.</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>Property</h2>
+    <p class="hint">From the MLS listing.</p>
+    <div class="grid">
+      <div class="field full">
+        <label for="address">Street address</label>
+        <input id="address" type="text" placeholder="2416 Fall Leaf Court">
+      </div>
+      <div class="field">
+        <label for="city">City</label>
+        <input id="city" type="text" placeholder="Denton">
+      </div>
+      <div class="field">
+        <label for="zip">ZIP</label>
+        <input id="zip" type="text" placeholder="76209">
+      </div>
+      <div class="field">
+        <label for="county">County</label>
+        <select id="county">
+          <option value="">Select county</option>
+          <option value="denton">Denton</option>
+          <option value="tarrant">Tarrant</option>
+          <option value="dallas">Dallas</option>
+          <option value="collin">Collin</option>
+          <option value="other">Other / not listed</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="mls">MLS #</label>
+        <input id="mls" type="text" placeholder="21327448">
+      </div>
+      <div class="field">
+        <label for="parcelid">Parcel / Account ID</label>
+        <input id="parcelid" type="text" placeholder="R649038">
+      </div>
+    </div>
+    <div class="grid three" style="margin-top:14px;">
+      <div class="field">
+        <label for="price">List price</label>
+        <input id="price" type="text" placeholder="$375,000">
+      </div>
+      <div class="field">
+        <label for="beds">Beds</label>
+        <input id="beds" type="text" placeholder="4">
+      </div>
+      <div class="field">
+        <label for="baths">Baths</label>
+        <input id="baths" type="text" placeholder="2">
+      </div>
+    </div>
+    <div class="grid three" style="margin-top:14px;">
+      <div class="field">
+        <label for="sqft">Sq ft</label>
+        <input id="sqft" type="text" placeholder="2,132">
+      </div>
+      <div class="field">
+        <label for="school">School district</label>
+        <input id="school" type="text" placeholder="Denton ISD">
+      </div>
+      <div class="field">
+        <label for="subdivision">Subdivision</label>
+        <input id="subdivision" type="text" placeholder="Summer Oaks Add">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Showing coordination <span class="agent-only-tag">Agent only</span></h2>
+    <p class="hint">This section never goes to the buyer — it's for your own reference and to build the showing script.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="showsvc">Showing service</label>
+        <select id="showsvc">
+          <option value="showingtime">ShowingTime</option>
+          <option value="brokerbay">BrokerBay</option>
+          <option value="call">Call/text listing agent directly</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="agentname">Listing agent name</label>
+        <input id="agentname" type="text" placeholder="Kelsi">
+      </div>
+      <div class="field">
+        <label for="showphone">Showing service / listing agent phone</label>
+        <input id="showphone" type="text" placeholder="(817) 858-0055">
+      </div>
+      <div class="field full">
+        <label for="showinstr">Show instructions (from MLS Agent Full — internal reference only)</label>
+        <textarea id="showinstr" placeholder="e.g. Please lock front and back door. Leave lamps on."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Buyer</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="buyername">Buyer name</label>
+        <input id="buyername" type="text" placeholder="Alex">
+      </div>
+      <div class="field">
+        <label for="buyeremail">Buyer email</label>
+        <input id="buyeremail" type="email" placeholder="alex@example.com">
+      </div>
+      <div class="field full">
+        <label for="showtime">Proposed showing time</label>
+        <input id="showtime" type="text" placeholder="Thursday at 4:00 PM">
+      </div>
+    </div>
+  </div>
+
+  <button class="primary" onclick="generate()">Generate request</button>
+
+  <div class="output" id="output">
+
+    <div class="output-block" style="margin-top:24px;">
+      <div class="ob-header">
+        <span>County appraisal district lookup</span>
+      </div>
+      <div style="padding:14px;">
+        <a class="cad-link" id="cadLink" href="#" target="_blank" rel="noopener">Open county appraisal district search &rarr;</a>
+        <p class="note" id="cadNote"></p>
+      </div>
+    </div>
+
+    <div class="output-block">
+      <div class="ob-header">
+        <span>Client email</span>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copyBlock('clientEmail', this)">Copy</button>
+          <a class="btn-sm" id="mailtoLink" href="#">Open in email</a>
+        </div>
+      </div>
+      <pre id="clientEmail"></pre>
+    </div>
+
+    <div class="output-block agent-facing">
+      <div class="ob-header">
+        <span>Showing request script — agent only</span>
+        <button class="btn-sm" onclick="copyBlock('agentScript', this)">Copy</button>
+      </div>
+      <pre id="agentScript"></pre>
+    </div>
+
+    <div class="output-block">
+      <div class="ob-header">
+        <span>Step 1 &mdash; text to buyer</span>
+        <button class="btn-sm" onclick="copyBlock('step1Text', this)">Copy</button>
+      </div>
+      <pre id="step1Text"></pre>
+    </div>
+
+    <div class="output-block">
+      <div class="ob-header">
+        <span>Step 2 &mdash; text to listing agent</span>
+        <button class="btn-sm" onclick="copyBlock('step2Text', this)">Copy</button>
+      </div>
+      <pre id="step2Text"></pre>
+    </div>
+
+    <div class="output-block">
+      <div class="ob-header">
+        <span>Step 2b &mdash; follow-up nudge (send after 4 hrs / end of day, whichever first)</span>
+        <button class="btn-sm" onclick="copyBlock('step2bText', this)">Copy</button>
+      </div>
+      <pre id="step2bText"></pre>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+const CAD_LINKS = {
+  denton:  { url: 'https://www.dentoncad.com/property-search', name: 'Denton Central Appraisal District', idDeepLink: null },
+  tarrant: { url: 'https://tarrant.prodigycad.com/property-search', name: 'Tarrant Appraisal District', idDeepLink: null },
+  dallas:  { url: 'https://www.dallascad.org/', name: 'Dallas Central Appraisal District', idDeepLink: 'https://www.dallascad.org/AcctDetailRes.aspx?ID=' },
+  collin:  { url: 'https://esearch.collincad.org/', name: 'Collin Central Appraisal District', idDeepLink: null }
+};
+
+function val(id) { return document.getElementById(id).value.trim(); }
+
+function generate() {
+  const address = val('address');
+  const city = val('city');
+  const zip = val('zip');
+  const county = val('county');
+  const mls = val('mls');
+  const price = val('price');
+  const beds = val('beds');
+  const baths = val('baths');
+  const sqft = val('sqft');
+  const school = val('school');
+  const subdivision = val('subdivision');
+  const parcelid = val('parcelid');
+  const agentname = val('agentname') || '[agent name]';
+  const showsvc = document.getElementById('showsvc').value;
+  const showphone = val('showphone');
+  const showinstr = val('showinstr');
+  const buyername = val('buyername') || 'there';
+  const buyeremail = val('buyeremail');
+  const showtime = val('showtime') || '[proposed time]';
+
+  const fullAddress = [address, city, zip].filter(Boolean).join(', ');
+
+  // CAD link
+  const cadLinkEl = document.getElementById('cadLink');
+  const cadNoteEl = document.getElementById('cadNote');
+  if (county && CAD_LINKS[county]) {
+    const cad = CAD_LINKS[county];
+    const copyValue = parcelid || fullAddress;
+    if (parcelid && cad.idDeepLink) {
+      // Confirmed direct account-number deep link for this county
+      cadLinkEl.href = cad.idDeepLink + encodeURIComponent(parcelid);
+      cadLinkEl.textContent = 'Open ' + cad.name + ' record for ' + parcelid + ' \u2192';
+      cadNoteEl.textContent = 'Direct link to this parcel\u2019s record.';
+      cadLinkEl.onclick = null;
+    } else if (parcelid) {
+      // No confirmed deep-link pattern for this county \u2014 copy the parcel ID and point to the ID search tab
+      cadLinkEl.href = cad.url;
+      cadLinkEl.textContent = 'Open ' + cad.name + ' \u2192';
+      cadNoteEl.textContent = 'Copies parcel ID "' + parcelid + '" to your clipboard \u2014 paste it into the "ID" search tab on their site (no confirmed direct link for this county yet).';
+      cadLinkEl.onclick = function() {
+        if (navigator.clipboard) navigator.clipboard.writeText(parcelid);
+      };
+    } else {
+      cadLinkEl.href = cad.url;
+      cadLinkEl.textContent = 'Open ' + cad.name + ' \u2192';
+      cadNoteEl.textContent = fullAddress
+        ? 'No parcel ID entered \u2014 copies the address instead. Paste it into the "Address" search tab on their site.'
+        : '';
+      cadLinkEl.onclick = function() {
+        if (fullAddress && navigator.clipboard) navigator.clipboard.writeText(fullAddress);
+      };
+    }
+  } else {
+    cadLinkEl.href = '#';
+    cadLinkEl.textContent = 'Select a county above to generate the link';
+    cadNoteEl.textContent = '';
+  }
+
+  // Client email
+  const details = [];
+  if (price) details.push(price);
+  if (beds) details.push(beds + ' bed');
+  if (baths) details.push(baths + ' bath');
+  if (sqft) details.push(sqft + ' sq ft');
+  const detailLine = details.join(' | ');
+
+  let clientEmail = 'Hi ' + buyername + ',\n\n';
+  clientEmail += 'Here are the details on ' + (fullAddress || '[address]') + (mls ? ' (MLS# ' + mls + ')' : '') + ':\n\n';
+  if (detailLine) clientEmail += detailLine + '\n';
+  if (subdivision) clientEmail += 'Subdivision: ' + subdivision + '\n';
+  if (school) clientEmail += 'School district: ' + school + '\n';
+  clientEmail += '\nProposed showing time: ' + showtime + ' \u2014 let me know if that works or if you need another time.\n';
+  if (county && CAD_LINKS[county]) {
+    clientEmail += '\nYou can look up public tax/appraisal records for this property here: ' + CAD_LINKS[county].url + '\n';
+  }
+  clientEmail += '\nA quick note before we go: as with most homes today, this property may have audio or video recording devices in or around it (doorbell cameras, smart speakers, etc.). Please be mindful of that during the showing.\n';
+  clientEmail += '\nLooking forward to it \u2014 let me know if you have any questions before then.\n';
+
+  document.getElementById('clientEmail').textContent = clientEmail;
+
+  const mailtoLink = document.getElementById('mailtoLink');
+  const subject = encodeURIComponent('Showing details: ' + (fullAddress || 'your upcoming showing'));
+  const body = encodeURIComponent(clientEmail);
+  mailtoLink.href = 'mailto:' + (buyeremail || '') + '?subject=' + subject + '&body=' + body;
+
+  // Agent-facing script
+  let script = 'INTERNAL \u2014 not for the buyer\n\n';
+  script += 'Property: ' + (fullAddress || '[address]') + (mls ? ' (MLS# ' + mls + ')' : '') + '\n';
+  script += 'Showing service: ' + showsvc + '\n';
+  if (showphone) script += 'Contact: ' + showphone + '\n';
+  script += '\n';
+  if (showsvc === 'showingtime' || showsvc === 'brokerbay') {
+    script += 'Request the showing through ' + showsvc + (showphone ? ' (' + showphone + ')' : '') + ' for ' + showtime + '. Confirm once approved before telling the buyer it\'s locked in.\n';
+  } else {
+    script += 'Call/text the listing agent directly' + (showphone ? ' at ' + showphone : '') + ' to request ' + showtime + '.\n';
+  }
+  if (showinstr) {
+    script += '\nShow instructions from MLS (for you only \u2014 do not forward to buyer):\n' + showinstr + '\n';
+  }
+  document.getElementById('agentScript').textContent = script;
+
+  // Step 1 — text to buyer
+  const step1 = 'Quick heads up on how I work: before we see any home, I always confirm status directly with the listing agent first \u2014 even if MLS shows it active. MLS rules give agents 72 hrs to update status, so a listing can look active even after an offer\u2019s been accepted. I\u2019d rather check than waste your time. If there\u2019s already a deal in the works, I\u2019ll ask them to hold off until you\u2019ve had a look \u2014 and if you like it, we can move fast.\n\nAlso helps to have a couple of times that work for you rather than just one \u2014 give me 2-3 windows (like "Thu after 3" or "Sat morning") and I can lock something in faster instead of going back and forth.';
+  document.getElementById('step1Text').textContent = step1;
+
+  // Step 2 — text to listing agent
+  const step2 = 'Hi ' + agentname + ' \u2014 I have a client who has reached out to schedule a showing on ' + (fullAddress || '[address]') + (mls ? ' (MLS# ' + mls + ')' : '') + '. Before I set anything up: still active? Any offers in negotiation? Appointment required or go-and-show, and anything special I should know before we come?\n\nMy buyer\u2019s ready to move quickly with an offer if they like it, so if you\u2019re already in negotiations I\u2019d appreciate the chance to get them through first. I won\u2019t make an appointment until I hear back from you. Feel free to call me directly if you\u2019d like to discuss anything.';
+  document.getElementById('step2Text').textContent = step2;
+
+  // Step 2b — nudge
+  const step2b = 'Hi ' + agentname + ' \u2014 just following up on ' + (fullAddress || '[address]') + (mls ? ' (MLS# ' + mls + ')' : '') + '. Don\u2019t want to hold my buyer up if this is still available \u2014 let me know when you get a chance.';
+  document.getElementById('step2bText').textContent = step2b;
+
+  document.getElementById('output').classList.add('show');
+  document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyBlock(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
