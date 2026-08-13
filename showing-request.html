@@ -275,21 +275,26 @@
     <div class="grid">
       <div class="field">
         <label for="agentname">Listing agent name</label>
-        <input id="agentname" type="text" placeholder="Kelsi">
+        <input id="agentname" type="text" placeholder="Kelsi" oninput="updateAgentQuickLinks()">
       </div>
       <div class="field">
-        <label for="showphone">Listing agent / showing service phone</label>
-        <input id="showphone" type="text" placeholder="(817) 858-0055">
+        <label for="showphone">Listing agent cell phone / showing service phone</label>
+        <input id="showphone" type="text" placeholder="(817) 858-0055" oninput="updateAgentQuickLinks()">
+      </div>
+      <div class="field">
+        <label for="agentemail">Listing agent email</label>
+        <input id="agentemail" type="email" placeholder="kelsi@example.com" oninput="updateAgentQuickLinks()">
       </div>
       <div class="field full">
         <label for="showsvc">Showing service</label>
-        <select id="showsvc">
+        <select id="showsvc" onchange="updateAgentQuickLinks()">
           <option value="showingtime">ShowingTime</option>
           <option value="brokerbay">BrokerBay</option>
           <option value="call">Call/text listing agent directly</option>
           <option value="other">Other</option>
         </select>
       </div>
+      <div class="field full" id="agentQuickLinks" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
     </div>
   </div>
 
@@ -455,6 +460,7 @@ function parseReport() {
   setVal('school', grab(/School Dist:?\s*(.+)/i, 1));
   setVal('agentname', grab(/List Agt:?\s*([A-Za-z .'\-]+?)\s*\(/i, 1));
   setVal('showphone', grab(/Call:?\s*(?:Showing Service|Agent)?\s*Appt:?\s*([\d()\-\s]{7,})/i, 1) || grab(/List Agt:.*?\)\s*([\d\-]{7,12})/i, 1));
+  setVal('agentemail', grab(/LA Email:?\s*(\S+@\S+)/i, 1));
 
   const showSrvcRaw = grab(/Show Srvc:?\s*(ShowingTime|BrokerBay|None)/i, 1);
   if (showSrvcRaw) {
@@ -483,6 +489,31 @@ function parseReport() {
   status.textContent = found > 0
     ? 'Filled ' + found + ' field(s) \u2014 please review before generating.'
     : 'Couldn\u2019t find recognizable fields \u2014 try pasting the full report text, or fill in manually.';
+  updateAgentQuickLinks();
+}
+
+function updateAgentQuickLinks() {
+  const container = document.getElementById('agentQuickLinks');
+  const agentname = val('agentname') || 'agent';
+  const phone = val('showphone');
+  const phoneClean = phone.replace(/[^\d+]/g, '');
+  const email = val('agentemail');
+  const showsvc = document.getElementById('showsvc').value;
+  const svcLabel = (function() {
+    if (showsvc === 'showingtime') return 'ShowingTime';
+    if (showsvc === 'brokerbay') return 'BrokerBay';
+    if (showsvc === 'other') return 'showing service';
+    return agentname; // 'call' (direct) falls through to the agent's own name
+  })();
+  let html = '';
+  if (phoneClean) {
+    html += '<a class="cad-link" href="tel:' + phoneClean + '">\uD83D\uDCDE Call ' + svcLabel + '</a>';
+    html += '<a class="cad-link" href="sms:' + phoneClean + '">\uD83D\uDCAC Text ' + svcLabel + '</a>';
+  }
+  if (email) {
+    html += '<a class="cad-link" href="mailto:' + email + '">\u2709\uFE0F Email ' + agentname + '</a>';
+  }
+  container.innerHTML = html;
 }
 
 function generateAgentCheck() {
@@ -652,6 +683,8 @@ function copyBlock(id, btn) {
     setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
   });
 }
+
+updateAgentQuickLinks();
 </script>
 
 </body>
