@@ -65,7 +65,21 @@
   <div class="toolbar">
     <input type="text" id="newCategoryInput" placeholder="New category name...">
     <button onclick="addCategory()">Add Category</button>
+    <button onclick="toggleAddToolForm()" id="addToolToggleBtn">+ Add Tool</button>
     <span class="save-status" id="saveStatus">Saved</span>
+  </div>
+  <div id="addToolForm" style="display:none; padding: 0 20px 18px; max-width: 480px;">
+    <div style="background:#fff; border:1px solid #E5E3DA; border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:10px;">
+      <input type="text" id="newToolTitle" placeholder="Title (e.g. Buyer Intake)" style="padding:9px 12px; border-radius:7px; border:1px solid var(--gray-300); font-size:13px;">
+      <textarea id="newToolDesc" placeholder="Short description" rows="2" style="padding:9px 12px; border-radius:7px; border:1px solid var(--gray-300); font-size:13px; resize:vertical;"></textarea>
+      <input type="text" id="newToolUrl" placeholder="URL (e.g. buyer-intake.html)" style="padding:9px 12px; border-radius:7px; border:1px solid var(--gray-300); font-size:13px;">
+      <input type="text" id="newToolGuideUrl" placeholder="Guide URL (optional)" style="padding:9px 12px; border-radius:7px; border:1px solid var(--gray-300); font-size:13px;">
+      <select id="newToolCategory" style="padding:9px 12px; border-radius:7px; border:1px solid var(--gray-300); font-size:13px;"></select>
+      <div style="display:flex; gap:8px;">
+        <button onclick="submitAddTool()" style="padding:9px 16px; border-radius:7px; border:none; background:var(--gold); color:var(--navy); font-weight:700; font-size:13px; cursor:pointer;">Add Tool</button>
+        <button onclick="toggleAddToolForm()" style="padding:9px 16px; border-radius:7px; border:1px solid var(--gray-300); background:#fff; color:var(--gray-700); font-weight:600; font-size:13px; cursor:pointer;">Cancel</button>
+      </div>
+    </div>
   </div>
   <div class="board" id="board"></div>
 </div>
@@ -165,6 +179,71 @@ async function addCategory() {
   }
 }
 
+function toggleAddToolForm() {
+  const form = document.getElementById('addToolForm');
+  const showing = form.style.display !== 'none';
+  if (showing) {
+    form.style.display = 'none';
+  } else {
+    document.getElementById('newToolTitle').value = '';
+    document.getElementById('newToolDesc').value = '';
+    document.getElementById('newToolUrl').value = '';
+    document.getElementById('newToolGuideUrl').value = '';
+    const catSelect = document.getElementById('newToolCategory');
+    catSelect.innerHTML = categoryOrder.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    form.style.display = 'block';
+  }
+}
+
+async function submitAddTool() {
+  const title = document.getElementById('newToolTitle').value.trim();
+  const description = document.getElementById('newToolDesc').value.trim();
+  const url = document.getElementById('newToolUrl').value.trim();
+  const guideUrl = document.getElementById('newToolGuideUrl').value.trim();
+  const category = document.getElementById('newToolCategory').value;
+
+  if (!title || !url) {
+    alert('Title and URL are required.');
+    return;
+  }
+
+  const itemsInCategory = tools.filter(t => t.category === category);
+  const sortOrder = (Math.max(0, ...itemsInCategory.map(t => t.sort_order)) || 0) + 10;
+
+  try {
+    const { data, error } = await sb.rpc('admin_add_tool', {
+      p_title: title,
+      p_description: description || null,
+      p_url: url,
+      p_category: category,
+      p_guide_url: guideUrl || null,
+      p_sort_order: sortOrder,
+    });
+    if (error) throw error;
+    const newId = Array.isArray(data) ? data[0]?.id : data;
+    tools.push({ id: newId, title, description, url, category, guide_url: guideUrl || null, sort_order: sortOrder });
+    toggleAddToolForm();
+    render();
+  } catch (err) {
+    console.error('Could not add tool:', err);
+    alert('Could not save that tool. Refresh and try again.');
+  }
+}
+
+async function deleteTool(id, title) {
+  if (!confirm(`Delete "${title}"? This can't be undone.`)) return;
+
+  try {
+    const { error } = await sb.rpc('admin_delete_tool', { p_id: id });
+    if (error) throw error;
+    tools = tools.filter(t => t.id !== id);
+    render();
+  } catch (err) {
+    console.error('Could not delete tool:', err);
+    alert('Could not delete that tool. Refresh and try again.');
+  }
+}
+
 function render() {
   const board = document.getElementById('board');
   board.innerHTML = categoryOrder.map(cat => {
@@ -177,7 +256,10 @@ function render() {
           ${items.map(t => `
             <div class="card" draggable="true" data-id="${t.id}"
                  ondragstart="onDragStart(event, '${t.id}')" ondragend="onDragEnd(event)">
-              <div class="card-title">${escapeHtml(t.title)}</div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px;">
+                <div class="card-title">${escapeHtml(t.title)}</div>
+                <button class="delete-cat-btn" onclick="deleteTool('${t.id}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')" title="Delete this tool" style="flex-shrink:0;">✕</button>
+              </div>
               <div class="card-desc">${escapeHtml(t.description || '')}</div>
             </div>`).join('')}
         </div>
