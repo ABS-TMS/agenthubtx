@@ -98,6 +98,57 @@
     background: var(--gold); color: var(--navy); text-align: center;
     font-size: 13px; font-weight: 700; padding: 10px 20px;
   }
+
+  .biz-card.home-card { cursor: pointer; }
+  .home-price { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+  .home-stats { font-size: 12.5px; color: var(--gray-500); margin-bottom: 8px; }
+  .home-broker { font-size: 12px; color: var(--gray-700); border-top: 1px dashed var(--gray-300); margin-top: 10px; padding-top: 8px; }
+  .home-broker b { color: var(--navy); }
+
+  .card-photo {
+    width: 100%; height: 120px; border-radius: 8px; margin-bottom: 12px; overflow: hidden;
+  }
+  .modal-photo {
+    width: 100%; height: 180px; border-radius: 10px; margin-bottom: 14px; overflow: hidden;
+  }
+
+  footer .footer-links { margin-bottom: 6px; }
+  footer .footer-links a { color: var(--gray-700); text-decoration: underline; margin: 0 8px; }
+  footer .footer-brand { font-size: 11.5px; color: var(--gray-500); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(12,48,87,0.55);
+    z-index: 100; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow-y: auto;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: 14px; max-width: 460px; width: 100%;
+    padding: 26px; position: relative; margin-top: 20px;
+  }
+  .modal-close {
+    position: absolute; top: 14px; right: 16px; background: none; border: none;
+    font-size: 20px; color: var(--gray-500); cursor: pointer; line-height: 1;
+  }
+  .modal-tag { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .modal-box h2 { color: var(--navy); font-size: 20px; margin: 4px 0 2px; }
+  .modal-price { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+  .modal-stats { font-size: 13.5px; color: var(--gray-700); margin-bottom: 14px; }
+  .modal-section { border-top: 1px solid var(--gray-300); padding-top: 14px; margin-top: 14px; }
+  .modal-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gray-500); margin-bottom: 8px; }
+  .modal-broker-row { font-size: 13.5px; margin-bottom: 3px; }
+  .modal-broker-row b { color: var(--navy); }
+  .modal-disclosure {
+    background: var(--off); border: 1px solid var(--gray-300); border-radius: 8px;
+    padding: 12px 14px; font-size: 12px; color: var(--gray-700); margin: 12px 0;
+  }
+  .modal-box .btn { width: 100%; text-align: center; margin-top: 4px; }
+  .modal-box input, .modal-box textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 7px;
+    font-size: 13.5px; font-family: inherit; margin-bottom: 8px; color: var(--gray-700);
+  }
+  .modal-box textarea { min-height: 80px; resize: vertical; }
+  .modal-form { display: none; margin-top: 12px; }
+  .modal-form.show { display: block; }
 </style>
 </head>
 <body>
@@ -121,6 +172,13 @@
 
   <div class="about-band" id="aboutBand"></div>
 
+  <div class="modal-overlay" id="homeModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeHomeModal()">&times;</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
   <div class="sticker-band">
     <h2 id="stickerHeading">Live here? Get a free bumper sticker.</h2>
     <p id="stickerSub">No catch &mdash; just show your community pride. Give me your name and email or address, and I'll get you one.</p>
@@ -140,7 +198,14 @@
   </div>
 </div>
 
-<footer id="pageFooter">A community project</footer>
+<footer id="pageFooter">
+  <div class="footer-links">
+    <a href="iabs-jennifer-lewis.pdf" target="_blank" rel="noopener">Information About Brokerage Services</a>
+    &middot;
+    <a href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-5_0.pdf" target="_blank" rel="noopener">Texas Real Estate Commission Consumer Protection Notice</a>
+  </div>
+  <div class="footer-brand" id="pageFooterBrand"></div>
+</footer>
 
 <script>
   // ============================================================
@@ -171,6 +236,67 @@
     { business_name: "Prairie Rose Boutique", category: 'Beauty & Personal Care', description: 'Western wear, gifts, and a small salon in back -- a Rhome main street favorite.', phone: '(817) 555-0171', website: '#', address: '' },
   ];
 
+  // Real active Rhome, TX listings (pulled from NTREIS/MLS sheets, 08/15/2026)
+  const MOCK_HOMES = [
+    { mls: 'HAR_93383206', address: '276 Coyote Trail', price: 198800, beds: 4, baths: 2, sqft: 2124, subdivision: 'Coyote Ridge', listOffice: 'StarCrest Realty, LLC', listAgent: 'Alberto Hernandez', agentPhone: '832-445-5285', agentEmail: 'ahernandez@starcrestrealty.com' },
+    { mls: '20583446', address: '308 Coyote Trail', price: 200000, beds: 3, baths: 2, sqft: 1440, subdivision: 'Coyote Ridge', listOffice: 'Major League Realty, Inc.', listAgent: 'D. Mark McPherson', agentPhone: '817-706-3005', agentEmail: 'mcpherson321@gmail.com' },
+    { mls: '21309283', address: '600 Stirling Road', price: 250000, beds: 2, baths: 2, sqft: 1055, subdivision: 'Crown Point Ph2', listOffice: 'Modern Edge Real Estate', listAgent: 'Michelle Johnson', agentPhone: '817-456-4227', agentEmail: 'michelle@modernedge.realestate' },
+    { mls: '20949270', address: '279 Ridge Trail', price: 250000, beds: 4, baths: 2, sqft: 2128, subdivision: 'Coyote Ridge Ph II', listOffice: 'Pam Terronez Properties LLC', listAgent: 'Kortney Haines', agentPhone: '520-678-4662', agentEmail: 'haineskortney@gmail.com' },
+    { mls: '21337871', address: '1215 Alliance Boulevard', price: 250000, beds: 3, baths: 2, sqft: 1450, subdivision: 'Alliance Estates Ph1', listOffice: 'TK Realty', listAgent: 'Tyler Kreis', agentPhone: '817-789-1576', agentEmail: 'tyler@listwithtk.com' },
+    { mls: '21354942', address: '1213 Alliance Boulevard', price: 275000, beds: 3, baths: 2, sqft: 1680, subdivision: 'Alliance Estates Ph1', listOffice: 'Tomie Fox Real Estate Group', listAgent: 'Tomie Fox', agentPhone: '940-210-8088', agentEmail: 'tomie@tomiefox.com' },
+    { mls: '21219893', address: '12121 Arbor Lake Road', price: 299999, beds: 4, baths: 3, sqft: 2360, subdivision: 'Shale Creek', listOffice: 'Real Broker, LLC', listAgent: 'Chad Carlson', agentPhone: '817-642-7567', agentEmail: 'chad@carlsonluxury.com' },
+    { mls: 'HAR_24940034', address: '2199 Illinois Street', price: 310000, beds: 3, baths: 2, sqft: 2170, subdivision: '1-acre tract', listOffice: 'HomeSmart', listAgent: 'Dawn Walther', agentPhone: '713-870-6205', agentEmail: 'waltherdawn@yahoo.com' },
+    { mls: '21333015', address: '117 Ringtrail Drive', price: 349990, beds: 4, baths: 2, sqft: 1662, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21333292', address: '200 Windmill Drive', price: 354990, beds: 5, baths: 3, sqft: 2095, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21298216', address: '179 Dogwood Avenue', price: 360000, beds: 5, baths: 3, sqft: 2141, subdivision: 'Bluestem Ph 1', listOffice: 'Compass RE Texas, LLC', listAgent: 'Brittany Allred', agentPhone: '817-905-8334', agentEmail: 'brittany.allred@compass.com' },
+    { mls: '21351731', address: '133 Ringtrail Drive', price: 368740, beds: 4, baths: 2, sqft: 1813, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21332416', address: '118 Sisal Lane', price: 369990, beds: 4, baths: 2, sqft: 2039, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21351681', address: '138 Ringtrail Drive', price: 371490, beds: 4, baths: 2, sqft: 1813, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21275895', address: '228 Palo Duro Bend', price: 375000, beds: 3, baths: 2, sqft: 1650, subdivision: 'Reunion Ph 1', listOffice: 'United Real Estate DFW', listAgent: 'Amanda Tucker', agentPhone: '817-793-2355', agentEmail: 'agentamanda2020@gmail.com' },
+    { mls: '21354802', address: '160 Pintail Lane', price: 375000, beds: 3, baths: 3, sqft: 2018, subdivision: 'Reunion Ph 1', listOffice: 'Randy White Real Estate Svcs', listAgent: 'Holly Petree', agentPhone: '254-631-1431', agentEmail: 'holly@randywhite.com' },
+    { mls: '21333057', address: '114 Sisal Lane', price: 379990, beds: 4, baths: 2, sqft: 2110, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21337795', address: '119 Palo Duro Bend', price: 379999, beds: 3, baths: 3, sqft: 1743, subdivision: 'Reunion Ph 1', listOffice: 'Fathom Realty LLC', listAgent: 'Megan Tabler', agentPhone: '682-438-4133', agentEmail: 'megiedid@gmail.com' },
+    { mls: '21305759', address: '166 Palo Duro Bend', price: 385000, beds: 4, baths: 3, sqft: 1785, subdivision: 'Reunion Ph 1', listOffice: 'Fathom Realty, LLC', listAgent: 'Wendy Biondolillo', agentPhone: '817-262-2682', agentEmail: 'wendymbiondolillo@gmail.com' },
+    { mls: '21274855', address: '162 Palo Duro Bend', price: 394000, beds: 3, baths: 2, sqft: 1743, subdivision: 'Reunion Ph 1', listOffice: 'Ebby Halliday, REALTORS', listAgent: 'Shelly Harrison', agentPhone: '940-393-9818', agentEmail: 'shellyharrison@ebby.com' },
+    { mls: '21203783', address: '204 Windmill Drive', price: 394990, beds: 4, baths: 3, sqft: 2526, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21283420', address: '215 Buffalo Boulevard', price: 399900, beds: 3, baths: 2, sqft: 1984, subdivision: 'Reunion Ph 1', listOffice: 'Martin Realty Group', listAgent: 'Jose Becerra', agentPhone: '817-264-7740', agentEmail: 'armando@martinrealtydfw.com' },
+    { mls: '21165010', address: '145 Leon Avenue', price: 399990, beds: 4, baths: 3, sqft: 2766, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
+    { mls: '21225252', address: '395 Lone Trail', price: 400000, beds: 2, baths: 2, sqft: 1421, subdivision: 'Hills Oliver Creek', listOffice: 'eXp Realty, LLC', listAgent: 'Kiel Lindsey', agentPhone: '469-586-6110', agentEmail: 'kiel@yourpropertygeek.com' },
+    { mls: '21158137', address: '186 Dogwood Avenue', price: 415000, beds: 5, baths: 4, sqft: 2852, subdivision: 'Bluestem Ph 1', listOffice: 'CENTURY 21 Judge Fite Co.', listAgent: 'Traci Benson', agentPhone: '972-921-4161', agentEmail: 'soldbytracilynn@gmail.com' },
+  ];
+
+  const HOUSE_PALETTES = [
+    ['#8AA6C2','#D9CBB0','#5C7A9E'], ['#A3B899','#E4D9C4','#7C9470'],
+    ['#C79A7A','#EDE1CE','#9E7255'], ['#9E8CA8','#E0D6E6','#75607F'],
+    ['#B8A26A','#EFE6D2','#8C7A48'], ['#7FA6A0','#DCE9E5','#54807A'],
+  ];
+
+  function houseIllustration(seed) {
+    const p = HOUSE_PALETTES[seed % HOUSE_PALETTES.length];
+    return `<svg viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+      <rect width="300" height="160" fill="${p[1]}"/>
+      <rect x="0" y="115" width="300" height="45" fill="#DCE6D6"/>
+      <rect x="70" y="70" width="160" height="90" fill="${p[0]}"/>
+      <polygon points="60,70 150,25 240,70" fill="${p[2]}"/>
+      <rect x="128" y="112" width="26" height="48" fill="#5A4632"/>
+      <rect x="88" y="90" width="24" height="24" fill="#fff" opacity="0.85"/>
+      <rect x="188" y="90" width="24" height="24" fill="#fff" opacity="0.85"/>
+      <rect x="18" y="140" width="264" height="20" fill="#C9BE9E"/>
+    </svg>`;
+  }
+  function storeIllustration(seed) {
+    const p = HOUSE_PALETTES[seed % HOUSE_PALETTES.length];
+    return `<svg viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+      <rect width="300" height="160" fill="${p[1]}"/>
+      <rect x="20" y="60" width="260" height="100" fill="${p[0]}"/>
+      <rect x="20" y="60" width="260" height="16" fill="${p[2]}"/>
+      <rect x="60" y="95" width="45" height="65" fill="#fff" opacity="0.75"/>
+      <rect x="130" y="95" width="45" height="65" fill="#fff" opacity="0.75"/>
+      <rect x="200" y="95" width="45" height="65" fill="#fff" opacity="0.75"/>
+      <rect x="10" y="45" width="280" height="18" fill="${p[2]}"/>
+    </svg>`;
+  }
+
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str || '';
@@ -189,7 +315,7 @@
     document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
     document.getElementById('decalCta').href = 'ilove-community-merchant-signup.html?c=rhome';
     document.getElementById('listBusinessCta').href = 'ilove-community-merchant-signup.html?c=rhome';
-    document.getElementById('pageFooter').textContent = `${brand} \u00b7 a community project for ${SITE.communityName}, ${SITE.city}`;
+    document.getElementById('pageFooterBrand').textContent = `${brand} \u00b7 a community project for ${SITE.communityName}, ${SITE.city} \u00b7 A marketing service of Attorney Broker Services`;
 
     const initials = SITE.agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     document.getElementById('aboutBand').innerHTML = `
@@ -206,9 +332,12 @@
   }
 
   let activeCategory = 'All';
+  const HOMES_CAT = 'Homes for Sale';
+
+  function fmtPrice(n) { return '$' + n.toLocaleString('en-US'); }
 
   function renderFilters() {
-    const cats = ['All', ...new Set(MOCK_LISTINGS.map(b => b.category).filter(Boolean))];
+    const cats = ['All', ...new Set(MOCK_LISTINGS.map(b => b.category).filter(Boolean)), HOMES_CAT];
     document.getElementById('filterBar').innerHTML = cats.map(c =>
       `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
     ).join('');
@@ -223,10 +352,26 @@
 
   function renderGrid() {
     const grid = document.getElementById('directoryGrid');
+
+    if (activeCategory === HOMES_CAT) {
+      grid.innerHTML = MOCK_HOMES.map((h, i) => `
+        <div class="biz-card home-card" onclick="openHomeModal('${escapeHtml(h.mls)}')">
+          <div class="card-photo">${houseIllustration(i)}</div>
+          <div class="biz-cat">Homes for Sale</div>
+          <div class="biz-name">${escapeHtml(h.address)}</div>
+          <div class="home-price">${fmtPrice(h.price)}</div>
+          <div class="home-stats">${h.beds} bed / ${h.baths} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; ${escapeHtml(h.subdivision)}</div>
+          <div class="home-broker">Listed by <b>${escapeHtml(h.listAgent)}</b>, ${escapeHtml(h.listOffice)}</div>
+        </div>
+      `).join('');
+      return;
+    }
+
     const items = activeCategory === 'All' ? MOCK_LISTINGS : MOCK_LISTINGS.filter(b => b.category === activeCategory);
 
-    grid.innerHTML = items.map(b => `
+    grid.innerHTML = items.map((b, i) => `
       <div class="biz-card">
+        <div class="card-photo">${storeIllustration(i)}</div>
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
@@ -238,6 +383,60 @@
       </div>
     `).join('');
   }
+
+  function openHomeModal(mls) {
+    const h = MOCK_HOMES.find(x => x.mls === mls);
+    if (!h) return;
+    const defaultMsg = `Hi ${SITE.agentName.split(' ')[0]}, I'd like to schedule a private showing of ${h.address} (MLS# ${h.mls}). Please send over the written agreement to sign so we can get on the calendar.`;
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-photo">${houseIllustration(MOCK_HOMES.indexOf(h))}</div>
+      <div class="modal-tag">${escapeHtml(h.subdivision)}</div>
+      <h2>${escapeHtml(h.address)}</h2>
+      <div class="modal-price">${fmtPrice(h.price)}</div>
+      <div class="modal-stats">${h.beds} bed / ${h.baths} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; MLS# ${escapeHtml(h.mls)}</div>
+
+      <div class="modal-section">
+        <h3>Listing Broker &amp; Agent</h3>
+        <div class="modal-broker-row"><b>${escapeHtml(h.listAgent)}</b></div>
+        <div class="modal-broker-row">${escapeHtml(h.listOffice)}</div>
+        <div class="modal-broker-row">${escapeHtml(h.agentPhone)} &middot; <a href="mailto:${escapeHtml(h.agentEmail)}">${escapeHtml(h.agentEmail)}</a></div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Tour This Home</h3>
+        <button class="btn" onclick="showRequestForm('${escapeHtml(h.mls)}')">Request a Private Showing &rarr;</button>
+        <div class="modal-form" id="requestForm-${escapeHtml(h.mls)}">
+          <div class="modal-disclosure">Texas law requires buyers to sign a written buyer representation (or non-representation) agreement with an agent before touring a home in person. ${escapeHtml(SITE.agentName.split(' ')[0])} will send that over first so your showing can be scheduled.</div>
+          <input type="text" id="rf-name-${escapeHtml(h.mls)}" placeholder="Your full name">
+          <input type="text" id="rf-contact-${escapeHtml(h.mls)}" placeholder="Phone or email">
+          <textarea id="rf-msg-${escapeHtml(h.mls)}">${defaultMsg}</textarea>
+          <button class="btn" onclick="submitShowingRequest('${escapeHtml(h.mls)}', '${escapeHtml(h.address)}')">Send Request</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('homeModal').classList.add('show');
+  }
+  window.openHomeModal = openHomeModal;
+
+  function showRequestForm(mls) {
+    document.getElementById('requestForm-' + mls).classList.add('show');
+  }
+  window.showRequestForm = showRequestForm;
+
+  function submitShowingRequest(mls, address) {
+    const name = document.getElementById('rf-name-' + mls).value.trim();
+    const contact = document.getElementById('rf-contact-' + mls).value.trim();
+    const msg = document.getElementById('rf-msg-' + mls).value.trim();
+    const subject = encodeURIComponent(`Private Showing Request: ${address}`);
+    const body = encodeURIComponent(`${msg}\n\nName: ${name}\nContact: ${contact}`);
+    window.location.href = `mailto:${SITE.agentEmail}?subject=${subject}&body=${body}`;
+  }
+  window.submitShowingRequest = submitShowingRequest;
+
+  function closeHomeModal() {
+    document.getElementById('homeModal').classList.remove('show');
+  }
+  window.closeHomeModal = closeHomeModal;
 
   function showStickerMsg(text, isError) {
     const el = document.getElementById('stickerMsg');
