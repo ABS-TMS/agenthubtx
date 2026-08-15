@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">I &hearts; Community | Local Business Directory</title>
+<style>
+  :root {
+    --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+    --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.55; }
+
+  header.hero {
+    background: linear-gradient(160deg, var(--navy), var(--navy-mid));
+    color: #fff; padding: 60px 20px 70px; text-align: center;
+  }
+  .heart { color: var(--red); }
+  header.hero h1 { font-size: 34px; margin-bottom: 10px; }
+  header.hero p { color: #cdd8e6; font-size: 16px; max-width: 520px; margin: 0 auto; }
+  .hero-cta { margin-top: 26px; }
+  .btn { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 13px 24px; font-size: 14.5px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn-outline { border: 1.5px solid rgba(255,255,255,0.5); color: #fff; border-radius: 8px; padding: 12px 22px; font-size: 14.5px; font-weight: 600; text-decoration: none; display: inline-block; margin-left: 10px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 70px; }
+
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .filter-chip {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 20px;
+    padding: 7px 16px; font-size: 13px; font-weight: 600; color: var(--gray-700); cursor: pointer;
+  }
+  .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); }
+  .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
+  .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
+  .biz-meta { font-size: 12.5px; color: var(--gray-700); }
+  .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-500); }
+
+  .decal-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; text-align: center; margin: 50px 0;
+  }
+  .decal-band h2 { color: var(--navy); font-size: 22px; margin-bottom: 10px; }
+  .decal-band p { color: var(--gray-500); font-size: 14.5px; max-width: 480px; margin: 0 auto 20px; }
+
+  .about-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; margin: 50px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+  }
+  .about-photo {
+    width: 96px; height: 96px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 3px solid var(--gold); background: var(--off);
+  }
+  .about-photo-placeholder {
+    width: 96px; height: 96px; border-radius: 50%; flex-shrink: 0;
+    background: var(--navy); color: var(--gold); display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 700; border: 3px solid var(--gold);
+  }
+  .about-body { flex: 1; min-width: 220px; }
+  .about-eyebrow { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .about-name { font-size: 19px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .about-bio { font-size: 13.5px; color: var(--gray-500); margin-bottom: 12px; }
+  .about-contact { font-size: 13px; color: var(--navy); font-weight: 600; }
+  .about-contact a { color: var(--navy); text-decoration: none; }
+
+  .sticker-band {
+    background: var(--navy); border-radius: 14px; padding: 32px; margin: 50px 0;
+    color: #fff; text-align: center;
+  }
+  .sticker-band h2 { font-size: 22px; margin-bottom: 8px; }
+  .sticker-band p { color: #cdd8e6; font-size: 14.5px; max-width: 480px; margin: 0 auto 22px; }
+  .sticker-form { max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .sticker-form input {
+    padding: 11px 13px; border: none; border-radius: 7px; font-size: 14px;
+    font-family: inherit; background: #fff; color: var(--gray-700);
+  }
+  .sticker-form button {
+    background: var(--gold); color: var(--navy); border: none; border-radius: 8px;
+    padding: 13px; font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  }
+  .sticker-msg { font-size: 13px; margin-top: 10px; display: none; }
+  .sticker-msg.show { display: block; }
+  .sticker-msg.ok { color: var(--gold); }
+  .sticker-msg.err { color: #ff9b9b; }
+
+  footer { text-align: center; padding: 30px 20px; font-size: 12.5px; color: var(--gray-500); }
+
+  .demo-banner {
+    background: var(--gold); color: var(--navy); text-align: center;
+    font-size: 13px; font-weight: 700; padding: 10px 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">EXAMPLE PAGE &mdash; shows what your directory looks like once merchants sign up. Businesses and details below are illustrative, not real.</div>
+
+<header class="hero">
+  <h1 id="heroBrand">I <span class="heart">&hearts;</span> Community</h1>
+  <p>The local directory of businesses that keep <span id="heroCommunityName">this community</span> running &mdash; restaurants, services, and shops, all in one place, started by your neighbor <span id="heroAgentName">a local Realtor</span>.</p>
+  <div class="hero-cta">
+    <a class="btn" id="listBusinessCta" href="ilove-community-merchant-signup.html">List Your Business &rarr;</a>
+    <a class="btn-outline" href="#directory">Browse the Directory</a>
+  </div>
+</header>
+
+<div class="wrap" id="directory">
+  <div class="filter-bar" id="filterBar"></div>
+  <div class="directory-grid" id="directoryGrid">
+    <div class="empty-state">Loading the directory&hellip;</div>
+  </div>
+
+  <div class="about-band" id="aboutBand"></div>
+
+  <div class="sticker-band">
+    <h2 id="stickerHeading">Live here? Get a free bumper sticker.</h2>
+    <p id="stickerSub">No catch &mdash; just show your community pride. Give me your name and email or address, and I'll get you one.</p>
+    <div class="sticker-form">
+      <input type="text" id="s-name" placeholder="Full name">
+      <input type="email" id="s-email" placeholder="Email (or leave address below)">
+      <input type="text" id="s-address" placeholder="Address (or leave email above)">
+      <button onclick="submitStickerRequest()">Send Me a Sticker</button>
+      <div class="sticker-msg" id="stickerMsg"></div>
+    </div>
+  </div>
+
+  <div class="decal-band">
+    <h2 id="decalHeading">Own a business here?</h2>
+    <p id="decalSub">Join the directory free and get a window decal for your storefront &mdash; help your neighbors find you, and help the whole community find each other.</p>
+    <a class="btn" style="background: var(--navy); color: #fff;" id="decalCta" href="ilove-community-merchant-signup.html">Get Listed &rarr;</a>
+  </div>
+</div>
+
+<footer id="pageFooter">A community project</footer>
+
+<script>
+  // ============================================================
+  // EXAMPLE / MOCK VERSION -- no Supabase calls, no real data.
+  // This file is a static snapshot of what ilove-community-directory.html
+  // looks like once a site has real listings in it. Safe to share with
+  // prospective merchants or agents; nothing here writes to any database.
+  // ============================================================
+
+  const SITE = {
+    brand: 'I \u2764 Rhome',
+    communityName: 'Rhome',
+    city: 'Rhome, TX',
+    agentName: 'Jennifer Lewis',
+    agentPhotoUrl: '',
+    agentBio: "I've worked with families and businesses in Rhome for years, and I built this directory so neighbors can easily find the local businesses that make this town what it is.",
+    agentPhone: '817-995-3765',
+    agentEmail: 'jenniferlewis94@yahoo.com',
+  };
+
+  const MOCK_LISTINGS = [
+    { business_name: "Rhome Feed & Farm Supply", category: 'Retail / Shopping', description: 'Feed, tack, and farm supplies for the horse and cattle folks around Rhome -- free delivery in town.', phone: '(817) 555-0117', website: '', address: 'FM 1220' },
+    { business_name: "Cowtown Diner", category: 'Restaurant / Food', description: 'Home-style breakfast and lunch just off 287 -- the chicken fried steak is the talk of the town.', phone: '(817) 555-0142', website: '#', address: 'Main St' },
+    { business_name: 'Rhome Family Dental', category: 'Health & Wellness', description: 'Friendly small-town dental care for the whole family, with same-week appointments.', phone: '(817) 555-0163', website: '#', address: '' },
+    { business_name: "Blackland Fence & Welding", category: 'Home Services', description: 'Ranch fencing, gates, and custom welding -- serving Rhome and the surrounding county.', phone: '(817) 555-0129', website: '', address: '' },
+    { business_name: 'Lone Star Tire & Auto', category: 'Automotive', description: 'Full-service tire shop and general repair, right on the highway through town.', phone: '(817) 555-0184', website: '#', address: 'US-287' },
+    { business_name: 'Rhome Ranch Insurance', category: 'Professional Services', description: 'Home, auto, and farm & ranch insurance from an agent who knows the area.', phone: '(817) 555-0155', website: '#', address: '' },
+    { business_name: "Prairie Rose Boutique", category: 'Beauty & Personal Care', description: 'Western wear, gifts, and a small salon in back -- a Rhome main street favorite.', phone: '(817) 555-0171', website: '#', address: '' },
+  ];
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function renderSite() {
+    const brand = SITE.brand;
+    document.getElementById('pageTitle').textContent = `${brand} | Local Business Directory`;
+    document.getElementById('heroBrand').innerHTML = escapeHtml(brand).replace('\u2764', '<span class="heart">&hearts;</span>');
+    document.getElementById('heroCommunityName').textContent = SITE.communityName;
+    document.getElementById('heroAgentName').textContent = SITE.agentName;
+    document.getElementById('stickerHeading').textContent = `Live in ${SITE.communityName}? Get a free bumper sticker.`;
+    document.getElementById('stickerSub').textContent = `No catch \u2014 just show your ${SITE.communityName} pride. Give me your name and email or address, and I'll get you one.`;
+    document.getElementById('decalHeading').textContent = `Own a business in ${SITE.communityName}?`;
+    document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
+    document.getElementById('decalCta').href = 'ilove-community-merchant-signup.html?c=rhome';
+    document.getElementById('listBusinessCta').href = 'ilove-community-merchant-signup.html?c=rhome';
+    document.getElementById('pageFooter').textContent = `${brand} \u00b7 a community project for ${SITE.communityName}, ${SITE.city}`;
+
+    const initials = SITE.agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('aboutBand').innerHTML = `
+      ${SITE.agentPhotoUrl
+        ? `<img class="about-photo" src="${escapeHtml(SITE.agentPhotoUrl)}" alt="${escapeHtml(SITE.agentName)}">`
+        : `<div class="about-photo-placeholder">${escapeHtml(initials)}</div>`}
+      <div class="about-body">
+        <div class="about-eyebrow">Who's Behind ${escapeHtml(brand)}</div>
+        <div class="about-name">${escapeHtml(SITE.agentName)}</div>
+        <div class="about-bio">${escapeHtml(SITE.agentBio)}</div>
+        <div class="about-contact">${escapeHtml(SITE.agentPhone)} &middot; <a href="mailto:${escapeHtml(SITE.agentEmail)}">${escapeHtml(SITE.agentEmail)}</a></div>
+      </div>
+    `;
+  }
+
+  let activeCategory = 'All';
+
+  function renderFilters() {
+    const cats = ['All', ...new Set(MOCK_LISTINGS.map(b => b.category).filter(Boolean))];
+    document.getElementById('filterBar').innerHTML = cats.map(c =>
+      `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
+    ).join('');
+  }
+
+  function setCategory(cat) {
+    activeCategory = cat;
+    renderFilters();
+    renderGrid();
+  }
+  window.setCategory = setCategory;
+
+  function renderGrid() {
+    const grid = document.getElementById('directoryGrid');
+    const items = activeCategory === 'All' ? MOCK_LISTINGS : MOCK_LISTINGS.filter(b => b.category === activeCategory);
+
+    grid.innerHTML = items.map(b => `
+      <div class="biz-card">
+        ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
+        <div class="biz-name">${escapeHtml(b.business_name)}</div>
+        ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
+        <div class="biz-meta">
+          ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
+          ${b.website ? `<a href="#" onclick="return false;">Visit Website</a><br>` : ''}
+          ${b.address ? escapeHtml(b.address) : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showStickerMsg(text, isError) {
+    const el = document.getElementById('stickerMsg');
+    el.textContent = text;
+    el.className = 'sticker-msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  function submitStickerRequest() {
+    const name = document.getElementById('s-name').value.trim();
+    const email = document.getElementById('s-email').value.trim();
+    const address = document.getElementById('s-address').value.trim();
+
+    if (!name) {
+      showStickerMsg('Please enter your name.', true);
+      return;
+    }
+    if (!email && !address) {
+      showStickerMsg('Add an email or address so I know where to send it.', true);
+      return;
+    }
+    showStickerMsg("This is an example page, so nothing was actually submitted \u2014 on the real site, you'd be on the list!", false);
+    document.getElementById('s-name').value = '';
+    document.getElementById('s-email').value = '';
+    document.getElementById('s-address').value = '';
+  }
+
+  renderSite();
+  renderFilters();
+  renderGrid();
+</script>
+</body>
+</html>
