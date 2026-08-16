@@ -99,6 +99,14 @@
     font-size: 13px; font-weight: 700; padding: 10px 20px;
   }
 
+  .status-bar {
+    background: var(--navy-mid); color: #cdd8e6; font-size: 12.5px;
+    padding: 9px 20px; display: flex; justify-content: center; gap: 22px; flex-wrap: wrap;
+  }
+  .status-bar .item { display: flex; align-items: center; gap: 6px; }
+  .status-bar .item svg { width: 14px; height: 14px; opacity: 0.8; flex-shrink: 0; }
+  .status-bar .item b { color: #fff; font-weight: 700; }
+
   .biz-card.home-card { cursor: pointer; }
   .home-price { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
   .home-stats { font-size: 12.5px; color: var(--gray-500); margin-bottom: 8px; }
@@ -154,6 +162,13 @@
 <body>
 
 <div class="demo-banner">EXAMPLE PAGE &mdash; shows what your directory looks like once merchants sign up. Businesses and details below are illustrative, not real.</div>
+
+<div class="status-bar">
+  <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span id="statusDate">&mdash;</span></div>
+  <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="statusTime">&mdash;</span></div>
+  <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2.1A4 4 0 0 0 6.5 19h11z"/></svg><span id="statusWeather">Loading weather&hellip;</span></div>
+  <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span id="statusRate">30-yr fixed: <b>&mdash;</b></span></div>
+</div>
 
 <header class="hero">
   <h1 id="heroBrand">We <span class="heart">&hearts;</span> Community</h1>
@@ -466,6 +481,26 @@
   renderSite();
   renderFilters();
   renderGrid();
+
+  // Live status bar: date/time update every second; weather fetched once (Rhome, TX coords)
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('statusDate').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    document.getElementById('statusTime').textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=33.0245&longitude=-97.2864&current=temperature_2m&temperature_unit=fahrenheit&timezone=America%2FChicago')
+    .then(r => r.json())
+    .then(d => {
+      const t = Math.round(d.current.temperature_2m);
+      document.getElementById('statusWeather').textContent = `${t}\u00b0F in Rhome`;
+    })
+    .catch(() => { document.getElementById('statusWeather').textContent = 'Weather unavailable'; });
+
+  // Mortgage rate: no free no-key API exists for this — placeholder only, see chat notes
+  document.getElementById('statusRate').innerHTML = '30-yr fixed: <b>~6.5%</b> (est.)';
 </script>
 </body>
 </html>
