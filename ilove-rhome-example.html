@@ -35,6 +35,14 @@
   .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
   .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .idx-wrap {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 12px;
+    overflow: hidden; height: 900px;
+  }
+  .idx-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .idx-note {
+    font-size: 12.5px; color: var(--gray-500); text-align: center; margin-top: 10px;
+  }
   .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); }
   .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
@@ -230,6 +238,9 @@
   // prospective merchants or agents; nothing here writes to any database.
   // ============================================================
 
+  // Live NTREIS Matrix IDX widget, scoped to Jennifer's saved Rhome search
+  const IDX_WIDGET_URL = 'https://ntrdd.mlsmatrix.com/Matrix/public/IDX.aspx?idx=a8a445ba';
+
   const SITE = {
     brand: 'We \u2764 Rhome',
     communityName: 'Rhome',
@@ -406,18 +417,16 @@
     const grid = document.getElementById('directoryGrid');
 
     if (activeCategory === HOMES_CAT) {
-      grid.innerHTML = MOCK_HOMES.map((h, i) => `
-        <div class="biz-card home-card" onclick="openHomeModal('${escapeHtml(h.mls)}')">
-          <div class="card-photo">${houseIllustration(i)}</div>
-          <div class="biz-cat">Homes for Sale</div>
-          <div class="biz-name">${escapeHtml(h.address)}</div>
-          <div class="home-price">${fmtPrice(h.price)}</div>
-          <div class="home-stats">${h.beds} bed / ${h.baths} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; ${escapeHtml(h.subdivision)}</div>
-          <div class="home-broker">Listed by <b>${escapeHtml(h.listAgent)}</b>, ${escapeHtml(h.listOffice)}</div>
+      grid.style.display = 'block';
+      grid.innerHTML = `
+        <div class="idx-wrap">
+          <iframe src="${escapeHtml(IDX_WIDGET_URL)}" title="Homes for sale in Rhome, TX" marginwidth="0" marginheight="0"></iframe>
         </div>
-      `).join('');
+        <div class="idx-note">Live listings via North Texas Real Estate Information Systems (NTREIS) &mdash; search, sort, and view full details directly above.</div>
+      `;
       return;
     }
+    grid.style.display = 'grid';
 
     const items = activeCategory === 'All' ? MOCK_LISTINGS : MOCK_LISTINGS.filter(b => b.category === activeCategory);
 
