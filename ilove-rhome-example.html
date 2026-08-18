@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">We &hearts; Community | Local Business Directory</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
@@ -232,14 +233,18 @@
 
 <script>
   // ============================================================
-  // EXAMPLE / MOCK VERSION -- no Supabase calls, no real data.
-  // This file is a static snapshot of what ilove-community-directory.html
-  // looks like once a site has real listings in it. Safe to share with
-  // prospective merchants or agents; nothing here writes to any database.
+  // Live directory pull from the real I <3 Community backend, scoped to
+  // slug 'rhome'. Falls back to the sample listings below only if the
+  // live list is empty (e.g. before any merchant has been approved).
   // ============================================================
 
   // Live NTREIS Matrix IDX widget, scoped to Jennifer's saved Rhome search
   const IDX_WIDGET_URL = 'https://ntrdd.mlsmatrix.com/Matrix/public/IDX.aspx?idx=0b2345bd';
+
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const COMMUNITY_SLUG = 'we-love-rhome';
 
   const SITE = {
     brand: 'We \u2764 Rhome',
@@ -252,7 +257,7 @@
     agentEmail: 'jenniferlewis94@yahoo.com',
   };
 
-  const MOCK_LISTINGS = [
+  const FALLBACK_LISTINGS = [
     { business_name: "Rhome Feed & Farm Supply", category: 'Retail / Shopping', description: 'Feed, tack, and farm supplies for the horse and cattle folks around Rhome -- free delivery in town.', phone: '(817) 555-0117', website: '', address: 'FM 1220' },
     { business_name: "Cowtown Diner", category: 'Restaurant / Food', description: 'Home-style breakfast and lunch just off 287 -- the chicken fried steak is the talk of the town.', phone: '(817) 555-0142', website: '#', address: 'Main St' },
     { business_name: 'Rhome Family Dental', category: 'Health & Wellness', description: 'Friendly small-town dental care for the whole family, with same-week appointments.', phone: '(817) 555-0163', website: '#', address: '' },
@@ -396,11 +401,27 @@
 
   let activeCategory = 'All';
   const HOMES_CAT = 'Homes for Sale';
+  let LISTINGS = FALLBACK_LISTINGS;
+
+  async function loadDirectory() {
+    try {
+      const { data, error } = await sb.rpc('get_approved_listings', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      if (data && data.length) {
+        LISTINGS = data;
+        renderFilters();
+        renderGrid();
+      }
+      // If no live listings yet, silently keep showing FALLBACK_LISTINGS -- no error, no empty state.
+    } catch (err) {
+      console.error('Could not load live directory, showing sample listings:', err);
+    }
+  }
 
   function fmtPrice(n) { return '$' + n.toLocaleString('en-US'); }
 
   function renderFilters() {
-    const cats = ['All', ...new Set(MOCK_LISTINGS.map(b => b.category).filter(Boolean)), HOMES_CAT];
+    const cats = ['All', ...new Set(LISTINGS.map(b => b.category).filter(Boolean)), HOMES_CAT];
     document.getElementById('filterBar').innerHTML = cats.map(c =>
       `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
     ).join('');
@@ -428,7 +449,7 @@
     }
     grid.style.display = 'grid';
 
-    const items = activeCategory === 'All' ? MOCK_LISTINGS : MOCK_LISTINGS.filter(b => b.category === activeCategory);
+    const items = activeCategory === 'All' ? LISTINGS : LISTINGS.filter(b => b.category === activeCategory);
 
     grid.innerHTML = items.map((b, i) => `
       <div class="biz-card">
@@ -527,6 +548,7 @@
   renderSite();
   renderFilters();
   renderGrid();
+  loadDirectory();
 
   // Live status bar: date/time update every second; weather fetched once (Rhome, TX coords)
   function updateClock() {
