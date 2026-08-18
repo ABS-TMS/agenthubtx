@@ -1,0 +1,6 @@
+# Pretty URLs for "We ❤ [Town]" community pages
+# /we-love/<slug> -> the real community directory page, slug passed through as ?c=
+/we-love/:town    /ilove-community-directory.html?c=:town    200
+
+# Custom domain for Jennifer's Rhome page — silent rewrite, no visible redirect
+weloverhome.com/*    /we-love/rhome/:splat    200
