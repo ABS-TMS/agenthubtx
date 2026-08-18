@@ -381,8 +381,8 @@
     document.getElementById('stickerSub').textContent = `No catch \u2014 just show your ${SITE.communityName} pride. Give me your name and email or address, and I'll get you one.`;
     document.getElementById('decalHeading').textContent = `Own a business in ${SITE.communityName}?`;
     document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
-    document.getElementById('decalCta').href = 'ilove-community-merchant-signup.html?c=rhome';
-    document.getElementById('listBusinessCta').href = 'ilove-community-merchant-signup.html?c=rhome';
+    document.getElementById('decalCta').href = 'ilove-community-merchant-signup.html?c=' + encodeURIComponent(COMMUNITY_SLUG);
+    document.getElementById('listBusinessCta').href = 'ilove-community-merchant-signup.html?c=' + encodeURIComponent(COMMUNITY_SLUG);
     document.getElementById('pageFooterBrand').textContent = `${brand} \u00b7 a community project for ${SITE.communityName}, ${SITE.city} \u00b7 A marketing service of Attorney Broker Services`;
 
     const initials = SITE.agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -526,10 +526,11 @@
     el.className = 'sticker-msg show ' + (isError ? 'err' : 'ok');
   }
 
-  function submitStickerRequest() {
+  async function submitStickerRequest() {
     const name = document.getElementById('s-name').value.trim();
     const email = document.getElementById('s-email').value.trim();
     const address = document.getElementById('s-address').value.trim();
+    const btn = document.querySelector('.sticker-form button');
 
     if (!name) {
       showStickerMsg('Please enter your name.', true);
@@ -539,10 +540,26 @@
       showStickerMsg('Add an email or address so I know where to send it.', true);
       return;
     }
-    showStickerMsg("This is an example page, so nothing was actually submitted \u2014 on the real site, you'd be on the list!", false);
-    document.getElementById('s-name').value = '';
-    document.getElementById('s-email').value = '';
-    document.getElementById('s-address').value = '';
+
+    btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('submit_sticker_request', {
+        p_community_slug: COMMUNITY_SLUG,
+        p_full_name: name,
+        p_email: email || null,
+        p_phone: null,
+        p_address: address || null,
+      });
+      if (error) throw error;
+      showStickerMsg("You're on the list \u2014 I'll get a sticker to you soon!", false);
+      document.getElementById('s-name').value = '';
+      document.getElementById('s-email').value = '';
+      document.getElementById('s-address').value = '';
+    } catch (err) {
+      showStickerMsg('Could not submit: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   renderSite();
