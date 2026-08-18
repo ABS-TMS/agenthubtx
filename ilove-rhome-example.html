@@ -227,6 +227,8 @@
     <a href="https://abs.today/jennifer" target="_blank" rel="noopener">Information About Brokerage Services</a>
     &middot;
     <a href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-5_0.pdf" target="_blank" rel="noopener">Texas Real Estate Commission Consumer Protection Notice</a>
+    &middot;
+    <a href="ilove-community-admin.html?c=we-love-rhome">Site Admin</a>
   </div>
   <div class="footer-brand" id="pageFooterBrand"></div>
 </footer>
@@ -394,7 +396,7 @@
         <div class="about-eyebrow">Who's Behind ${escapeHtml(brand)}</div>
         <div class="about-name">${escapeHtml(SITE.agentName)}</div>
         <div class="about-bio">${escapeHtml(SITE.agentBio)}</div>
-        <div class="about-contact">${escapeHtml(SITE.agentPhone)} &middot; <a href="mailto:${escapeHtml(SITE.agentEmail)}">${escapeHtml(SITE.agentEmail)}</a></div>
+        <div class="about-contact">${escapeHtml(SITE.agentPhone)} &middot; <a href="mailto:${escapeHtml(SITE.agentEmail)}">${escapeHtml(SITE.agentEmail)}</a> &middot; <a href="${escapeHtml(AGENT_WEBSITE_URL)}" target="_blank" rel="noopener">Visit My Website</a></div>
       </div>
     `;
   }
@@ -419,6 +421,8 @@
   }
 
   function fmtPrice(n) { return '$' + n.toLocaleString('en-US'); }
+
+  const AGENT_WEBSITE_URL = 'https://www.attorneybrokerservices.com/jennifer-lewis';
 
   function renderFilters() {
     const cats = ['All', ...new Set(LISTINGS.map(b => b.category).filter(Boolean)), HOMES_CAT];
