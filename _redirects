@@ -3,4 +3,6 @@
 /we-love/:town    /ilove-community-directory.html?c=:town    200
 
 # Custom domain for Jennifer's Rhome page — silent rewrite, no visible redirect
-weloverhome.com/*    /we-love/rhome/:splat    200
+# NOTE: domain-level rules require the https:// prefix to be recognized as a domain rule
+https://weloverhome.com/*    /we-love/rhome/:splat    200
+https://www.weloverhome.com/*    /we-love/rhome/:splat    200
