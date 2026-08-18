@@ -3,6 +3,6 @@
 /we-love/:town    /ilove-community-directory.html?c=:town    200
 
 # Custom domain for Jennifer's Rhome page — silent rewrite, no visible redirect
-# Points directly at the real target file (redirects don't chain/re-run in Netlify)
-https://weloverhome.com/*    /ilove-community-directory.html?c=rhome    200
-https://www.weloverhome.com/*    /ilove-community-directory.html?c=rhome    200
+# Forced (200!) because weloverhome.com/ would otherwise be shadowed by the site's real index.html
+https://weloverhome.com/*    /ilove-community-directory.html?c=rhome    200!
+https://www.weloverhome.com/*    /ilove-community-directory.html?c=rhome    200!
