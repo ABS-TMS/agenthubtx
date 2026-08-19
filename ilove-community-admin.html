@@ -16,9 +16,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
 
-  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; color: #fff; }
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
   header .brand { font-weight: 700; font-size: 15px; }
   header .brand span { color: var(--red); }
+  header .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: #fff; border-radius: 6px; padding: 7px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  header .logout-btn:hover { background: rgba(255,255,255,0.1); }
 
   .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 70px; }
 
@@ -71,7 +73,7 @@
 </head>
 <body>
 
-<header><div class="brand" id="pageBrand">I <span>&hearts;</span> Community &middot; Directory Admin</div></header>
+<header><div class="brand" id="pageBrand">I <span>&hearts;</span> Community &middot; Directory Admin</div><button class="logout-btn" id="logoutBtn" onclick="doLogout()" style="display:none;">Log Out</button></header>
 
 <div id="loginState">
   <h2 style="color:var(--navy); margin-bottom:16px;">Admin Login</h2>
@@ -146,7 +148,13 @@
     }
   }
 
+  async function doLogout() {
+    await sb.auth.signOut();
+    window.location.reload();
+  }
+
   async function showApp() {
+    document.getElementById('logoutBtn').style.display = 'inline-block';
     try {
       const { data: siteData } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
       const site = siteData && siteData[0];
