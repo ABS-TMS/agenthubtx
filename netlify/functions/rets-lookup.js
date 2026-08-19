@@ -267,6 +267,29 @@ exports.handler = async (event) => {
     const qs = event.queryStringParameters || {};
     const mode = qs.mode || 'search';
 
+    if (mode === 'debug') {
+      const u = process.env.RETS_USERNAME || '';
+      const p = process.env.RETS_PASSWORD || '';
+      const l = process.env.RETS_LOGIN_URL || '';
+      // Never return the actual password. Return enough to catch trailing/leading
+      // whitespace, wrong length, or accidental quote characters without exposing the secret.
+      const edge = (s) => (s.length ? `"${s[0]}"..."${s[s.length - 1]}"` : '(empty)');
+      const debugInfo = {
+        usernameLength: u.length,
+        usernameFirstLastChar: edge(u),
+        usernameHasLeadingOrTrailingSpace: u !== u.trim(),
+        passwordLength: p.length,
+        passwordFirstLastChar: edge(p),
+        passwordHasLeadingOrTrailingSpace: p !== p.trim(),
+        loginUrl: l,
+        loginUrlHasLeadingOrTrailingSpace: l !== l.trim(),
+        authHeaderPreview: `Basic ${b64(`${u}:${p}`)}`.slice(0, 20) + '...',
+        retsVersionHeaderSent: RETS_VERSION,
+        userAgentHeaderSent: USER_AGENT,
+      };
+      return { statusCode: 200, headers: cors, body: JSON.stringify(debugInfo, null, 2) };
+    }
+
     const session = await retsLogin();
 
     let result;
