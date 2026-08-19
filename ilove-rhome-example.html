@@ -125,6 +125,13 @@
   .card-photo {
     width: 100%; height: 120px; border-radius: 8px; margin-bottom: 12px; overflow: hidden;
   }
+  .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .coming-soon-placeholder {
+    width: 100%; height: 100%; background: var(--off); border: 1px dashed var(--gray-300);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--gray-500); font-size: 12px; font-weight: 600; gap: 4px;
+  }
+  .coming-soon-placeholder svg { width: 22px; height: 22px; opacity: 0.5; }
   .modal-photo {
     width: 100%; height: 180px; border-radius: 10px; margin-bottom: 14px; overflow: hidden;
   }
@@ -438,6 +445,21 @@
   }
   window.setCategory = setCategory;
 
+  function photoSlot(b, i) {
+    if (b.photo_url) {
+      return `<img src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}">`;
+    }
+    if (b.id) {
+      // Real listing with no photo yet
+      return `<div class="coming-soon-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Photo Coming Soon
+      </div>`;
+    }
+    // Sample/demo listing -- keep the decorative illustration
+    return storeIllustration(i);
+  }
+
   function renderGrid() {
     const grid = document.getElementById('directoryGrid');
 
@@ -457,7 +479,7 @@
 
     grid.innerHTML = items.map((b, i) => `
       <div class="biz-card">
-        <div class="card-photo">${storeIllustration(i)}</div>
+        <div class="card-photo">${photoSlot(b, i)}</div>
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
