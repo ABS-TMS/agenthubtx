@@ -50,6 +50,19 @@
 
   .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 
+  .edit-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 12px; padding: 12px; background: var(--off); border-radius: 8px;
+  }
+  .edit-field { display: flex; flex-direction: column; gap: 4px; }
+  .edit-field-wide { grid-column: 1 / -1; }
+  .edit-field label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+  .edit-field input, .edit-field textarea {
+    padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: 12.5px; font-family: inherit; resize: vertical;
+  }
+  .edit-actions { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 4px; }
+
   .notes-row { display: flex; gap: 8px; margin-top: 10px; }
   .notes-row input {
     flex: 1; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
@@ -234,7 +247,20 @@
           ${l.status !== 'rejected' ? `<button class="btn-small btn-reject" onclick="updateStatus('${l.id}', 'rejected')">Reject</button>` : ''}
           ${l.status !== 'pending' ? `<button class="btn-small" onclick="updateStatus('${l.id}', 'pending')">Back to Pending</button>` : ''}
           <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
+          <button class="btn-small" onclick="toggleEdit('${l.id}')">Edit</button>
           <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
+        </div>
+        <div class="edit-row" id="edit-row-${l.id}" style="display:none;">
+          <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
+          <div class="edit-field"><label>Category</label><input type="text" id="edit-category-${l.id}" value="${escapeHtml(l.category || '')}"></div>
+          <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
+          <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
+          <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
+          <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2">${escapeHtml(l.description || '')}</textarea></div>
+          <div class="edit-actions">
+            <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
+            <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
+          </div>
         </div>
         <div class="notes-row">
           <input type="text" id="notes-listing-${l.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(l.notes || '')}" oninput="document.getElementById('save-notes-listing-${l.id}').disabled = false;">
@@ -249,6 +275,33 @@
         </div>
       </div>
     `).join('');
+  }
+
+  function toggleEdit(id) {
+    const row = document.getElementById(`edit-row-${id}`);
+    if (row) row.style.display = row.style.display === 'none' ? 'grid' : 'none';
+  }
+
+  async function saveListingDetails(id) {
+    const btn = document.querySelector(`#edit-row-${id} .btn-approve`);
+    const payload = {
+      p_id: id,
+      p_business_name: document.getElementById(`edit-name-${id}`).value.trim(),
+      p_category: document.getElementById(`edit-category-${id}`).value.trim() || null,
+      p_phone: document.getElementById(`edit-phone-${id}`).value.trim() || null,
+      p_website: document.getElementById(`edit-website-${id}`).value.trim() || null,
+      p_address: document.getElementById(`edit-address-${id}`).value.trim() || null,
+      p_description: document.getElementById(`edit-description-${id}`).value.trim() || null,
+    };
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    try {
+      const { error } = await sb.rpc('admin_update_listing_details', payload);
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not save changes: ' + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+    }
   }
 
   async function updateStatus(id, status) {
