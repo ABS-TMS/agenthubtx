@@ -575,6 +575,16 @@ exports.handler = async (event) => {
           clientSafe: buildClientSafeRecord(fullRecord),
         };
       }
+    } else if (mode === 'rawsearch') {
+      // DEBUG ONLY — lets us test different DMQL2 query strings directly via
+      // URL param, without a redeploy per attempt. Not used by any real page.
+      if (!qs.query) throw new Error('Provide query (a raw DMQL2 string, e.g. (City=Rhome))');
+      result = await retsSearch(session, {
+        resource: qs.resource,
+        class: qs.class,
+        rawQuery: qs.query,
+        limit: qs.limit ? parseInt(qs.limit, 10) : 5,
+      });
     } else if (mode === 'citysearch') {
       // For public card grids (e.g. a town's "Homes for Sale" section).
       // Returns clientSafe property data PLUS listing agent/office name+phone+email —
