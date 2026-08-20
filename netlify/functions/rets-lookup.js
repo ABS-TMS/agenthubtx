@@ -27,9 +27,11 @@
 //        instructions/access info/etc.), clientSafe is the filtered subset safe to send a buyer
 //        (built by buildClientSafeRecord() below). This is what showing-request.html should call.
 //
-//   mode=citysearch&city=Rhome&limit=12
+//   mode=citysearch&city=Rhome&limit=12  (or &subdivision=Robson+Ranch instead of &city=)
 //     -> for public card grids (e.g. a town's "Homes for Sale" section). Returns
-//        { count, listings: [{ clientSafe, photoUrl }, ...] } for every Active listing in that city.
+//        { count, listings: [{ clientSafe, photoUrl }, ...] } for every Active listing in that city
+//        (or subdivision, for a master-planned community that isn't its own municipality — e.g.
+//        Robson Ranch, which sits inside Denton/Krugerville and has no City lookup entry of its own).
 //        NEVER returns agentFacing data — this is a public-facing endpoint. photoUrl is best-effort
 //        (primary photo only, via GetObject ":0") and may be null if the fetch fails for a listing.
 //
@@ -282,6 +284,16 @@ async function resolveCityCode(session, cityName) {
 async function buildCityActiveQuery(session, city) {
   const cityCode = await resolveCityCode(session, city);
   return `(City=${cityCode},StandardStatus=${ACTIVE_STATUS_CODE})`;
+}
+
+// For a master-planned community that ISN'T its own municipality (e.g. Robson
+// Ranch, which sits inside Denton/Krugerville) — City search won't find it,
+// since there's no matching City lookup entry for the community name. Use
+// SubdivisionName instead. Confirmed via metadata: SubdivisionName is a plain
+// Character field (not Lookup), so the literal text can be queried directly —
+// no code-resolution step needed, unlike City.
+function buildSubdivisionActiveQuery(subdivision) {
+  return `(SubdivisionName=${subdivision},StandardStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // ---------------------------------------------------------------------------
@@ -644,9 +656,11 @@ exports.handler = async (event) => {
       // contact, not the buyer). Here, on a public marketing page, showing listing
       // agent/office identity and contact is standard MLS/IDX display practice (same
       // as Zillow/Realtor.com) — this is a different, legitimate display context.
-      if (!qs.city) throw new Error('Provide city');
+      if (!qs.city && !qs.subdivision) throw new Error('Provide city or subdivision');
       const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 12, 24) : 12;
-      const cityQuery = await buildCityActiveQuery(session, qs.city);
+      const cityQuery = qs.subdivision
+        ? buildSubdivisionActiveQuery(qs.subdivision)
+        : await buildCityActiveQuery(session, qs.city);
       const searchResult = await retsSearch(session, {
         resource: qs.resource,
         class: qs.class,
