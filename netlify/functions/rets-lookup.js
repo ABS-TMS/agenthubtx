@@ -282,8 +282,15 @@ async function resolveCityCode(session, cityName) {
 }
 
 async function buildCityActiveQuery(session, city) {
+  // CONFIRMED WORKING against this NTREIS server: explicit uppercase "AND"
+  // (with spaces) between two SEPARATELY parenthesized clauses. Verified live —
+  // returned exactly the 77 real Active Rhome listings, all correct.
+  // Both other forms tried first were rejected with ReplyCode 20206 "Invalid
+  // Query Syntax": (City=X),(Status=Y) and (City=X,Status=Y). Neither the
+  // RETS-spec "textbook" form nor the simpler single-parens form worked here —
+  // this server's dialect specifically wants the literal " AND " keyword.
   const cityCode = await resolveCityCode(session, city);
-  return `(City=${cityCode},StandardStatus=${ACTIVE_STATUS_CODE})`;
+  return `(City=${cityCode}) AND (StandardStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // For a master-planned community that ISN'T its own municipality (e.g. Robson
@@ -293,7 +300,7 @@ async function buildCityActiveQuery(session, city) {
 // Character field (not Lookup), so the literal text can be queried directly —
 // no code-resolution step needed, unlike City.
 function buildSubdivisionActiveQuery(subdivision) {
-  return `(SubdivisionName=${subdivision},StandardStatus=${ACTIVE_STATUS_CODE})`;
+  return `(SubdivisionName=${subdivision}) AND (StandardStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // ---------------------------------------------------------------------------
