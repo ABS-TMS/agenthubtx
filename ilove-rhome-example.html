@@ -36,11 +36,17 @@
   .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
   .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .idx-wrap {
-    background: var(--white); border: 1px solid var(--gray-300); border-radius: 12px;
-    overflow: hidden; height: 900px;
-  }
-  .idx-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .home-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .home-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+  .home-card .card-photo { width: 100%; height: 170px; background: var(--off); }
+  .home-card .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .home-card .card-body { padding: 16px; }
+  .home-card .home-price { font-weight: 700; font-size: 20px; color: var(--navy); }
+  .home-card .home-stats { font-size: 13px; color: var(--gray-500); margin: 4px 0 6px; }
+  .home-card .home-address { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+  .home-card .home-subdivision { font-size: 12.5px; color: var(--gray-500); margin-top: 2px; }
+  .homes-status { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 14px; grid-column: 1 / -1; }
+  .homes-status.err { color: var(--red); }
   .idx-note {
     font-size: 12.5px; color: var(--gray-500); text-align: center; margin-top: 10px;
   }
@@ -240,9 +246,6 @@
   // live list is empty (e.g. before any merchant has been approved).
   // ============================================================
 
-  // Live NTREIS Matrix IDX widget, scoped to Jennifer's saved Rhome search
-  const IDX_WIDGET_URL = 'https://ntrdd.mlsmatrix.com/Matrix/public/IDX.aspx?idx=0b2345bd';
-
   const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -269,34 +272,12 @@
     { business_name: "Prairie Rose Boutique", category: 'Beauty & Personal Care', description: 'Western wear, gifts, and a small salon in back -- a Rhome main street favorite.', phone: '(817) 555-0171', website: '#', address: '' },
   ];
 
-  // Real active Rhome, TX listings (pulled from NTREIS/MLS sheets, 08/15/2026)
-  const MOCK_HOMES = [
-    { mls: 'HAR_93383206', address: '276 Coyote Trail', price: 198800, beds: 4, baths: 2, sqft: 2124, subdivision: 'Coyote Ridge', listOffice: 'StarCrest Realty, LLC', listAgent: 'Alberto Hernandez', agentPhone: '832-445-5285', agentEmail: 'ahernandez@starcrestrealty.com' },
-    { mls: '20583446', address: '308 Coyote Trail', price: 200000, beds: 3, baths: 2, sqft: 1440, subdivision: 'Coyote Ridge', listOffice: 'Major League Realty, Inc.', listAgent: 'D. Mark McPherson', agentPhone: '817-706-3005', agentEmail: 'mcpherson321@gmail.com' },
-    { mls: '21309283', address: '600 Stirling Road', price: 250000, beds: 2, baths: 2, sqft: 1055, subdivision: 'Crown Point Ph2', listOffice: 'Modern Edge Real Estate', listAgent: 'Michelle Johnson', agentPhone: '817-456-4227', agentEmail: 'michelle@modernedge.realestate' },
-    { mls: '20949270', address: '279 Ridge Trail', price: 250000, beds: 4, baths: 2, sqft: 2128, subdivision: 'Coyote Ridge Ph II', listOffice: 'Pam Terronez Properties LLC', listAgent: 'Kortney Haines', agentPhone: '520-678-4662', agentEmail: 'haineskortney@gmail.com' },
-    { mls: '21337871', address: '1215 Alliance Boulevard', price: 250000, beds: 3, baths: 2, sqft: 1450, subdivision: 'Alliance Estates Ph1', listOffice: 'TK Realty', listAgent: 'Tyler Kreis', agentPhone: '817-789-1576', agentEmail: 'tyler@listwithtk.com' },
-    { mls: '21354942', address: '1213 Alliance Boulevard', price: 275000, beds: 3, baths: 2, sqft: 1680, subdivision: 'Alliance Estates Ph1', listOffice: 'Tomie Fox Real Estate Group', listAgent: 'Tomie Fox', agentPhone: '940-210-8088', agentEmail: 'tomie@tomiefox.com' },
-    { mls: '21219893', address: '12121 Arbor Lake Road', price: 299999, beds: 4, baths: 3, sqft: 2360, subdivision: 'Shale Creek', listOffice: 'Real Broker, LLC', listAgent: 'Chad Carlson', agentPhone: '817-642-7567', agentEmail: 'chad@carlsonluxury.com' },
-    { mls: 'HAR_24940034', address: '2199 Illinois Street', price: 310000, beds: 3, baths: 2, sqft: 2170, subdivision: '1-acre tract', listOffice: 'HomeSmart', listAgent: 'Dawn Walther', agentPhone: '713-870-6205', agentEmail: 'waltherdawn@yahoo.com' },
-    { mls: '21333015', address: '117 Ringtrail Drive', price: 349990, beds: 4, baths: 2, sqft: 1662, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21333292', address: '200 Windmill Drive', price: 354990, beds: 5, baths: 3, sqft: 2095, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21298216', address: '179 Dogwood Avenue', price: 360000, beds: 5, baths: 3, sqft: 2141, subdivision: 'Bluestem Ph 1', listOffice: 'Compass RE Texas, LLC', listAgent: 'Brittany Allred', agentPhone: '817-905-8334', agentEmail: 'brittany.allred@compass.com' },
-    { mls: '21351731', address: '133 Ringtrail Drive', price: 368740, beds: 4, baths: 2, sqft: 1813, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21332416', address: '118 Sisal Lane', price: 369990, beds: 4, baths: 2, sqft: 2039, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21351681', address: '138 Ringtrail Drive', price: 371490, beds: 4, baths: 2, sqft: 1813, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21275895', address: '228 Palo Duro Bend', price: 375000, beds: 3, baths: 2, sqft: 1650, subdivision: 'Reunion Ph 1', listOffice: 'United Real Estate DFW', listAgent: 'Amanda Tucker', agentPhone: '817-793-2355', agentEmail: 'agentamanda2020@gmail.com' },
-    { mls: '21354802', address: '160 Pintail Lane', price: 375000, beds: 3, baths: 3, sqft: 2018, subdivision: 'Reunion Ph 1', listOffice: 'Randy White Real Estate Svcs', listAgent: 'Holly Petree', agentPhone: '254-631-1431', agentEmail: 'holly@randywhite.com' },
-    { mls: '21333057', address: '114 Sisal Lane', price: 379990, beds: 4, baths: 2, sqft: 2110, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21337795', address: '119 Palo Duro Bend', price: 379999, beds: 3, baths: 3, sqft: 1743, subdivision: 'Reunion Ph 1', listOffice: 'Fathom Realty LLC', listAgent: 'Megan Tabler', agentPhone: '682-438-4133', agentEmail: 'megiedid@gmail.com' },
-    { mls: '21305759', address: '166 Palo Duro Bend', price: 385000, beds: 4, baths: 3, sqft: 1785, subdivision: 'Reunion Ph 1', listOffice: 'Fathom Realty, LLC', listAgent: 'Wendy Biondolillo', agentPhone: '817-262-2682', agentEmail: 'wendymbiondolillo@gmail.com' },
-    { mls: '21274855', address: '162 Palo Duro Bend', price: 394000, beds: 3, baths: 2, sqft: 1743, subdivision: 'Reunion Ph 1', listOffice: 'Ebby Halliday, REALTORS', listAgent: 'Shelly Harrison', agentPhone: '940-393-9818', agentEmail: 'shellyharrison@ebby.com' },
-    { mls: '21203783', address: '204 Windmill Drive', price: 394990, beds: 4, baths: 3, sqft: 2526, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21283420', address: '215 Buffalo Boulevard', price: 399900, beds: 3, baths: 2, sqft: 1984, subdivision: 'Reunion Ph 1', listOffice: 'Martin Realty Group', listAgent: 'Jose Becerra', agentPhone: '817-264-7740', agentEmail: 'armando@martinrealtydfw.com' },
-    { mls: '21165010', address: '145 Leon Avenue', price: 399990, beds: 4, baths: 3, sqft: 2766, subdivision: 'Bluestem', listOffice: 'Century 21 Mike Bowman, Inc.', listAgent: 'Stephen Kahn', agentPhone: '817-946-8906', agentEmail: 'steve.kahn@c21bowman.com' },
-    { mls: '21225252', address: '395 Lone Trail', price: 400000, beds: 2, baths: 2, sqft: 1421, subdivision: 'Hills Oliver Creek', listOffice: 'eXp Realty, LLC', listAgent: 'Kiel Lindsey', agentPhone: '469-586-6110', agentEmail: 'kiel@yourpropertygeek.com' },
-    { mls: '21158137', address: '186 Dogwood Avenue', price: 415000, beds: 5, baths: 4, sqft: 2852, subdivision: 'Bluestem Ph 1', listOffice: 'CENTURY 21 Judge Fite Co.', listAgent: 'Traci Benson', agentPhone: '972-921-4161', agentEmail: 'soldbytracilynn@gmail.com' },
-  ];
+  // Real homes for sale, pulled live from NTREIS via our RETS integration —
+  // see mode=citysearch in netlify/functions/rets-lookup.js. Loaded lazily
+  // the first time the "Homes for Sale" tab is opened, then cached here.
+  let LIVE_HOMES = [];
+  let homesLoadState = 'idle'; // idle | loading | loaded | error
+  let homesLoadError = '';
 
   const HOUSE_PALETTES = [
     ['#8AA6C2','#D9CBB0','#5C7A9E'], ['#A3B899','#E4D9C4','#7C9470'],
@@ -467,13 +448,11 @@
     const grid = document.getElementById('directoryGrid');
 
     if (activeCategory === HOMES_CAT) {
-      grid.style.display = 'block';
-      grid.innerHTML = `
-        <div class="idx-wrap">
-          <iframe src="${escapeHtml(IDX_WIDGET_URL)}" title="Homes for sale in Rhome, TX" marginwidth="0" marginheight="0"></iframe>
-        </div>
-        <div class="idx-note">Live listings via North Texas Real Estate Information Systems (NTREIS) &mdash; search, sort, and view full details directly above.</div>
-      `;
+      grid.style.display = 'grid';
+      if (homesLoadState === 'idle') {
+        fetchHomesForSale();
+      }
+      renderHomesGrid();
       return;
     }
     grid.style.display = 'grid';
@@ -495,16 +474,83 @@
     `).join('');
   }
 
+  // Maps a raw citysearch listing (RETS field names) into the simple shape
+  // the card grid and modal use.
+  function normalizeListing(raw) {
+    const c = raw; // clientSafe fields + agent contact + photoUrl, see mode=citysearch
+    const addressParts = [c.StreetNumber, c.StreetDirPrefix, c.StreetName, c.StreetSuffix, c.StreetDirSuffix]
+      .filter(Boolean).join(' ') + (c.UnitNumber ? (' #' + c.UnitNumber) : '');
+    const full = parseInt(c.BathroomsFull, 10) || 0;
+    const half = parseInt(c.BathroomsHalf, 10) || 0;
+    return {
+      mls: c.ListingId || '',
+      address: addressParts,
+      price: parseFloat(c.ListPrice) || 0,
+      beds: parseInt(c.BedroomsTotal, 10) || 0,
+      bathsDisplay: half ? (full + '.' + half) : String(full),
+      sqft: parseFloat(c.LivingArea) || 0,
+      subdivision: c.SubdivisionName || '',
+      listAgent: c.ListAgentFullName || '',
+      listOffice: c.ListOfficeName || '',
+      agentPhone: c.ListAgentDirectPhone || '',
+      agentEmail: c.ListAgentEmail || '',
+      photoUrl: c.photoUrl || null,
+    };
+  }
+
+  async function fetchHomesForSale() {
+    homesLoadState = 'loading';
+    renderHomesGrid();
+    try {
+      const res = await fetch('/.netlify/functions/rets-lookup?mode=citysearch&city=' + encodeURIComponent(SITE.communityName) + '&limit=12');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      LIVE_HOMES = (data.listings || []).map(normalizeListing);
+      homesLoadState = 'loaded';
+    } catch (err) {
+      homesLoadError = err.message;
+      homesLoadState = 'error';
+    }
+    renderHomesGrid();
+  }
+
+  function renderHomesGrid() {
+    const grid = document.getElementById('directoryGrid');
+    if (homesLoadState === 'loading') {
+      grid.innerHTML = '<div class="homes-status">Loading current listings&hellip;</div>';
+      return;
+    }
+    if (homesLoadState === 'error') {
+      grid.innerHTML = '<div class="homes-status err">Couldn\u2019t load current listings right now &mdash; please try again shortly.</div>';
+      return;
+    }
+    if (!LIVE_HOMES.length) {
+      grid.innerHTML = '<div class="homes-status">No active listings in ' + escapeHtml(SITE.communityName) + ' right now &mdash; check back soon.</div>';
+      return;
+    }
+    grid.innerHTML = LIVE_HOMES.map((h, i) => `
+      <div class="home-card" onclick="openHomeModal('${escapeHtml(h.mls)}')">
+        <div class="card-photo">${h.photoUrl ? `<img src="${escapeHtml(h.photoUrl)}" alt="${escapeHtml(h.address)}">` : houseIllustration(i)}</div>
+        <div class="card-body">
+          <div class="home-price">${fmtPrice(h.price)}</div>
+          <div class="home-stats">${h.beds} bed / ${h.bathsDisplay} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft</div>
+          <div class="home-address">${escapeHtml(h.address)}</div>
+          ${h.subdivision ? `<div class="home-subdivision">${escapeHtml(h.subdivision)}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
   function openHomeModal(mls) {
-    const h = MOCK_HOMES.find(x => x.mls === mls);
+    const h = LIVE_HOMES.find(x => x.mls === mls);
     if (!h) return;
     const defaultMsg = `Hi ${SITE.agentName.split(' ')[0]}, I'd like to schedule a private showing of ${h.address} (MLS# ${h.mls}). Please send over the written agreement to sign so we can get on the calendar.`;
     document.getElementById('modalBody').innerHTML = `
-      <div class="modal-photo">${houseIllustration(MOCK_HOMES.indexOf(h))}</div>
+      <div class="modal-photo">${h.photoUrl ? `<img src="${escapeHtml(h.photoUrl)}" alt="${escapeHtml(h.address)}" style="width:100%;height:100%;object-fit:cover;">` : houseIllustration(LIVE_HOMES.indexOf(h))}</div>
       <div class="modal-tag">${escapeHtml(h.subdivision)}</div>
       <h2>${escapeHtml(h.address)}</h2>
       <div class="modal-price">${fmtPrice(h.price)}</div>
-      <div class="modal-stats">${h.beds} bed / ${h.baths} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; MLS# ${escapeHtml(h.mls)}</div>
+      <div class="modal-stats">${h.beds} bed / ${h.bathsDisplay} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; MLS# ${escapeHtml(h.mls)}</div>
 
       <div class="modal-section">
         <h3>Listing Broker &amp; Agent</h3>
