@@ -258,13 +258,30 @@ function buildQuery({ mlsNumber, address }) {
 // DMQL2 conjunction: (Field1=Value1),(Field2=Value2) — comma at this bracket
 // level is AND, per RETS 1.8 DMQL2 syntax used elsewhere in this file's
 // confirmed-working single-MLS# query.
-function buildCityActiveQuery(city) {
-  // UPDATE: the "textbook" double-parens DMQL2 AND form —
-  // (City=Rhome),(StandardStatus=Active) — returned ReplyCode 20206
-  // "Invalid Query Syntax" against this specific NTREIS Matrix server.
-  // This server's dialect wants both conditions inside ONE set of parens,
-  // comma-separated, confirmed working live.
-  return `(City=${city},StandardStatus=Active)`;
+// City (and StandardStatus) are Interpretation=Lookup fields — RETS stores a
+// short internal code and only decodes it to display text on OUTPUT. Confirmed
+// live: (City=Rhome) and (StandardStatus=Active) both returned ReplyCode 20206
+// "Invalid Query Syntax". The real codes come from METADATA-LOOKUP_TYPE:
+// StandardStatus's "Active" code is the constant "ACT". City's code is a
+// numeric ID that's DIFFERENT PER CITY (Rhome=1252) and can't be hardcoded —
+// must be resolved from the live lookup table for whatever city is requested.
+const ACTIVE_STATUS_CODE = 'ACT';
+
+async function resolveCityCode(session, cityName) {
+  const xml = await retsGetLookupValues(session, { lookupName: 'City' });
+  const parsed = parseCompact(xml); // METADATA responses use the same COLUMNS/DATA/DELIMITER shape as search results
+  const match = parsed.records.find(
+    (r) => (r.LongValue || '').trim().toLowerCase() === cityName.trim().toLowerCase()
+  );
+  if (!match) {
+    throw new Error(`City "${cityName}" not found in the City lookup table — check spelling/capitalization`);
+  }
+  return match.Value;
+}
+
+async function buildCityActiveQuery(session, city) {
+  const cityCode = await resolveCityCode(session, city);
+  return `(City=${cityCode},StandardStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // ---------------------------------------------------------------------------
@@ -629,10 +646,11 @@ exports.handler = async (event) => {
       // as Zillow/Realtor.com) — this is a different, legitimate display context.
       if (!qs.city) throw new Error('Provide city');
       const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 12, 24) : 12;
+      const cityQuery = await buildCityActiveQuery(session, qs.city);
       const searchResult = await retsSearch(session, {
         resource: qs.resource,
         class: qs.class,
-        rawQuery: buildCityActiveQuery(qs.city),
+        rawQuery: cityQuery,
         limit,
       });
       const listings = await Promise.all(
@@ -658,7 +676,7 @@ exports.handler = async (event) => {
         // from "the query itself failed silently." Not needed by the page,
         // just useful when troubleshooting an empty result.
         _debug: {
-          queryUsed: buildCityActiveQuery(qs.city),
+          queryUsed: cityQuery,
           replyCode: searchResult.replyCode,
           replyText: searchResult.replyText,
           rawRowCount: searchResult.count,
