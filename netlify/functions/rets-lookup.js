@@ -27,6 +27,12 @@
 //        instructions/access info/etc.), clientSafe is the filtered subset safe to send a buyer
 //        (built by buildClientSafeRecord() below). This is what showing-request.html should call.
 //
+//   mode=citysearch&city=Rhome&limit=12
+//     -> for public card grids (e.g. a town's "Homes for Sale" section). Returns
+//        { count, listings: [{ clientSafe, photoUrl }, ...] } for every Active listing in that city.
+//        NEVER returns agentFacing data — this is a public-facing endpoint. photoUrl is best-effort
+//        (primary photo only, via GetObject ":0") and may be null if the fetch fails for a listing.
+//
 //   mode=photos&listingKey=<ListingKeyNumeric>
 //     -> best-effort list of photo URLs via GetObject (Location=1). NOTE: exact response shaping for
 //        Location=1 (multipart vs. flat key/value) is implementation-specific and UNVERIFIED against the
@@ -249,6 +255,13 @@ function buildQuery({ mlsNumber, address }) {
   throw new Error('Provide mlsNumber or address');
 }
 
+// DMQL2 conjunction: (Field1=Value1),(Field2=Value2) — comma at this bracket
+// level is AND, per RETS 1.8 DMQL2 syntax used elsewhere in this file's
+// confirmed-working single-MLS# query.
+function buildCityActiveQuery(city) {
+  return `(City=${city}),(StandardStatus=Active)`;
+}
+
 // ---------------------------------------------------------------------------
 // CLIENT-SAFE FILTERING
 //
@@ -367,8 +380,8 @@ function buildClientSafeRecord(fullRecord) {
   return safe;
 }
 
-async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address }) {
-  const query = buildQuery({ mlsNumber, address });
+async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address, rawQuery, limit = 1 }) {
+  const query = rawQuery || buildQuery({ mlsNumber, address });
   const params = new URLSearchParams({
     SearchType: resource,
     Class: cls,
@@ -376,7 +389,7 @@ async function retsSearch(session, { resource = 'Property', class: cls = 'Proper
     QueryType: 'DMQL2',
     Format: 'COMPACT-DECODED',
     Count: '1',
-    Limit: '1',
+    Limit: String(limit),
     StandardNames: '0',
   });
   const url = `${session.urls.search}?${params.toString()}`;
@@ -444,6 +457,36 @@ async function retsGetPhotos(session, { resource = 'Property', listingKey }) {
   }
   const urls = [...text.matchAll(/Location\s*[:=]\s*(\S+)/gi)].map((m) => m[1].trim());
   return { photoCount: urls.length, urls, raw: text.slice(0, 2000) };
+}
+
+// Best-effort single-photo variant of retsGetPhotos, for card grids where
+// fetching all photos per listing (retsGetPhotos above) would mean too many
+// round trips. Per the manual, ":0" is the primary photo. Never throws —
+// a missing/failed photo just means the card renders without one.
+async function retsGetPrimaryPhoto(session, { resource = 'Property', listingKey }) {
+  try {
+    const params = new URLSearchParams({
+      Resource: resource,
+      Type: 'Photo',
+      ID: `${listingKey}:0`,
+      Location: '1',
+    });
+    const url = `${session.urls.getObject}?${params.toString()}`;
+    const res = await fetch(url, {
+      headers: {
+        'RETS-Version': RETS_VERSION,
+        'User-Agent': USER_AGENT,
+        Accept: '*/*',
+        Cookie: cookieHeader(session.cookieJar),
+      },
+    });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const match = text.match(/Location\s*[:=]\s*(\S+)/i);
+    return match ? match[1].trim() : null;
+  } catch {
+    return null;
+  }
 }
 
 exports.handler = async (event) => {
@@ -527,11 +570,44 @@ exports.handler = async (event) => {
           clientSafe: buildClientSafeRecord(fullRecord),
         };
       }
+    } else if (mode === 'citysearch') {
+      // For public card grids (e.g. a town's "Homes for Sale" section).
+      // Returns clientSafe property data PLUS listing agent/office name+phone+email —
+      // unlike mode=report's clientSafe (which strips agent contact info because that's
+      // for an internal buyer-relationship tool where the point is the AGENT controls
+      // contact, not the buyer). Here, on a public marketing page, showing listing
+      // agent/office identity and contact is standard MLS/IDX display practice (same
+      // as Zillow/Realtor.com) — this is a different, legitimate display context.
+      if (!qs.city) throw new Error('Provide city');
+      const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 12, 24) : 12;
+      const searchResult = await retsSearch(session, {
+        resource: qs.resource,
+        class: qs.class,
+        rawQuery: buildCityActiveQuery(qs.city),
+        limit,
+      });
+      const listings = await Promise.all(
+        searchResult.records.map(async (record) => {
+          const photoUrl = await retsGetPrimaryPhoto(session, {
+            resource: qs.resource,
+            listingKey: record.ListingKeyNumeric,
+          });
+          return {
+            ...buildClientSafeRecord(record),
+            ListAgentFullName: record.ListAgentFullName || '',
+            ListAgentDirectPhone: record.ListAgentDirectPhone || '',
+            ListAgentEmail: record.ListAgentEmail || '',
+            ListOfficeName: record.ListOfficeName || '',
+            photoUrl,
+          };
+        })
+      );
+      result = { count: listings.length, listings };
     } else if (mode === 'photos') {
       if (!qs.listingKey) throw new Error('Provide listingKey');
       result = await retsGetPhotos(session, { resource: qs.resource, listingKey: qs.listingKey });
     } else {
-      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, or photos`);
+      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, citysearch, or photos`);
     }
 
     return { statusCode: 200, headers: cors, body: JSON.stringify(result, null, 2) };
