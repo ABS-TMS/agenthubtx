@@ -435,6 +435,36 @@ async function retsGetMetadata(session, { resource = 'Property', class: cls }) {
   return text; // returned raw — inspect directly to find real field SystemNames
 }
 
+// For Interpretation=Lookup fields (e.g. City, StandardStatus), RETS stores a
+// short internal code and only DECODES it to the friendly display text on
+// OUTPUT (with Format=COMPACT-DECODED). Queries must use the raw short code,
+// not the decoded text — confirmed the hard way: (City=Rhome) and
+// (StandardStatus=Active) both returned ReplyCode 20206 "Invalid Query Syntax"
+// even though those are exactly the values shown in COMPACT-DECODED results.
+// This pulls the actual Value<->LongValue code table for a given LookupName
+// (visible in the field's own metadata row) so we can find the right code.
+async function retsGetLookupValues(session, { resource = 'Property', lookupName }) {
+  const params = new URLSearchParams({
+    Type: 'METADATA-LOOKUP_TYPE',
+    ID: `${resource}:${lookupName}`,
+    Format: 'COMPACT',
+  });
+  const url = `${session.urls.getMetadata}?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      'RETS-Version': RETS_VERSION,
+      'User-Agent': USER_AGENT,
+      Accept: '*/*',
+      Cookie: cookieHeader(session.cookieJar),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`RETS GetMetadata (lookup) HTTP ${res.status}: ${text.slice(0, 500)}`);
+  }
+  return text;
+}
+
 // BEST-EFFORT / UNVERIFIED — see file header note. Location=1 asks the server to return
 // URLs instead of binary image data, but the exact response shape (multipart vs. flat
 // key/value blocks) varies by RETS server. This regexes out every "Location:" value it can
@@ -575,6 +605,10 @@ exports.handler = async (event) => {
           clientSafe: buildClientSafeRecord(fullRecord),
         };
       }
+    } else if (mode === 'lookups') {
+      if (!qs.lookupName) throw new Error('Provide lookupName (e.g. City, StandardStatus — the LookupName from the field\'s own metadata row)');
+      result = await retsGetLookupValues(session, { resource: qs.resource, lookupName: qs.lookupName });
+      return { statusCode: 200, headers: { ...cors, 'Content-Type': 'text/xml' }, body: result };
     } else if (mode === 'rawsearch') {
       // DEBUG ONLY — lets us test different DMQL2 query strings directly via
       // URL param, without a redeploy per attempt. Not used by any real page.
