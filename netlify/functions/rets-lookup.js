@@ -236,9 +236,9 @@ function parseCompact(xmlText) {
 // confirm via mode=metadata before relying on address search for real).
 function buildQuery({ mlsNumber, address }) {
   if (mlsNumber) {
-    // Field name assumed as "MLSNumber" per the manual's field references seen so far —
-    // VERIFY exact SystemName via mode=metadata before treating this as final.
-    return `(MLSNumber=${mlsNumber})`;
+    // Confirmed via live metadata: SystemName is "ListingId" (Character, max 30) —
+    // this is NOT the same as ListingKey/ListingKeyNumeric (internal DB IDs).
+    return `(ListingId=${mlsNumber})`;
   }
   if (address) {
     return `(StreetName=~*${address}*)`;
@@ -246,7 +246,7 @@ function buildQuery({ mlsNumber, address }) {
   throw new Error('Provide mlsNumber or address');
 }
 
-async function retsSearch(session, { resource = 'Property', class: cls = 'RESI', mlsNumber, address }) {
+async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address }) {
   const query = buildQuery({ mlsNumber, address });
   const params = new URLSearchParams({
     SearchType: resource,
