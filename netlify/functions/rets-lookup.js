@@ -602,7 +602,19 @@ exports.handler = async (event) => {
           };
         })
       );
-      result = { count: listings.length, listings };
+      result = {
+        count: listings.length,
+        listings,
+        // Diagnostics — helps distinguish "genuinely zero active listings"
+        // from "the query itself failed silently." Not needed by the page,
+        // just useful when troubleshooting an empty result.
+        _debug: {
+          queryUsed: buildCityActiveQuery(qs.city),
+          replyCode: searchResult.replyCode,
+          replyText: searchResult.replyText,
+          rawRowCount: searchResult.count,
+        },
+      };
     } else if (mode === 'photos') {
       if (!qs.listingKey) throw new Error('Provide listingKey');
       result = await retsGetPhotos(session, { resource: qs.resource, listingKey: qs.listingKey });
