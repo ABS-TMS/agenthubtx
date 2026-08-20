@@ -8,3 +8,14 @@
 # Forced (200!) because weloverhome.com/ would otherwise be shadowed by the site's real index.html
 https://weloverhome.com/    /ilove-rhome-example.html    200!
 https://www.weloverhome.com/    /ilove-rhome-example.html    200!
+
+# Custom domain for the WeLoveMyHometown umbrella pitch/landing page.
+# Same root-path-only, forced-200 pattern as the other custom domains.
+https://welovemyhometown.com/    /welovemyhometown.html    200!
+https://www.welovemyhometown.com/    /welovemyhometown.html    200!
+
+# Custom domain for Carly Harrison's Robson page — routes to the generic
+# multi-tenant directory template (not a bespoke build like Rhome's), scoped
+# to her real slug robson-ranch-2. Same root-path-only, forced-200 pattern.
+https://weloverobson.com/    /ilove-community-directory.html?c=robson-ranch-2    200!
+https://www.weloverobson.com/    /ilove-community-directory.html?c=robson-ranch-2    200!
