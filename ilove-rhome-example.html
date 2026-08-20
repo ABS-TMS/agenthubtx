@@ -485,7 +485,7 @@
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
         <div class="biz-meta">
           ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
-          ${b.website ? `<a href="#" onclick="return false;">Visit Website</a><br>` : ''}
+          ${b.website ? `<a href="${escapeHtml(b.website)}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
           ${b.address ? escapeHtml(b.address) : ''}
         </div>
       </div>
