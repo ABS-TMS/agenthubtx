@@ -380,6 +380,16 @@
     return div.innerHTML;
   }
 
+  // Merchants sometimes enter a website like "craftjunkiecreations.com" without a
+  // protocol. Without this, the browser treats it as a relative link on this domain
+  // and the "Visit Website" link silently goes nowhere. Add https:// if missing.
+  function normalizeUrl(url) {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }
+
   function renderSite() {
     const brand = SITE.brand;
     document.getElementById('pageTitle').textContent = `${brand} | Local Business Directory`;
@@ -485,7 +495,7 @@
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
         <div class="biz-meta">
           ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
-          ${b.website ? `<a href="${escapeHtml(b.website)}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
+          ${b.website ? `<a href="${escapeHtml(normalizeUrl(b.website))}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
           ${b.address ? escapeHtml(b.address) : ''}
         </div>
       </div>
