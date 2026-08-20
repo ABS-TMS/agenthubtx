@@ -34,11 +34,52 @@
 // above. Wiring the real client-safe field map (matching the Customer Full filtering logic already confirmed)
 // is the next step after this file is confirmed working end-to-end against the live feed.
 
+const crypto = require('crypto');
+
 const RETS_VERSION = 'RETS/1.8';
 const USER_AGENT = 'AgentHubTX-RETS/1.0';
 
 function b64(str) {
   return Buffer.from(str, 'utf8').toString('base64');
+}
+
+function md5(str) {
+  return crypto.createHash('md5').update(str, 'utf8').digest('hex');
+}
+
+// Parses a WWW-Authenticate header into its scheme + key/value directives.
+// e.g. 'Digest realm="NTREIS", qop="auth", nonce="abc123", opaque="xyz"'
+function parseAuthHeader(headerValue) {
+  const scheme = headerValue.split(' ')[0];
+  const params = {};
+  const re = /(\w+)=(?:"([^"]*)"|([^\s,]+))/g;
+  let m;
+  while ((m = re.exec(headerValue)) !== null) {
+    params[m[1]] = m[2] !== undefined ? m[2] : m[3];
+  }
+  return { scheme, params };
+}
+
+// Builds an RFC 2617 Digest Authorization header value. Supports both the
+// qop="auth" variant (modern) and the legacy no-qop variant some older RETS
+// 1.x servers still use — NTREIS specifically isn't documented either way,
+// so both paths are implemented rather than assumed.
+function buildDigestHeader({ username, password, method, uri, authParams }) {
+  const { realm, nonce, opaque, qop } = authParams;
+  const ha1 = md5(`${username}:${realm}:${password}`);
+  const ha2 = md5(`${method}:${uri}`);
+  let response, extra;
+  if (qop) {
+    const nc = '00000001';
+    const cnonce = crypto.randomBytes(8).toString('hex');
+    response = md5(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
+    extra = `, qop=${qop}, nc=${nc}, cnonce="${cnonce}"`;
+  } else {
+    response = md5(`${ha1}:${nonce}:${ha2}`);
+    extra = '';
+  }
+  const opaquePart = opaque ? `, opaque="${opaque}"` : '';
+  return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", response="${response}"${extra}${opaquePart}`;
 }
 
 // Very small cookie-jar: RETS servers may set more than one cookie (session cookie +
@@ -104,14 +145,40 @@ async function retsLogin() {
     throw new Error('Missing RETS_LOGIN_URL / RETS_USERNAME / RETS_PASSWORD env vars');
   }
 
-  const res = await fetch(loginUrl, {
-    headers: {
-      'RETS-Version': RETS_VERSION,
-      'User-Agent': USER_AGENT,
-      Accept: '*/*',
-      Authorization: `Basic ${b64(`${username}:${password}`)}`,
-    },
-  });
+  const baseHeaders = {
+    'RETS-Version': RETS_VERSION,
+    'User-Agent': USER_AGENT,
+    Accept: '*/*',
+  };
+
+  // Step 1: probe with no credentials. Do NOT assume Basic — many RETS 1.x
+  // servers (including, per NTREIS support, this one) actually require HTTP
+  // Digest auth. Sending Basic blindly on the first request is what caused
+  // real 401s here even with fully correct credentials; the fix is to let
+  // the server's WWW-Authenticate challenge tell us which scheme to use.
+  let res = await fetch(loginUrl, { headers: baseHeaders });
+
+  if (res.status === 401) {
+    const challenge = res.headers.get('www-authenticate');
+    if (!challenge) {
+      throw new Error('RETS login HTTP 401 with no WWW-Authenticate header — cannot determine auth scheme');
+    }
+    const { scheme, params } = parseAuthHeader(challenge);
+    const uri = new URL(loginUrl).pathname;
+
+    let authHeader;
+    if (scheme === 'Digest') {
+      authHeader = buildDigestHeader({ username, password, method: 'GET', uri, authParams: params });
+    } else if (scheme === 'Basic') {
+      authHeader = `Basic ${b64(`${username}:${password}`)}`;
+    } else {
+      throw new Error(`Unsupported RETS auth scheme: ${scheme}`);
+    }
+
+    res = await fetch(loginUrl, {
+      headers: { ...baseHeaders, Authorization: authHeader },
+    });
+  }
 
   const bodyText = await res.text();
   if (!res.ok) {
@@ -274,6 +341,20 @@ exports.handler = async (event) => {
       // Never return the actual password. Return enough to catch trailing/leading
       // whitespace, wrong length, or accidental quote characters without exposing the secret.
       const edge = (s) => (s.length ? `"${s[0]}"..."${s[s.length - 1]}"` : '(empty)');
+
+      let authSchemeChallenged = '(could not probe — see authProbeError)';
+      let authProbeError = null;
+      try {
+        const probe = await fetch(l, {
+          headers: { 'RETS-Version': RETS_VERSION, 'User-Agent': USER_AGENT, Accept: '*/*' },
+        });
+        authSchemeChallenged = probe.status === 401
+          ? (probe.headers.get('www-authenticate') || '(401 but no WWW-Authenticate header)')
+          : `(no 401 — got HTTP ${probe.status} unauthenticated, unexpected)`;
+      } catch (e) {
+        authProbeError = e.message;
+      }
+
       const debugInfo = {
         usernameLength: u.length,
         usernameFirstLastChar: edge(u),
@@ -283,7 +364,8 @@ exports.handler = async (event) => {
         passwordHasLeadingOrTrailingSpace: p !== p.trim(),
         loginUrl: l,
         loginUrlHasLeadingOrTrailingSpace: l !== l.trim(),
-        authHeaderPreview: `Basic ${b64(`${u}:${p}`)}`.slice(0, 20) + '...',
+        authSchemeChallenged,
+        authProbeError,
         retsVersionHeaderSent: RETS_VERSION,
         userAgentHeaderSent: USER_AGENT,
       };
