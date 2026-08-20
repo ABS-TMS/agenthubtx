@@ -19,10 +19,13 @@
 //        MLS feed — pull them from here.
 //
 //   mode=search&mlsNumber=21327448  (or &address=... — address matching is looser, see buildQuery)
-//     -> raw parsed COMPACT-DECODED rows for that listing, ALL fields (no Select= restriction yet).
-//        Use this against the known test listing (2416 Fall Leaf Court, MLS# 21327448) to see real
-//        field names/values side by side with the Agent Full / Customer Full reports already reviewed,
-//        then build the real client-safe field map as a second pass.
+//     -> raw parsed COMPACT-DECODED rows for that listing, ALL fields, unfiltered.
+//
+//   mode=report&mlsNumber=21327448  (or &address=...)
+//     -> the real production mode. Returns { found, agentFacing, clientSafe } for a single listing —
+//        agentFacing is the full record (for the agent's own internal tool view, includes showing
+//        instructions/access info/etc.), clientSafe is the filtered subset safe to send a buyer
+//        (built by buildClientSafeRecord() below). This is what showing-request.html should call.
 //
 //   mode=photos&listingKey=<ListingKeyNumeric>
 //     -> best-effort list of photo URLs via GetObject (Location=1). NOTE: exact response shaping for
@@ -246,6 +249,124 @@ function buildQuery({ mlsNumber, address }) {
   throw new Error('Provide mlsNumber or address');
 }
 
+// ---------------------------------------------------------------------------
+// CLIENT-SAFE FILTERING
+//
+// Confirmed against a real NTREIS "Customer Full" report (2026-08-20, MLS#
+// 21355847) side by side with our raw search response for MLS# 21327448.
+// Customer Full is broad-inclusion, not a short curated list — nearly every
+// property-characteristic field shows (heating, cooling, roof, construction,
+// flooring, fence, foundation, appliances, interior/exterior features, HOA
+// dues/includes, taxes, legal description, lot/block, community amenities).
+// So this uses a BLACKLIST (exclude sensitive/internal fields, pass through
+// everything else) rather than a whitelist — matches Customer Full's actual
+// behavior and means new NTREIS fields default to visible instead of
+// silently hidden until someone remembers to whitelist them.
+//
+// Room-by-room dimensions are NOT included — that data lives in a separate
+// PropertyRooms RETS resource (a second query per listing) and was
+// deliberately left out of scope for this phase.
+// ---------------------------------------------------------------------------
+
+// Named fields to strip, grouped by why. Update this list, not the whitelist
+// approach, if NTREIS adds new sensitive fields in the future.
+const CLIENT_EXCLUDE_FIELDS = new Set([
+  // Showing coordination / access — never buyer-facing
+  'PrivateRemarks', 'PrivateOfficeRemarks',
+  'OwnerName', 'OwnerPhone', 'OwnerPhoneAlternative', 'OwnerPays', 'OwnerPermissionToVideoYN',
+  'OccupantName', 'OccupantPhone', 'OccupantPhoneAlternative', 'OccupantType',
+  'ShowingContactPhone', 'ShowingContactPhoneExt', 'ShowingContactType',
+  'ShowingInstructions', 'ShowingInstructionsSecured', 'ShowingRequirements', 'ShowingAttendedYN',
+  'KeyboxNumber', 'LockBoxType', 'LockBoxLocation', 'AccessCode',
+  'ConsentforVisitorstoRecord', 'NoticeSurveillanceDevicesPresent',
+
+  // Agent/office contact details — Customer Full shows agent + office NAME
+  // only (matches the "trims to office+agent name" behavior already
+  // confirmed), never phone/email/internal IDs.
+  'ListAgentDirectPhone', 'ListAgentEmail', 'ListAgentMlsId', 'ListAgentKeyNumeric',
+  'ListAgentMLSProvider', 'ListAgentTextingAllowedYN',
+  'ListOfficePhone', 'ListOfficeMlsId', 'ListOfficeKeyNumeric',
+  'ListOfficeManager', 'ListOfficeManagerKeyNumeric', 'ListOfficeManagerLicense',
+  'ListOfficeManagerMLSID', 'ListOfficeManagerPhone',
+  'CoListAgentDirectPhone', 'CoListAgentEmail', 'CoListAgentFullName', 'CoListAgentKeyNumeric', 'CoListAgentMlsId',
+  'CoListOfficeKeyNumeric', 'CoListOfficeMlsId', 'CoListOfficeName', 'CoListOfficePhone',
+  'CoListOfficeManager', 'CoListOfficeManagerKeyNumeric', 'CoListOfficeManagerLicense',
+  'CoListOfficeManagerMLSID', 'CoListOfficeManagerPhone',
+  'AttributionContact', 'PropertyManagedBy',
+
+  // Any existing/prior buyer's agent info — not relevant to a new prospective
+  // buyer and could leak details about another party's transaction.
+  'BuyerAgentDirectPhone', 'BuyerAgentEmail', 'BuyerAgentFullName', 'BuyerAgentKeyNumeric', 'BuyerAgentMlsId',
+  'BuyerOfficeKeyNumeric', 'BuyerOfficeMlsId', 'BuyerOfficeName', 'BuyerOfficePhone',
+  'BuyerOfficeManager', 'BuyerOfficeManagerKeyNumeric', 'BuyerOfficeManagerLicense',
+  'BuyerOfficeManagerMLSID', 'BuyerOfficeManagerPhone',
+  'BuyerTeamKey', 'BuyerTeamKeyNumeric', 'BuyerTeamName', 'BuyerFinancing',
+  'BuyerAgentTextingAllowedYN',
+  'CoBuyerAgentDirectPhone', 'CoBuyerAgentEmail', 'CoBuyerAgentFullName', 'CoBuyerAgentKeyNumeric', 'CoBuyerAgentMlsId',
+  'CoBuyerOfficeKeyNumeric', 'CoBuyerOfficeMlsId', 'CoBuyerOfficeName', 'CoBuyerOfficePhone',
+  'CoBuyerOfficeManager', 'CoBuyerOfficeManagerKeyNumeric', 'CoBuyerOfficeManagerLicense',
+  'CoBuyerOfficeManagerMLSID', 'CoBuyerOfficeManagerPhone', 'CoBuyerAgentTextingAllowedYN',
+
+  // Financial / lending — not shown on Customer Full
+  'Loan1Amount', 'Loan1InterestRate', 'Loan1Years', 'LoanBalance', 'LoanInterestRate',
+  'LoanPayment', 'LoanPaymentType', 'LoanType', 'MortgageCompany', 'OriginalMortgageDate',
+  'SecondMortgageYN', 'LenderName', 'DepositAmount', 'DepositPet',
+  'GrossAnnualIncome', 'GrossAnnualExpenses', 'NetOperationIncome', 'InsuranceExpense',
+  'CapitalizationRate', 'GrossIncomeMultiplier', 'OperatingExpenseIncludes', 'MoniesRequired',
+  'ClosePrice', 'CloseDate', 'PurchaseContractDate', 'ContingencyInfo',
+  'SellerContributions', 'ThirdPartyAssistanceProgramYN',
+
+  // Internal system fields / keys / timestamps — not on Customer Full
+  'ListingKeyNumeric', 'ListTeamKey', 'ListTeamKeyNumeric', 'ListTeamName',
+  'OriginatingSystemKey', 'OriginatingSystemTimestamp', 'OriginatingSystemName',
+  'DOCBOX_GUID', 'DocBox_ModificationTimestamp', 'DocBox_NumMlsDocuments',
+  'DocBox_NumPrivateDocuments', 'DocBox_NumPublicDocuments',
+  'DocumentManagerMLSCount', 'DocumentManagerPrivateCount', 'DocumentManagerPublicCount', 'DocumentManagerTotalCount',
+  'PropertyKey', 'PropertyMatch', 'GeocodeConfidence', 'USProperty_MUI', 'RETSUpdateTransactionYN',
+  'ModificationTimestamp', 'StatusChangeTimestamp', 'PhotosChangeTimestamp', 'PriceChangeTimestamp',
+  'ListingService', 'ListSource', 'ListSourceOriginal', 'ListSourceVendor', 'ListMLSProvider',
+  'SyndicateTo', 'InternetAddressDisplayYN', 'InternetAutomatedValuationDisplayYN',
+  'InternetConsumerCommentYN', 'InternetEntireListingDisplayYN',
+  'ListingAgreement', 'ListingContractDate', 'ExpirationDateOption', 'HoldDate',
+  'WithdrawnDate', 'CancellationDate', 'OffMarketDate', 'PreviousListPrice', 'PreviousStatus',
+  'MLSNumberSaleOrLease', 'ParcelNumber2', 'BuildingAreaSource', 'LotSizeSource',
+  'TitleCompanyClosing', 'TitleCompanyLocation', 'TitleCompanyPhone', 'TitleCompanyPreferred',
+
+  // Coordinates: manual explicitly restricts displaying actual lat/long
+  // values per NTREIS's mapping-vendor licensing agreement.
+  'Latitude', 'Longitude',
+]);
+
+// Ratio/analytics fields (RATIO_*) and internal *KeyNumeric IDs beyond the
+// ones already named above — pattern-based catch-all so newly added NTREIS
+// fields of these shapes are excluded by default too, not just today's list.
+function isClientExcluded(fieldName) {
+  if (CLIENT_EXCLUDE_FIELDS.has(fieldName)) return true;
+  if (fieldName.startsWith('RATIO_')) return true;
+  if (/KeyNumeric$/.test(fieldName)) return true;
+  return false;
+}
+
+// Builds the buyer-facing subset of a full RETS record. Field order in the
+// output follows the field order of the input record.
+function buildClientSafeRecord(fullRecord) {
+  const safe = {};
+  for (const [key, value] of Object.entries(fullRecord)) {
+    if (!isClientExcluded(key)) safe[key] = value;
+  }
+  // Convenience: a single formatted address string, built from the parts
+  // Customer Full displays as one line (e.g. "2416 Fall Leaf Court, Denton, TX 76209").
+  const parts = [
+    fullRecord.StreetNumber, fullRecord.StreetDirPrefix, fullRecord.StreetName,
+    fullRecord.StreetSuffix, fullRecord.StreetDirSuffix,
+  ].filter(Boolean).join(' ');
+  const unit = fullRecord.UnitNumber ? ` #${fullRecord.UnitNumber}` : '';
+  const cityStateZip = [fullRecord.City, fullRecord.StateOrProvince].filter(Boolean).join(', ')
+    + (fullRecord.PostalCode ? ` ${fullRecord.PostalCode}` : '');
+  safe.FormattedAddress = [parts + unit, cityStateZip].filter(Boolean).join(', ');
+  return safe;
+}
+
 async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address }) {
   const query = buildQuery({ mlsNumber, address });
   const params = new URLSearchParams({
@@ -385,11 +506,32 @@ exports.handler = async (event) => {
         mlsNumber: qs.mlsNumber,
         address: qs.address,
       });
+    } else if (mode === 'report') {
+      // Returns BOTH the full agent-facing record (everything, for the
+      // agent's own internal tool view) and a filtered clientSafe record
+      // (for anything actually sent to a buyer) side by side, for a single
+      // listing. Requires mlsNumber (or address) to resolve to exactly one match.
+      const searchResult = await retsSearch(session, {
+        resource: qs.resource,
+        class: qs.class,
+        mlsNumber: qs.mlsNumber,
+        address: qs.address,
+      });
+      if (!searchResult.records.length) {
+        result = { found: false, replyCode: searchResult.replyCode, replyText: searchResult.replyText };
+      } else {
+        const fullRecord = searchResult.records[0];
+        result = {
+          found: true,
+          agentFacing: fullRecord,
+          clientSafe: buildClientSafeRecord(fullRecord),
+        };
+      }
     } else if (mode === 'photos') {
       if (!qs.listingKey) throw new Error('Provide listingKey');
       result = await retsGetPhotos(session, { resource: qs.resource, listingKey: qs.listingKey });
     } else {
-      throw new Error(`Unknown mode "${mode}" — use metadata, search, or photos`);
+      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, or photos`);
     }
 
     return { statusCode: 200, headers: cors, body: JSON.stringify(result, null, 2) };
