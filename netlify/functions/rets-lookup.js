@@ -259,7 +259,12 @@ function buildQuery({ mlsNumber, address }) {
 // level is AND, per RETS 1.8 DMQL2 syntax used elsewhere in this file's
 // confirmed-working single-MLS# query.
 function buildCityActiveQuery(city) {
-  return `(City=${city}),(StandardStatus=Active)`;
+  // UPDATE: the "textbook" double-parens DMQL2 AND form —
+  // (City=Rhome),(StandardStatus=Active) — returned ReplyCode 20206
+  // "Invalid Query Syntax" against this specific NTREIS Matrix server.
+  // This server's dialect wants both conditions inside ONE set of parens,
+  // comma-separated, confirmed working live.
+  return `(City=${city},StandardStatus=Active)`;
 }
 
 // ---------------------------------------------------------------------------
