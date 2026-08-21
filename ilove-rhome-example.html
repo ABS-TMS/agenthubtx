@@ -47,6 +47,23 @@
   .home-card .home-subdivision { font-size: 12.5px; color: var(--gray-500); margin-top: 2px; }
   .homes-status { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 14px; grid-column: 1 / -1; }
   .homes-status.err { color: var(--red); }
+  .see-more-wrap { display: flex; justify-content: center; margin: 24px 0 8px; }
+  .btn-see-more {
+    background: var(--navy); color: #fff; border: none; border-radius: 8px;
+    padding: 12px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .see-more-step {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 12px;
+    padding: 22px 26px; max-width: 420px; width: 100%; text-align: center;
+  }
+  .see-more-prompt { font-size: 15px; font-weight: 600; color: var(--gray-700); margin: 0 0 14px; }
+  .see-more-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+  .see-more-row select, .see-more-row input {
+    flex: 1; min-width: 140px; padding: 10px 12px; border: 1px solid var(--gray-300);
+    border-radius: 7px; font-size: 13.5px; font-family: inherit;
+  }
+  .see-more-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .see-more-skip { font-size: 12.5px; color: var(--gray-500); cursor: pointer; text-decoration: underline; }
   .idx-note {
     font-size: 12.5px; color: var(--gray-500); text-align: center; margin-top: 10px;
   }
@@ -199,6 +216,7 @@
   <div class="directory-grid" id="directoryGrid">
     <div class="empty-state">Loading the directory&hellip;</div>
   </div>
+  <div class="see-more-wrap" id="seeMoreSection"></div>
 
   <div class="about-band" id="aboutBand"></div>
 
@@ -276,6 +294,8 @@
   // see mode=citysearch in netlify/functions/rets-lookup.js. Loaded lazily
   // the first time the "Homes for Sale" tab is opened, then cached here.
   let LIVE_HOMES = [];
+  let homesVisibleCount = 12;
+  let homesSeeMoreStep = null; // null | 'preferences' | 'contact' | 'done'
   let homesLoadState = 'idle'; // idle | loading | loaded | error
   let homesLoadError = '';
 
@@ -456,6 +476,7 @@
       return;
     }
     grid.style.display = 'grid';
+    renderSeeMoreSection();
 
     const items = activeCategory === 'All' ? LISTINGS : LISTINGS.filter(b => b.category === activeCategory);
 
@@ -502,7 +523,11 @@
     homesLoadState = 'loading';
     renderHomesGrid();
     try {
-      const res = await fetch('/.netlify/functions/rets-lookup?mode=citysearch&city=' + encodeURIComponent(SITE.communityName) + '&limit=12');
+      // Fetch a larger batch than we initially show (48 vs 12) so clicking
+      // "See more" can reveal instantly, no second round-trip / photo-fetch
+      // wait. Most visitors never click further, so this doesn't slow down
+      // the common case -- the extra photos just aren't rendered yet.
+      const res = await fetch('/.netlify/functions/rets-lookup?mode=citysearch&city=' + encodeURIComponent(SITE.communityName) + '&limit=48');
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
       LIVE_HOMES = (data.listings || []).map(normalizeListing);
@@ -528,7 +553,8 @@
       grid.innerHTML = '<div class="homes-status">No active listings in ' + escapeHtml(SITE.communityName) + ' right now &mdash; check back soon.</div>';
       return;
     }
-    grid.innerHTML = LIVE_HOMES.map((h, i) => `
+    const shown = LIVE_HOMES.slice(0, homesVisibleCount);
+    grid.innerHTML = shown.map((h, i) => `
       <div class="home-card" onclick="openHomeModal('${escapeHtml(h.mls)}')">
         <div class="card-photo">${h.photoUrl ? `<img src="${escapeHtml(h.photoUrl)}" alt="${escapeHtml(h.address)}">` : houseIllustration(i)}</div>
         <div class="card-body">
@@ -539,7 +565,146 @@
         </div>
       </div>
     `).join('');
+    renderSeeMoreSection();
   }
+
+  // "See more homes" flow: rather than a plain load-more button, this is a
+  // light two-step ask (search preferences, then optionally contact info)
+  // before revealing the rest -- both steps are always skippable, and the
+  // listings themselves are never gated behind answering. Preferences are
+  // asked first since that reads as a helpful filter rather than a form;
+  // contact info is only offered as a natural follow-up after that, not
+  // up front, since people give more the second time they're asked.
+  function renderSeeMoreSection() {
+    const container = document.getElementById('seeMoreSection');
+    if (!container) return;
+    if (activeCategory !== HOMES_CAT) {
+      container.innerHTML = '';
+      return;
+    }
+
+    if (homesSeeMoreStep === 'done' || homesSeeMoreStep === null) {
+      const hasMore = homesVisibleCount < LIVE_HOMES.length;
+      if (!hasMore || homesSeeMoreStep === 'done') {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = `
+        <button class="btn-see-more" onclick="startSeeMore()">See more homes &rarr;</button>
+      `;
+      return;
+    }
+
+    if (homesSeeMoreStep === 'preferences') {
+      container.innerHTML = `
+        <div class="see-more-step">
+          <p class="see-more-prompt">What are you looking for?</p>
+          <div class="see-more-row">
+            <select id="prefPriceRange">
+              <option value="">Any price</option>
+              <option value="Under $250k">Under $250k</option>
+              <option value="$250k-$400k">$250k&ndash;$400k</option>
+              <option value="$400k-$600k">$400k&ndash;$600k</option>
+              <option value="$600k+">$600k+</option>
+            </select>
+            <select id="prefBeds">
+              <option value="">Any beds</option>
+              <option value="2+">2+</option>
+              <option value="3+">3+</option>
+              <option value="4+">4+</option>
+              <option value="5+">5+</option>
+            </select>
+          </div>
+          <div class="see-more-actions">
+            <button class="btn-see-more" onclick="submitPreferences()">Show me more homes</button>
+            <a class="see-more-skip" onclick="skipToAll()">Skip, just show me everything</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    if (homesSeeMoreStep === 'contact') {
+      container.innerHTML = `
+        <div class="see-more-step">
+          <p class="see-more-prompt">Want us to reach out when new homes like this come up?</p>
+          <div class="see-more-row">
+            <input type="text" id="prefName" placeholder="Your name">
+            <input type="email" id="prefEmail" placeholder="Your email">
+          </div>
+          <div class="see-more-actions">
+            <button class="btn-see-more" onclick="submitContact()">Save my search</button>
+            <a class="see-more-skip" onclick="finishSeeMore()">No thanks, just show me the homes</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+  }
+
+  function startSeeMore() {
+    homesSeeMoreStep = 'preferences';
+    renderSeeMoreSection();
+  }
+
+  async function submitPreferences() {
+    const priceRange = document.getElementById('prefPriceRange').value;
+    const beds = document.getElementById('prefBeds').value;
+    window._pendingLead = { priceRange, beds };
+    // Reveal the rest of the already-prefetched listings now -- preferences
+    // are used for the lead record, not to filter what's shown, since we're
+    // not re-querying RETS with a price/bed filter here.
+    homesVisibleCount = LIVE_HOMES.length;
+    homesSeeMoreStep = 'contact';
+    renderHomesGrid();
+  }
+
+  function skipToAll() {
+    homesVisibleCount = LIVE_HOMES.length;
+    homesSeeMoreStep = 'done';
+    renderHomesGrid();
+  }
+
+  async function submitContact() {
+    const name = document.getElementById('prefName').value.trim();
+    const email = document.getElementById('prefEmail').value.trim();
+    const pending = window._pendingLead || {};
+    try {
+      await sb.rpc('submit_home_search_lead', {
+        p_slug: COMMUNITY_SLUG,
+        p_price_range: pending.priceRange || '',
+        p_beds: pending.beds || '',
+        p_name: name,
+        p_email: email,
+      });
+    } catch (err) {
+      console.error('Could not save search lead:', err);
+    }
+    homesSeeMoreStep = 'done';
+    renderHomesGrid();
+  }
+
+  function finishSeeMore() {
+    // Skipped the contact step, but preferences (if any were entered) are
+    // still worth saving as a lightweight signal.
+    const pending = window._pendingLead;
+    if (pending && (pending.priceRange || pending.beds)) {
+      sb.rpc('submit_home_search_lead', {
+        p_slug: COMMUNITY_SLUG,
+        p_price_range: pending.priceRange || '',
+        p_beds: pending.beds || '',
+        p_name: '',
+        p_email: '',
+      }).catch((err) => console.error('Could not save search lead:', err));
+    }
+    homesSeeMoreStep = 'done';
+    renderHomesGrid();
+  }
+  window.startSeeMore = startSeeMore;
+  window.submitPreferences = submitPreferences;
+  window.skipToAll = skipToAll;
+  window.submitContact = submitContact;
+  window.finishSeeMore = finishSeeMore;
 
   function openHomeModal(mls) {
     const h = LIVE_HOMES.find(x => x.mls === mls);
