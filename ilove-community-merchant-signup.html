@@ -85,7 +85,8 @@
       </div>
 
       <div class="field"><label>Description <span>(what you do, in a sentence or two)</span></label>
-        <textarea id="f-description" rows="3" placeholder="Tell your neighbors what you offer"></textarea>
+        <textarea id="f-description" rows="3" maxlength="150" placeholder="Tell your neighbors what you offer" oninput="document.getElementById('descCount').textContent = this.value.length + ' / 150'"></textarea>
+        <span id="descCount" style="font-size: 11px; color: var(--gray-500);">0 / 150</span>
       </div>
 
       <div class="row2">
