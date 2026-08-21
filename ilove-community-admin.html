@@ -147,6 +147,10 @@
     <div class="section-title">Resident Sticker Requests</div>
     <div class="stats-row" id="stickerStatsRow"></div>
     <div id="stickerListWrap"></div>
+
+    <div class="section-title">Home Search Interest</div>
+    <div class="stats-row" id="homeLeadsStatsRow"></div>
+    <div id="homeLeadsListWrap"></div>
   </div>
 </div>
 
@@ -218,6 +222,7 @@
     try {
       await loadListings();
       await loadStickerRequests();
+      await loadHomeLeads();
     } catch (err) {
       document.getElementById('app').style.display = 'none';
       document.getElementById('deniedState').style.display = 'block';
@@ -440,7 +445,48 @@
     }
   }
 
-  // ---- Resident sticker requests ----
+  // ---- Home search interest (from the "See more homes" flow) ----
+  let homeLeads = [];
+
+  async function loadHomeLeads() {
+    try {
+      const { data, error } = await sb.rpc('get_home_search_leads', { p_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      homeLeads = data || [];
+      renderHomeLeads();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('homeLeadsListWrap').innerHTML = `<div class="empty-state">Could not load home search interest: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderHomeLeads() {
+    const withContact = homeLeads.filter(l => l.email).length;
+    document.getElementById('homeLeadsStatsRow').innerHTML = `
+      <div class="stat"><div class="num">${homeLeads.length}</div><div class="label">Total Interest</div></div>
+      <div class="stat"><div class="num">${withContact}</div><div class="label">With Contact Info</div></div>
+    `;
+
+    const wrap = document.getElementById('homeLeadsListWrap');
+    if (!homeLeads.length) {
+      wrap.innerHTML = '<div class="empty-state">No home search interest yet -- shows up when a visitor clicks "See more homes" on the site.</div>';
+      return;
+    }
+
+    wrap.innerHTML = homeLeads.map(l => `
+      <div class="row">
+        <div class="row-top">
+          <div>
+            <div class="biz-name">${l.name ? escapeHtml(l.name) : 'Anonymous'}</div>
+            <div class="biz-meta">${l.price_range ? escapeHtml(l.price_range) + ' &middot; ' : ''}${l.beds ? escapeHtml(l.beds) + ' beds' : ''}</div>
+            <div class="biz-contact">${l.email ? escapeHtml(l.email) + ' &middot; ' : ''}${formatDate(l.created_at)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+
   let stickerRequests = [];
 
   async function loadStickerRequests() {
