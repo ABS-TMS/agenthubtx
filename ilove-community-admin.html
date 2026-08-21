@@ -482,8 +482,22 @@
             <div class="biz-contact">${l.email ? escapeHtml(l.email) + ' &middot; ' : ''}${formatDate(l.created_at)}</div>
           </div>
         </div>
+        <div class="row-actions">
+          <button class="btn-small btn-reject" onclick="deleteHomeLead('${l.id}', '${escapeHtml(l.name || 'this entry')}')">Delete</button>
+        </div>
       </div>
     `).join('');
+  }
+
+  async function deleteHomeLead(id, name) {
+    if (!confirm(`Delete the search interest from "${name}"?`)) return;
+    try {
+      const { error } = await sb.rpc('delete_home_search_lead', { p_id: id });
+      if (error) throw error;
+      await loadHomeLeads();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
   }
 
 
