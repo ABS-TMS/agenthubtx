@@ -44,6 +44,16 @@
 //        upcoming open houses" feature, which would need to cross-reference results against
 //        mode=citysearch or mode=report to get address/photo/price for display.
 //
+//   mode=cardbuilder&mlsNumber=20902063
+//     -> the real production endpoint for OpenDFWHomes.com. Replaces the manual
+//        Matrix-PDF-parsing + pdfimages workflow: given one MLS#, pulls the property
+//        record, finds its soonest upcoming open house via mode=openhouses internally,
+//        fetches the primary photo and embeds it as base64 (matching the site's
+//        existing fully self-contained card pattern — no external image hosting),
+//        and returns a ready-to-paste { html: "<article class=\"card\">...</article>" }
+//        block matching the site's exact existing markup. Also returns { raw: {...} }
+//        with the individual field values, for updating hero stats/listing_expiration_tracker.csv.
+//
 //   mode=photos&listingKey=<ListingKeyNumeric>
 //     -> best-effort list of photo URLs via GetObject (Location=1). NOTE: exact response shaping for
 //        Location=1 (multipart vs. flat key/value) is implementation-specific and UNVERIFIED against the
@@ -288,6 +298,67 @@ const OPENHOUSE_ACTIVE_CODE = 'ACT';
 
 function buildOpenHouseByListingQuery(listingId) {
   return `(ListingId=${listingId}) AND (OpenHouseStatus=${OPENHOUSE_ACTIVE_CODE})`;
+}
+
+// Formats an open house date/start/end into OpenDFWHomes' exact badge text
+// style: "Sat Aug 15 · 1:00–3:00PM" when both times share a meridiem, or
+// "Sat Aug 15 · 11:00AM–1:00PM" when they don't.
+const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Matches OpenDFWHomes' own data-day values — only fri/sat/sun are wired to
+// filter tabs today, but every day gets a real 3-letter code so the existing
+// hideExpiredListings()/sortListingsByDate() date-parsing logic (which reads
+// this exact badge text) keeps working regardless of which day it lands on.
+const DAY_CODE = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+function formatOpenHouseBadge(dateStr, startIso, endIso) {
+  // dateStr is "YYYY-MM-DD"; startIso/endIso are full ISO datetimes in the
+  // listing's local time already (RETS doesn't apply timezone conversion here).
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(y, m - 1, d);
+  const dayName = DAY_ABBR[dateObj.getDay()];
+  const monthName = MONTH_ABBR[m - 1];
+
+  function parseTime(iso) {
+    const match = iso.match(/T(\d{2}):(\d{2})/);
+    if (!match) return null;
+    let hour = parseInt(match[1], 10);
+    const minute = match[2];
+    const meridiem = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
+    return { hour, minute, meridiem };
+  }
+
+  const start = parseTime(startIso);
+  const end = parseTime(endIso);
+  if (!start || !end) return `${dayName} ${monthName} ${d}`;
+
+  const startStr = start.meridiem === end.meridiem
+    ? `${start.hour}:${start.minute}`
+    : `${start.hour}:${start.minute}${start.meridiem}`;
+  const endStr = `${end.hour}:${end.minute}${end.meridiem}`;
+
+  return `${dayName} ${monthName} ${d} \u00b7 ${startStr}\u2013${endStr}`;
+}
+
+function dayCodeFromDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return DAY_CODE[new Date(y, m - 1, d).getDay()];
+}
+
+// Escapes a string for safe use inside a single-quoted JS string literal
+// (the onclick="openModal('...', '...')" attributes on OpenDFWHomes' cards).
+function escapeJsString(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function escapeHtmlText(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function buildOpenHouseByDateRangeQuery(startDate, endDate) {
@@ -611,6 +682,23 @@ async function retsGetPrimaryPhoto(session, { resource = 'Property', listingKey 
   }
 }
 
+// OpenDFWHomes.com embeds every listing photo as a base64 data: URI directly
+// in the HTML (a fully self-contained static site, no external image
+// hosting) — this fetches the actual photo bytes from the Location URL
+// above and re-encodes them, matching that existing pattern.
+async function fetchImageAsBase64(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const base64 = Buffer.from(buf).toString('base64');
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}
+
 exports.handler = async (event) => {
   const cors = {
     'Access-Control-Allow-Origin': '*',
@@ -711,6 +799,108 @@ exports.handler = async (event) => {
         rawQuery: qs.query,
         limit: qs.limit ? parseInt(qs.limit, 10) : 5,
       });
+    } else if (mode === 'cardbuilder') {
+      // Builds a complete, ready-to-paste OpenDFWHomes.com <article class="card">
+      // block for one listing: pulls the property record, finds its soonest
+      // upcoming open house date/time, fetches the primary photo and embeds
+      // it as base64 (matching the site's existing fully self-contained
+      // pattern), and formats everything into the exact markup already used
+      // on the site. Replaces the manual Matrix-PDF-parsing + pdfimages steps.
+      if (!qs.mlsNumber) throw new Error('Provide mlsNumber');
+
+      const propertyResult = await retsSearch(session, {
+        resource: qs.resource,
+        class: qs.class,
+        mlsNumber: qs.mlsNumber,
+      });
+      const record = propertyResult.records[0];
+      if (!record) {
+        result = { found: false, mlsNumber: qs.mlsNumber };
+      } else {
+        const ohQuery = buildOpenHouseByListingQuery(qs.mlsNumber);
+        const ohResult = await retsSearch(session, {
+          resource: 'Openhouse',
+          class: 'OpenHouse',
+          rawQuery: ohQuery,
+          limit: 25,
+        });
+        // Take the soonest upcoming open house (results aren't guaranteed
+        // sorted server-side, so sort by date+time here).
+        const upcoming = ohResult.records
+          .filter((r) => r.OpenHouseDate && r.OpenHouseStartTime)
+          .sort((a, b) => new Date(a.OpenHouseStartTime) - new Date(b.OpenHouseStartTime))[0];
+
+        const photoUrl = await retsGetPrimaryPhoto(session, {
+          resource: qs.resource,
+          listingKey: record.ListingKeyNumeric,
+        });
+        const photoBase64 = photoUrl ? await fetchImageAsBase64(photoUrl) : null;
+
+        const addressParts = [record.StreetNumber, record.StreetDirPrefix, record.StreetName, record.StreetSuffix, record.StreetDirSuffix]
+          .filter(Boolean).join(' ') + (record.UnitNumber ? (' #' + record.UnitNumber) : '');
+        const price = parseFloat(record.ListPrice) || 0;
+        const beds = record.BedroomsTotal || '';
+        const full = parseInt(record.BathroomsFull, 10) || 0;
+        const half = parseInt(record.BathroomsHalf, 10) || 0;
+        const baths = half ? (full + half * 0.5) : full;
+        const sqft = record.LivingArea ? parseFloat(record.LivingArea).toLocaleString('en-US') : '';
+        const cityStateZip = `${record.City || ''}, ${record.StateOrProvince === 'Texas' ? 'TX' : (record.StateOrProvince || '')} ${record.PostalCode || ''}`.trim();
+        const subdivision = record.SubdivisionName || '';
+
+        const badge = upcoming
+          ? formatOpenHouseBadge(upcoming.OpenHouseDate, upcoming.OpenHouseStartTime, upcoming.OpenHouseEndTime)
+          : null;
+        const dayCode = upcoming ? dayCodeFromDate(upcoming.OpenHouseDate) : 'soon';
+
+        const addrEsc = escapeHtmlText(addressParts);
+        const addrJs = escapeJsString(addressParts);
+        const badgeJs = badge ? escapeJsString(badge) : '';
+
+        const photoTag = photoBase64
+          ? `<img src="${photoBase64}" alt="${addrEsc}" loading="lazy">`
+          : '<!-- photo fetch failed — add manually -->';
+
+        const html = `    <article class="card" data-day="${dayCode}">
+      <div class="card-photo">
+        ${photoTag}
+        <span class="tag">NEW</span>
+        ${badge ? `<span class="oh-badge">${escapeHtmlText(badge)}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-top">
+          <p class="price">$${price.toLocaleString('en-US')}</p>
+          <p class="specs">${beds} bd &middot; ${baths} ba &middot; ${sqft} sf</p>
+        </div>
+        <p class="addr">${addrEsc}</p>
+        <p class="citystate">${escapeHtmlText(cityStateZip)}${subdivision ? ` &middot; ${escapeHtmlText(subdivision)}` : ''}</p>
+        <div class="card-foot">
+          <span class="broker">Listed by ${escapeHtmlText(record.ListOfficeName || '')}<span class="agent">Agent: ${escapeHtmlText(record.ListAgentFullName || '')}</span></span>
+          <button class="btn-request" onclick="openModal('${addrJs}', '${badgeJs}')">Request showing</button>
+        </div>
+      </div>
+    </article>`;
+
+        result = {
+          found: true,
+          html,
+          photoFetchFailed: !photoBase64,
+          openHouseFound: !!upcoming,
+          raw: {
+            mlsNumber: qs.mlsNumber,
+            address: addressParts,
+            price,
+            beds,
+            baths,
+            sqft,
+            city: record.City,
+            subdivision,
+            listAgent: record.ListAgentFullName,
+            listOffice: record.ListOfficeName,
+            openHouseBadge: badge,
+            dayCode,
+          },
+        };
+      }
     } else if (mode === 'openhouses') {
       // Two ways to call this:
       //   &listingId=20902063           -> all upcoming open houses for one listing
