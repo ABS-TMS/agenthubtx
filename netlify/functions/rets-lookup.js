@@ -959,7 +959,7 @@ exports.handler = async (event) => {
       // agent/office identity and contact is standard MLS/IDX display practice (same
       // as Zillow/Realtor.com) — this is a different, legitimate display context.
       if (!qs.city && !qs.subdivision) throw new Error('Provide city or subdivision');
-      const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 12, 24) : 12;
+      const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 12, 48) : 12;
       const cityQuery = qs.subdivision
         ? buildSubdivisionActiveQuery(qs.subdivision)
         : await buildCityActiveQuery(session, qs.city);
