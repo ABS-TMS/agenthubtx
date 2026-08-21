@@ -289,17 +289,11 @@
 
   /* For agents / cost */
   .agents {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    display: flex; justify-content: center;
   }
-  @media (max-width: 760px) { .agents { grid-template-columns: 1fr; } }
   .plan {
     background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 32px;
-  }
-  .plan.highlight { border: 1px solid var(--barn); position: relative; }
-  .plan.highlight::before {
-    content: 'ABS AGENTS'; position: absolute; top: -11px; left: 28px;
-    background: var(--barn); color: var(--white); font-family: var(--mono);
-    font-size: 10.5px; letter-spacing: 0.06em; padding: 3px 10px; border-radius: 999px;
+    max-width: 420px; width: 100%;
   }
   .plan .price {
     font-family: var(--display); font-weight: 700; font-size: 36px; color: var(--denim-2);
@@ -379,7 +373,6 @@
 <div class="strip">
   <div class="strip-inner">
     <span><span class="dot"></span> 1 town live today</span>
-    <span><span class="dot"></span> free for Attorney Broker Services agents</span>
     <span><span class="dot"></span> your town, your name, your leads</span>
   </div>
 </div>
@@ -480,26 +473,17 @@
   <section id="agents" class="fade-in">
     <div class="section-head">
       <div class="section-eyebrow">For agents</div>
-      <h2>Free where it already lives. Simple everywhere else.</h2>
+      <h2>One town. One plan. One agent.</h2>
     </div>
     <div class="agents">
-      <div class="plan highlight">
-        <div class="plan-label">Attorney Broker Services agents</div>
-        <div class="price">Included</div>
-        <p class="desc">Already part of your AgentHubTX access — no separate signup.</p>
+      <div class="plan">
+        <div class="plan-label">Your Town</div>
+        <div class="price">Coming soon</div>
+        <p class="desc">Pricing is still being worked out — reach out if you'd like to be first in line.</p>
         <ul>
           <li>Claim any unclaimed town</li>
           <li>Unlimited business listings</li>
           <li>Sticker request tracking</li>
-        </ul>
-      </div>
-      <div class="plan">
-        <div class="plan-label">Outside agents</div>
-        <div class="price">Coming soon</div>
-        <p class="desc">Details are still being worked out — reach out if you'd like to be first in line.</p>
-        <ul>
-          <li>Same tools, your own town</li>
-          <li>No AgentHubTX account required</li>
         </ul>
       </div>
     </div>
