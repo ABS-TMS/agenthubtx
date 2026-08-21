@@ -99,6 +99,25 @@
 
   .section-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 34px 0 14px; }
   .section-title:first-of-type { margin-top: 0; }
+
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-tab {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 20px;
+    padding: 7px 16px; font-size: 12.5px; font-weight: 600; color: var(--gray-700);
+    cursor: pointer; font-family: inherit;
+  }
+  .filter-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  .row-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; }
+  .row-summary:hover .biz-name { text-decoration: underline; }
+  .row-summary-left { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .row-summary .biz-cat { flex-shrink: 0; }
+  .row-summary .biz-name { flex-shrink: 0; }
+  .row-summary .biz-meta-inline { font-size: 12px; color: var(--gray-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-chevron { color: var(--gray-500); font-size: 12px; flex-shrink: 0; transition: transform 0.15s; }
+  .row-chevron.open { transform: rotate(90deg); }
+  .row-detail { display: none; margin-top: 14px; }
+  .row-detail.open { display: block; }
 </style>
 </head>
 <body>
@@ -122,6 +141,7 @@
   <div class="wrap">
     <div class="section-title">Merchant Listings</div>
     <div class="stats-row" id="statsRow"></div>
+    <div class="filter-tabs" id="filterTabs"></div>
     <div id="listWrap"></div>
 
     <div class="section-title">Resident Sticker Requests</div>
@@ -139,6 +159,8 @@
   const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
 
   let listings = [];
+  let activeFilter = 'pending';
+  const expandedIds = new Set();
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -225,56 +247,97 @@
       <div class="stat"><div class="num">${counts.rejected}</div><div class="label">Rejected</div></div>
     `;
 
+    const tabs = [
+      ['all', 'All', listings.length],
+      ['pending', 'Pending', counts.pending],
+      ['approved', 'Approved', counts.approved],
+      ['rejected', 'Rejected', counts.rejected],
+    ];
+    document.getElementById('filterTabs').innerHTML = tabs.map(([key, label, n]) =>
+      `<button class="filter-tab ${activeFilter === key ? 'active' : ''}" onclick="setFilter('${key}')">${label} (${n})</button>`
+    ).join('');
+
+    const visible = activeFilter === 'all' ? listings : listings.filter(l => l.status === activeFilter);
+
     const listWrap = document.getElementById('listWrap');
     if (!listings.length) {
       listWrap.innerHTML = '<div class="empty-state">No submissions yet.</div>';
       return;
     }
+    if (!visible.length) {
+      listWrap.innerHTML = `<div class="empty-state">No ${activeFilter === 'all' ? '' : activeFilter + ' '}listings.</div>`;
+      return;
+    }
 
-    listWrap.innerHTML = listings.map(l => `
+    // Each listing is a compact, clickable summary line by default -- the
+    // full detail (contact info, edit fields, notes, photo, actions) only
+    // renders when expanded, so the page stays short even with many
+    // businesses on file. Click the row to open/close it; state persists
+    // across re-renders (e.g. after saving) via the expandedIds set.
+    listWrap.innerHTML = visible.map(l => {
+      const isOpen = expandedIds.has(l.id);
+      return `
       <div class="row">
-        <div class="row-top">
-          <div>
-            <div class="biz-cat">${escapeHtml(l.category || '')}</div>
-            <div class="biz-name">${escapeHtml(l.business_name)}</div>
-            <div class="biz-meta">${l.phone ? escapeHtml(l.phone) + ' &middot; ' : ''}${l.website ? escapeHtml(l.website) + ' &middot; ' : ''}${l.address ? escapeHtml(l.address) : ''}</div>
-            <div class="biz-contact">Submitted by ${escapeHtml(l.contact_name || '')} (${escapeHtml(l.contact_email || '')}) on ${formatDate(l.submitted_at)}</div>
+        <div class="row-summary" onclick="toggleRow('${l.id}')">
+          <div class="row-summary-left">
+            <span class="row-chevron ${isOpen ? 'open' : ''}">&#9656;</span>
+            <span class="biz-cat">${escapeHtml(l.category || '')}</span>
+            <span class="biz-name">${escapeHtml(l.business_name)}</span>
+            <span class="biz-meta-inline">${escapeHtml(l.contact_name || '')} &middot; ${formatDate(l.submitted_at)}</span>
           </div>
           <span class="badge badge-${l.status}">${escapeHtml(l.status)}</span>
         </div>
-        <div class="row-actions">
-          ${l.status !== 'approved' ? `<button class="btn-small btn-approve" onclick="updateStatus('${l.id}', 'approved')">Approve</button>` : ''}
-          ${l.status !== 'rejected' ? `<button class="btn-small btn-reject" onclick="updateStatus('${l.id}', 'rejected')">Reject</button>` : ''}
-          ${l.status !== 'pending' ? `<button class="btn-small" onclick="updateStatus('${l.id}', 'pending')">Back to Pending</button>` : ''}
-          <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
-          <button class="btn-small" onclick="toggleEdit('${l.id}')">Edit</button>
-          <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
-        </div>
-        <div class="edit-row" id="edit-row-${l.id}" style="display:none;">
-          <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
-          <div class="edit-field"><label>Category</label><input type="text" id="edit-category-${l.id}" value="${escapeHtml(l.category || '')}"></div>
-          <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
-          <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
-          <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
-          <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2">${escapeHtml(l.description || '')}</textarea></div>
-          <div class="edit-actions">
-            <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
-            <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
+        <div class="row-detail ${isOpen ? 'open' : ''}" id="row-detail-${l.id}">
+          <div class="biz-meta">${l.phone ? escapeHtml(l.phone) + ' &middot; ' : ''}${l.website ? escapeHtml(l.website) + ' &middot; ' : ''}${l.address ? escapeHtml(l.address) : ''}</div>
+          <div class="biz-contact">Submitted by ${escapeHtml(l.contact_name || '')} (${escapeHtml(l.contact_email || '')}) on ${formatDate(l.submitted_at)}</div>
+          <div class="row-actions">
+            ${l.status !== 'approved' ? `<button class="btn-small btn-approve" onclick="updateStatus('${l.id}', 'approved')">Approve</button>` : ''}
+            ${l.status !== 'rejected' ? `<button class="btn-small btn-reject" onclick="updateStatus('${l.id}', 'rejected')">Reject</button>` : ''}
+            ${l.status !== 'pending' ? `<button class="btn-small" onclick="updateStatus('${l.id}', 'pending')">Back to Pending</button>` : ''}
+            <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
+            <button class="btn-small" onclick="toggleEdit('${l.id}')">Edit</button>
+            <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
+          </div>
+          <div class="edit-row" id="edit-row-${l.id}" style="display:none;">
+            <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
+            <div class="edit-field"><label>Category</label><input type="text" id="edit-category-${l.id}" value="${escapeHtml(l.category || '')}"></div>
+            <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
+            <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
+            <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
+            <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2">${escapeHtml(l.description || '')}</textarea></div>
+            <div class="edit-actions">
+              <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
+              <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
+            </div>
+          </div>
+          <div class="notes-row">
+            <input type="text" id="notes-listing-${l.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(l.notes || '')}" oninput="document.getElementById('save-notes-listing-${l.id}').disabled = false;">
+            <button id="save-notes-listing-${l.id}" disabled onclick="saveListingNotes('${l.id}')">Save</button>
+          </div>
+          <div class="photo-row">
+            ${l.photo_url
+              ? `<img class="photo-thumb" src="${escapeHtml(l.photo_url)}" alt="">`
+              : `<div class="photo-thumb-empty">No photo</div>`}
+            <input type="file" id="photo-file-${l.id}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="document.getElementById('upload-photo-${l.id}').disabled = false;">
+            <button id="upload-photo-${l.id}" disabled onclick="uploadListingPhoto('${l.id}')">Upload</button>
           </div>
         </div>
-        <div class="notes-row">
-          <input type="text" id="notes-listing-${l.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(l.notes || '')}" oninput="document.getElementById('save-notes-listing-${l.id}').disabled = false;">
-          <button id="save-notes-listing-${l.id}" disabled onclick="saveListingNotes('${l.id}')">Save</button>
-        </div>
-        <div class="photo-row">
-          ${l.photo_url
-            ? `<img class="photo-thumb" src="${escapeHtml(l.photo_url)}" alt="">`
-            : `<div class="photo-thumb-empty">No photo</div>`}
-          <input type="file" id="photo-file-${l.id}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="document.getElementById('upload-photo-${l.id}').disabled = false;">
-          <button id="upload-photo-${l.id}" disabled onclick="uploadListingPhoto('${l.id}')">Upload</button>
-        </div>
       </div>
-    `).join('');
+    `; }).join('');
+  }
+
+  function setFilter(key) {
+    activeFilter = key;
+    render();
+  }
+
+  function toggleRow(id) {
+    if (expandedIds.has(id)) {
+      expandedIds.delete(id);
+    } else {
+      expandedIds.add(id);
+    }
+    render();
   }
 
   function toggleEdit(id) {
