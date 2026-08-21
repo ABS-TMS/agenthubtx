@@ -304,7 +304,7 @@
             <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
             <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
             <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
-            <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2">${escapeHtml(l.description || '')}</textarea></div>
+            <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2" maxlength="150">${escapeHtml(l.description || '')}</textarea></div>
             <div class="edit-actions">
               <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
               <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
