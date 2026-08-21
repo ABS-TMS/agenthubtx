@@ -35,6 +35,15 @@
 //        NEVER returns agentFacing data — this is a public-facing endpoint. photoUrl is best-effort
 //        (primary photo only, via GetObject ":0") and may be null if the fetch fails for a listing.
 //
+//   mode=openhouses&listingId=20902063  (or &startDate=2026-08-22&endDate=2026-08-24 for a date range)
+//     -> queries the separate Openhouse RETS resource (confirmed to exist on this server —
+//        distinct from Property, joined by ListingId). Returns { count, openHouses: [...] } with
+//        date/startTime/endTime/remarks/type/refreshments. Date-range mode has no city filter built
+//        in (Openhouse has no City field) — for OpenDFWHomes' per-listing curated workflow, listingId
+//        mode is the more directly useful one; date-range mode is there for a future "browse all
+//        upcoming open houses" feature, which would need to cross-reference results against
+//        mode=citysearch or mode=report to get address/photo/price for display.
+//
 //   mode=photos&listingKey=<ListingKeyNumeric>
 //     -> best-effort list of photo URLs via GetObject (Location=1). NOTE: exact response shaping for
 //        Location=1 (multipart vs. flat key/value) is implementation-specific and UNVERIFIED against the
@@ -268,6 +277,22 @@ function buildQuery({ mlsNumber, address }) {
 // numeric ID that's DIFFERENT PER CITY (Rhome=1252) and can't be hardcoded —
 // must be resolved from the live lookup table for whatever city is requested.
 const ACTIVE_STATUS_CODE = 'ACT';
+
+// OpenHouseStatus (on the separate Openhouse resource, not Property) has its
+// own lookup table — confirmed via mode=lookups&resource=Openhouse: Active's
+// code is also "ACT", same convention as StandardStatus. This resource is
+// otherwise well-behaved: ListingId and OpenHouseDate are plain fields (not
+// Lookup), and a simple hyphenated date range (2026-08-22-2026-08-24) works
+// as-is — confirmed live, no special syntax needed unlike City/StandardStatus.
+const OPENHOUSE_ACTIVE_CODE = 'ACT';
+
+function buildOpenHouseByListingQuery(listingId) {
+  return `(ListingId=${listingId}) AND (OpenHouseStatus=${OPENHOUSE_ACTIVE_CODE})`;
+}
+
+function buildOpenHouseByDateRangeQuery(startDate, endDate) {
+  return `(OpenHouseDate=${startDate}-${endDate}) AND (OpenHouseStatus=${OPENHOUSE_ACTIVE_CODE})`;
+}
 
 async function resolveCityCode(session, cityName) {
   const xml = await retsGetLookupValues(session, { lookupName: 'City' });
@@ -686,6 +711,45 @@ exports.handler = async (event) => {
         rawQuery: qs.query,
         limit: qs.limit ? parseInt(qs.limit, 10) : 5,
       });
+    } else if (mode === 'openhouses') {
+      // Two ways to call this:
+      //   &listingId=20902063           -> all upcoming open houses for one listing
+      //   &startDate=2026-08-22&endDate=2026-08-24 -> all open houses in a date range,
+      //     across the entire NTREIS coverage area (no city filter — the Openhouse
+      //     resource has no City field of its own; callers wanting a specific city
+      //     should cross-reference the returned ListingId values against a
+      //     mode=citysearch result, or look up each one via mode=report).
+      // Returns clientSafe-shaped rows — OpenHouseRemarks is the only field that
+      // could theoretically contain agent-written text, and it's public-facing
+      // open house info by nature, so no filtering needed here.
+      let ohQuery;
+      if (qs.listingId) {
+        ohQuery = buildOpenHouseByListingQuery(qs.listingId);
+      } else if (qs.startDate && qs.endDate) {
+        ohQuery = buildOpenHouseByDateRangeQuery(qs.startDate, qs.endDate);
+      } else {
+        throw new Error('Provide listingId, or both startDate and endDate (YYYY-MM-DD)');
+      }
+      const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 25, 100) : 25;
+      const searchResult = await retsSearch(session, {
+        resource: 'Openhouse',
+        class: 'OpenHouse',
+        rawQuery: ohQuery,
+        limit,
+      });
+      result = {
+        count: searchResult.records.length,
+        openHouses: searchResult.records.map((r) => ({
+          openHouseKey: r.OpenHouseKeyNumeric,
+          listingId: r.ListingId,
+          date: r.OpenHouseDate,
+          startTime: r.OpenHouseStartTime,
+          endTime: r.OpenHouseEndTime,
+          remarks: r.OpenHouseRemarks || '',
+          type: r.OpenHouseType || '',
+          refreshments: r.Refreshments || '',
+        })),
+      };
     } else if (mode === 'citysearch') {
       // For public card grids (e.g. a town's "Homes for Sale" section).
       // Returns clientSafe property data PLUS listing agent/office name+phone+email —
