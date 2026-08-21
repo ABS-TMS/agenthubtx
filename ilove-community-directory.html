@@ -94,6 +94,54 @@
   .sticker-msg.err { color: #ff9b9b; }
 
   footer { text-align: center; padding: 30px 20px; font-size: 12.5px; color: var(--gray-500); }
+
+  /* Homes for Sale — live RETS card grid + showing-request modal */
+  .home-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .home-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+  .home-card .card-photo { width: 100%; height: 170px; background: var(--off); }
+  .home-card .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .home-card .card-body { padding: 16px; }
+  .home-card .home-price { font-weight: 700; font-size: 20px; color: var(--navy); }
+  .home-card .home-stats { font-size: 13px; color: var(--gray-500); margin: 4px 0 6px; }
+  .home-card .home-address { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+  .home-card .home-subdivision { font-size: 12.5px; color: var(--gray-500); margin-top: 2px; }
+  .homes-status { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 14px; grid-column: 1 / -1; }
+  .homes-status.err { color: var(--red); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(12,48,87,0.55);
+    z-index: 100; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow-y: auto;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: 14px; max-width: 460px; width: 100%;
+    padding: 26px; position: relative; margin-top: 20px;
+  }
+  .modal-close {
+    position: absolute; top: 14px; right: 16px; background: none; border: none;
+    font-size: 20px; color: var(--gray-500); cursor: pointer; line-height: 1;
+  }
+  .modal-photo { width: 100%; height: 180px; border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+  .modal-tag { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .modal-box h2 { color: var(--navy); font-size: 20px; margin: 4px 0 2px; }
+  .modal-price { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+  .modal-stats { font-size: 13.5px; color: var(--gray-700); margin-bottom: 14px; }
+  .modal-section { border-top: 1px solid var(--gray-300); padding-top: 14px; margin-top: 14px; }
+  .modal-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gray-500); margin-bottom: 8px; }
+  .modal-broker-row { font-size: 13.5px; margin-bottom: 3px; }
+  .modal-broker-row b { color: var(--navy); }
+  .modal-disclosure {
+    background: var(--off); border: 1px solid var(--gray-300); border-radius: 8px;
+    padding: 12px 14px; font-size: 12px; color: var(--gray-700); margin: 12px 0;
+  }
+  .modal-box .btn { width: 100%; text-align: center; margin-top: 4px; border: none; cursor: pointer; }
+  .modal-box input, .modal-box textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 7px;
+    font-size: 13.5px; font-family: inherit; margin-bottom: 8px; color: var(--gray-700);
+  }
+  .modal-box textarea { min-height: 80px; resize: vertical; }
+  .modal-form { display: none; margin-top: 12px; }
+  .modal-form.show { display: block; }
 </style>
 </head>
 <body>
@@ -136,6 +184,13 @@
 
 <footer id="pageFooter">A community project</footer>
 
+<div class="modal-overlay" id="homeModal" onclick="if(event.target===this)closeHomeModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeHomeModal()">&times;</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
@@ -149,6 +204,7 @@
   const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
 
   let site = null;
+  let sitePromise = null;
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -156,15 +212,18 @@
     return div.innerHTML;
   }
 
-  async function loadSite() {
-    try {
-      const { data, error } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
-      if (error) throw error;
-      site = (data && data[0]) || null;
-      renderSite();
-    } catch (err) {
-      console.error('Could not load community site:', err);
-    }
+  function loadSite() {
+    sitePromise = (async () => {
+      try {
+        const { data, error } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
+        if (error) throw error;
+        site = (data && data[0]) || null;
+        renderSite();
+      } catch (err) {
+        console.error('Could not load community site:', err);
+      }
+    })();
+    return sitePromise;
   }
 
   function renderSite() {
@@ -207,6 +266,7 @@
 
   let allListings = [];
   let activeCategory = 'All';
+  const HOMES_CAT = 'Homes for Sale';
 
   async function loadDirectory() {
     const grid = document.getElementById('directoryGrid');
@@ -223,7 +283,7 @@
   }
 
   function renderFilters() {
-    const cats = ['All', ...new Set(allListings.map(b => b.category).filter(Boolean))];
+    const cats = ['All', ...new Set(allListings.map(b => b.category).filter(Boolean)), HOMES_CAT];
     document.getElementById('filterBar').innerHTML = cats.map(c =>
       `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
     ).join('');
@@ -238,6 +298,17 @@
 
   function renderGrid() {
     const grid = document.getElementById('directoryGrid');
+
+    if (activeCategory === HOMES_CAT) {
+      grid.style.display = 'grid';
+      if (homesLoadState === 'idle') {
+        fetchHomesForSale();
+      }
+      renderHomesGrid();
+      return;
+    }
+    grid.style.display = 'grid';
+
     const items = activeCategory === 'All' ? allListings : allListings.filter(b => b.category === activeCategory);
 
     if (!items.length) {
@@ -300,6 +371,175 @@
 
   loadSite();
   loadDirectory();
+
+  // ===========================================================
+  // Homes for Sale — live RETS listings via our own rets-lookup
+  // Netlify function, plus a "Request a Private Showing" flow.
+  // Ported from ilove-rhome-example.html to work for any community.
+  // ===========================================================
+
+  let LIVE_HOMES = [];
+  let homesLoadState = 'idle'; // idle | loading | loaded | error
+
+  const HOUSE_PALETTES = [
+    ['#0C3057', '#1A3A5C'], ['#8B4513', '#A0522D'], ['#556B2F', '#6B8E23'],
+    ['#4A4A4A', '#6B6B6B'], ['#7A5C3E', '#8F7050'],
+  ];
+  function shade(hex, pct) {
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, Math.max(0, (n >> 16) + pct));
+    const g = Math.min(255, Math.max(0, ((n >> 8) & 0xff) + pct));
+    const b = Math.min(255, Math.max(0, (n & 0xff) + pct));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  }
+  function houseIllustration(seed) {
+    const p = HOUSE_PALETTES[seed % HOUSE_PALETTES.length];
+    return `<svg viewBox="0 0 300 170" style="width:100%;height:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="170" fill="${shade(p[1], 40)}"/>
+      <rect y="120" width="300" height="50" fill="${shade(p[1], 20)}"/>
+      <polygon points="60,120 150,60 240,120" fill="${p[0]}"/>
+      <rect x="80" y="120" width="140" height="60" fill="${p[1]}"/>
+      <rect x="130" y="150" width="30" height="30" fill="${shade(p[0], -20)}"/>
+      <rect x="95" y="135" width="20" height="20" fill="#fff" opacity="0.85"/>
+      <rect x="185" y="135" width="20" height="20" fill="#fff" opacity="0.85"/>
+    </svg>`;
+  }
+
+  function fmtPrice(n) {
+    return '$' + (n || 0).toLocaleString('en-US');
+  }
+
+  // Maps a raw citysearch listing (RETS field names) into the simple shape
+  // the card grid and modal use.
+  function normalizeListing(raw) {
+    const c = raw;
+    const addressParts = [c.StreetNumber, c.StreetDirPrefix, c.StreetName, c.StreetSuffix, c.StreetDirSuffix]
+      .filter(Boolean).join(' ') + (c.UnitNumber ? (' #' + c.UnitNumber) : '');
+    const full = parseInt(c.BathroomsFull, 10) || 0;
+    const half = parseInt(c.BathroomsHalf, 10) || 0;
+    return {
+      mls: c.ListingId || '',
+      address: addressParts,
+      price: parseFloat(c.ListPrice) || 0,
+      beds: parseInt(c.BedroomsTotal, 10) || 0,
+      bathsDisplay: half ? (full + '.' + half) : String(full),
+      sqft: parseFloat(c.LivingArea) || 0,
+      subdivision: c.SubdivisionName || '',
+      listAgent: c.ListAgentFullName || '',
+      listOffice: c.ListOfficeName || '',
+      photoUrl: c.photoUrl || null,
+    };
+  }
+
+  async function fetchHomesForSale() {
+    homesLoadState = 'loading';
+    renderHomesGrid();
+    try {
+      await sitePromise;
+      // Per-site config: some towns (Rhome) are their own municipality, so
+      // City search works. Others (Robson Ranch) are a master-planned
+      // community inside a larger city and have no City lookup entry of
+      // their own — those need SubdivisionName search instead. Configured
+      // per community_sites row via homes_search_type/homes_search_value;
+      // falls back to city=community_name if not set (safe default).
+      const searchType = (site && site.homes_search_type) || 'city';
+      const searchValue = (site && site.homes_search_value) || (site && site.community_name) || '';
+      if (!searchValue) throw new Error('Community not configured yet');
+      const param = searchType === 'subdivision' ? 'subdivision' : 'city';
+      const res = await fetch(`/.netlify/functions/rets-lookup?mode=citysearch&${param}=${encodeURIComponent(searchValue)}&limit=12`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      LIVE_HOMES = (data.listings || []).map(normalizeListing);
+      homesLoadState = 'loaded';
+    } catch (err) {
+      homesLoadState = 'error';
+    }
+    renderHomesGrid();
+  }
+
+  function renderHomesGrid() {
+    const grid = document.getElementById('directoryGrid');
+    if (homesLoadState === 'loading') {
+      grid.innerHTML = '<div class="homes-status">Loading current listings&hellip;</div>';
+      return;
+    }
+    if (homesLoadState === 'error') {
+      grid.innerHTML = '<div class="homes-status err">Couldn\u2019t load current listings right now &mdash; please try again shortly.</div>';
+      return;
+    }
+    const communityName = (site && site.community_name) || 'this community';
+    if (!LIVE_HOMES.length) {
+      grid.innerHTML = '<div class="homes-status">No active listings in ' + escapeHtml(communityName) + ' right now &mdash; check back soon.</div>';
+      return;
+    }
+    grid.innerHTML = LIVE_HOMES.map((h, i) => `
+      <div class="home-card" onclick="openHomeModal('${escapeHtml(h.mls)}')">
+        <div class="card-photo">${h.photoUrl ? `<img src="${escapeHtml(h.photoUrl)}" alt="${escapeHtml(h.address)}">` : houseIllustration(i)}</div>
+        <div class="card-body">
+          <div class="home-price">${fmtPrice(h.price)}</div>
+          <div class="home-stats">${h.beds} bed / ${h.bathsDisplay} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft</div>
+          <div class="home-address">${escapeHtml(h.address)}</div>
+          ${h.subdivision ? `<div class="home-subdivision">${escapeHtml(h.subdivision)}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openHomeModal(mls) {
+    const h = LIVE_HOMES.find(x => x.mls === mls);
+    if (!h) return;
+    const agentName = (site && site.agent_name) || 'the agent';
+    const defaultMsg = `Hi ${agentName.split(' ')[0]}, I'd like to schedule a private showing of ${h.address} (MLS# ${h.mls}). Please send over the written agreement to sign so we can get on the calendar.`;
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-photo">${h.photoUrl ? `<img src="${escapeHtml(h.photoUrl)}" alt="${escapeHtml(h.address)}" style="width:100%;height:100%;object-fit:cover;">` : houseIllustration(LIVE_HOMES.indexOf(h))}</div>
+      <div class="modal-tag">${escapeHtml(h.subdivision)}</div>
+      <h2>${escapeHtml(h.address)}</h2>
+      <div class="modal-price">${fmtPrice(h.price)}</div>
+      <div class="modal-stats">${h.beds} bed / ${h.bathsDisplay} bath &middot; ${h.sqft.toLocaleString('en-US')} sqft &middot; MLS# ${escapeHtml(h.mls)}</div>
+
+      <div class="modal-section">
+        <h3>Listing Broker &amp; Agent</h3>
+        <div class="modal-broker-row"><b>${escapeHtml(h.listAgent)}</b></div>
+        <div class="modal-broker-row">${escapeHtml(h.listOffice)}</div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Tour This Home</h3>
+        <button class="btn" onclick="showRequestForm('${escapeHtml(h.mls)}')">Request a Private Showing &rarr;</button>
+        <div class="modal-form" id="requestForm-${escapeHtml(h.mls)}">
+          <div class="modal-disclosure">Texas law requires buyers to sign a written buyer representation (or non-representation) agreement with an agent before touring a home in person. ${escapeHtml(agentName.split(' ')[0])} will send that over first so your showing can be scheduled.</div>
+          <input type="text" id="rf-name-${escapeHtml(h.mls)}" placeholder="Your full name">
+          <input type="text" id="rf-contact-${escapeHtml(h.mls)}" placeholder="Phone or email">
+          <textarea id="rf-msg-${escapeHtml(h.mls)}">${defaultMsg}</textarea>
+          <button class="btn" onclick="submitShowingRequest('${escapeHtml(h.mls)}', '${escapeHtml(h.address)}')">Send Request</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('homeModal').classList.add('show');
+  }
+  window.openHomeModal = openHomeModal;
+
+  function showRequestForm(mls) {
+    document.getElementById(`requestForm-${mls}`).classList.add('show');
+  }
+  window.showRequestForm = showRequestForm;
+
+  function submitShowingRequest(mls, address) {
+    const name = document.getElementById(`rf-name-${mls}`).value.trim();
+    const contact = document.getElementById(`rf-contact-${mls}`).value.trim();
+    const msg = document.getElementById(`rf-msg-${mls}`).value.trim();
+    const agentEmail = (site && site.agent_contact_email) || '';
+    const agentName = (site && site.agent_name) || 'the agent';
+    const subject = `Private showing request: ${address} (MLS# ${mls})`;
+    const body = `${msg}\n\nFrom: ${name}\nContact: ${contact}`;
+    window.location.href = `mailto:${encodeURIComponent(agentEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  window.submitShowingRequest = submitShowingRequest;
+
+  function closeHomeModal() {
+    document.getElementById('homeModal').classList.remove('show');
+  }
+  window.closeHomeModal = closeHomeModal;
 </script>
 </body>
 </html>
