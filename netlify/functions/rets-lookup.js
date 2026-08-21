@@ -471,6 +471,32 @@ async function retsGetMetadata(session, { resource = 'Property', class: cls }) {
   return text; // returned raw — inspect directly to find real field SystemNames
 }
 
+// Lists every top-level RESOURCE this RETS server exposes (Property, OpenHouse,
+// Media, etc.) — the resource-scoped metadata above only tells you about ONE
+// resource you already know the name of; this is how we check whether a
+// resource like "OpenHouse" exists at all before trying to query it.
+async function retsGetSystemMetadata(session) {
+  const params = new URLSearchParams({
+    Type: 'METADATA-SYSTEM',
+    ID: '*',
+    Format: 'COMPACT',
+  });
+  const url = `${session.urls.getMetadata}?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      'RETS-Version': RETS_VERSION,
+      'User-Agent': USER_AGENT,
+      Accept: '*/*',
+      Cookie: cookieHeader(session.cookieJar),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`RETS GetMetadata (system) HTTP ${res.status}: ${text.slice(0, 500)}`);
+  }
+  return text;
+}
+
 // For Interpretation=Lookup fields (e.g. City, StandardStatus), RETS stores a
 // short internal code and only DECODES it to the friendly display text on
 // OUTPUT (with Format=COMPACT-DECODED). Queries must use the raw short code,
@@ -610,7 +636,12 @@ exports.handler = async (event) => {
     const session = await retsLogin();
 
     let result;
-    if (mode === 'metadata') {
+    if (mode === 'resources') {
+      // Lists every top-level resource this server exposes — use this to
+      // check whether something like "OpenHouse" exists before querying it.
+      result = await retsGetSystemMetadata(session);
+      return { statusCode: 200, headers: { ...cors, 'Content-Type': 'text/xml' }, body: result };
+    } else if (mode === 'metadata') {
       result = await retsGetMetadata(session, { resource: qs.resource, class: qs.class });
       return { statusCode: 200, headers: { ...cors, 'Content-Type': 'text/xml' }, body: result };
     } else if (mode === 'search') {
