@@ -385,8 +385,17 @@ async function buildCityActiveQuery(session, city) {
   // Query Syntax": (City=X),(Status=Y) and (City=X,Status=Y). Neither the
   // RETS-spec "textbook" form nor the simpler single-parens form worked here —
   // this server's dialect specifically wants the literal " AND " keyword.
+  //
+  // IMPORTANT: filters on MlsStatus, not StandardStatus. StandardStatus is
+  // RESO-standardized and collapses Active Contingent (AC), Active Kick Out
+  // (AKO), and Active Option Contract (AOC) all into the same "Active"/ACT
+  // bucket — filtering on it alone would silently include listings that are
+  // already under some form of contract. MlsStatus is Matrix's own native
+  // field and DOES distinguish these (confirmed via mode=lookups: ACT/AC/
+  // AKO/AOC are separate codes there) — this is what actually limits public
+  // "Homes for Sale" display to genuinely, fully available listings.
   const cityCode = await resolveCityCode(session, city);
-  return `(City=${cityCode}) AND (StandardStatus=${ACTIVE_STATUS_CODE})`;
+  return `(City=${cityCode}) AND (MlsStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // For a master-planned community that ISN'T its own municipality (e.g. Robson
@@ -396,7 +405,8 @@ async function buildCityActiveQuery(session, city) {
 // Character field (not Lookup), so the literal text can be queried directly —
 // no code-resolution step needed, unlike City.
 function buildSubdivisionActiveQuery(subdivision) {
-  return `(SubdivisionName=${subdivision}) AND (StandardStatus=${ACTIVE_STATUS_CODE})`;
+  // Same MlsStatus reasoning as buildCityActiveQuery above.
+  return `(SubdivisionName=${subdivision}) AND (MlsStatus=${ACTIVE_STATUS_CODE})`;
 }
 
 // ---------------------------------------------------------------------------
