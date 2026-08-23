@@ -318,6 +318,7 @@
   }
   .billing-toggle button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
   .plan .price .save-note { display: block; font-size: 12.5px; color: var(--barn); font-weight: 600; margin-top: 4px; }
+  .plan .domain-addon-note { font-size: 13px; color: #7A8494; margin: 20px 0 0; padding-top: 18px; border-top: 1px solid #E5E0D5; line-height: 1.5; }
 
   /* CTA band */
   .cta-band {
@@ -497,7 +498,7 @@
           <button id="btnAnnual" onclick="setBilling('annual')">Annual</button>
         </div>
         <div class="price" id="planPrice">
-          $24.95 <span>/mo</span>
+          $29.95 <span>/mo</span>
         </div>
         <p class="desc">Locked in for as long as you stay a member — reach out to claim your town.</p>
         <ul>
@@ -505,6 +506,7 @@
           <li>Unlimited business listings</li>
           <li>Sticker request tracking</li>
         </ul>
+        <p class="domain-addon-note">Want your own custom domain (like weloveyourtown.com)? Add it for a one-time $99 setup fee — no renewal bill, ever, on your end.</p>
       </div>
     </div>
   </section>
@@ -532,11 +534,11 @@
     const btnM = document.getElementById('btnMonthly');
     const btnA = document.getElementById('btnAnnual');
     if (mode === 'annual') {
-      price.innerHTML = '$250 <span>/yr</span><span class="save-note">Save $49.40 vs. monthly</span>';
+      price.innerHTML = '$299 <span>/yr</span><span class="save-note">Save $60.40 vs. monthly</span>';
       btnA.classList.add('active');
       btnM.classList.remove('active');
     } else {
-      price.innerHTML = '$24.95 <span>/mo</span>';
+      price.innerHTML = '$29.95 <span>/mo</span>';
       btnM.classList.add('active');
       btnA.classList.remove('active');
     }
