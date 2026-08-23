@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>We &hearts; Example Town | Local Business Directory</title>
+<style>
+  :root {
+    --navy: #0C3057; --navy-mid: #1A3A5C; --gold: #C8922A;
+    --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --red: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); line-height: 1.55; }
+
+  .demo-banner {
+    background: var(--gold); color: var(--navy); font-family: 'Courier New', monospace;
+    font-size: 12.5px; text-align: center; padding: 10px 16px; letter-spacing: 0.02em;
+  }
+
+  header.hero {
+    background: linear-gradient(160deg, var(--navy), var(--navy-mid));
+    color: #fff; padding: 60px 20px 70px; text-align: center;
+  }
+  .heart { color: var(--red); }
+  header.hero h1 { font-size: 34px; margin-bottom: 10px; }
+  header.hero p { color: #cdd8e6; font-size: 16px; max-width: 520px; margin: 0 auto; }
+  .hero-cta { margin-top: 26px; }
+  .btn { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 13px 24px; font-size: 14.5px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn-outline { border: 1.5px solid rgba(255,255,255,0.5); color: #fff; border-radius: 8px; padding: 12px 22px; font-size: 14.5px; font-weight: 600; text-decoration: none; display: inline-block; margin-left: 10px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 70px; }
+
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .filter-chip {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 20px;
+    padding: 7px 16px; font-size: 13px; font-weight: 600; color: var(--gray-700); cursor: default;
+  }
+  .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
+  .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
+  .biz-meta { font-size: 12.5px; color: var(--gray-700); }
+  .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
+
+  .decal-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; text-align: center; margin: 50px 0;
+  }
+  .decal-band h2 { color: var(--navy); font-size: 22px; margin-bottom: 10px; }
+  .decal-band p { color: var(--gray-500); font-size: 14.5px; max-width: 480px; margin: 0 auto 20px; }
+
+  .about-band {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 14px;
+    padding: 32px; margin: 50px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+  }
+  .about-photo-placeholder {
+    width: 96px; height: 96px; border-radius: 50%; flex-shrink: 0;
+    background: var(--navy); color: var(--gold); display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 700; border: 3px solid var(--gold);
+  }
+  .about-body { flex: 1; min-width: 220px; }
+  .about-eyebrow { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .about-name { font-size: 19px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .about-bio { font-size: 13.5px; color: var(--gray-500); margin-bottom: 12px; }
+  .about-contact { font-size: 13px; color: var(--navy); font-weight: 600; }
+
+  .sticker-band {
+    background: var(--navy); border-radius: 14px; padding: 32px; margin: 50px 0;
+    color: #fff; text-align: center;
+  }
+  .sticker-band h2 { font-size: 22px; margin-bottom: 8px; }
+  .sticker-band p { color: #cdd8e6; font-size: 14.5px; max-width: 480px; margin: 0 auto 22px; }
+  .sticker-form { max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .sticker-form input {
+    padding: 11px 13px; border: none; border-radius: 7px; font-size: 14px;
+    font-family: inherit; background: #fff; color: var(--gray-700);
+  }
+  .sticker-form button {
+    background: var(--gold); color: var(--navy); border: none; border-radius: 8px;
+    padding: 13px; font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  }
+  .sticker-msg { font-size: 13px; margin-top: 10px; color: var(--gold); }
+
+  footer { text-align: center; padding: 30px 20px; font-size: 12.5px; color: var(--gray-500); }
+
+  .home-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .home-card .card-photo { width: 100%; height: 130px; }
+  .home-card .card-body { padding: 16px; }
+  .home-card .home-price { font-weight: 700; font-size: 20px; color: var(--navy); }
+  .home-card .home-stats { font-size: 13px; color: var(--gray-500); margin: 4px 0 6px; }
+  .home-card .home-address { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+  .home-card .home-subdivision { font-size: 12.5px; color: var(--gray-500); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">📍 This is what your page looks like at <strong>welovemyhometown.com/your-town</strong> — the default URL, included with every plan. Sample content shown below.</div>
+
+<header class="hero">
+  <h1>We <span class="heart">&hearts;</span> Example Town</h1>
+  <p>The local directory of businesses that keep Example Town running — restaurants, services, and shops, all in one place, started by your neighbor Jamie Realtor.</p>
+  <div class="hero-cta">
+    <a class="btn" href="#">List Your Business &rarr;</a>
+    <a class="btn-outline" href="#directory">Browse the Directory</a>
+  </div>
+</header>
+
+<div class="wrap" id="directory">
+  <div class="filter-bar">
+    <div class="filter-chip active">All</div>
+    <div class="filter-chip">Beauty</div>
+    <div class="filter-chip">Retail</div>
+    <div class="filter-chip">Professional Services</div>
+    <div class="filter-chip">Community</div>
+    <div class="filter-chip">Homes for Sale</div>
+  </div>
+
+  <div class="directory-grid">
+    <div class="biz-card">
+      <div class="biz-photo">✂️</div>
+      <div class="biz-cat">Beauty</div>
+      <div class="biz-name">Sample Salon Co.</div>
+      <div class="biz-desc">Full-service salon offering cuts, color, and styling for the whole family.</div>
+      <div class="biz-meta">(555) 555-0134<br><a href="#">Visit Website</a><br>123 Main St</div>
+    </div>
+    <div class="biz-card">
+      <div class="biz-photo">🍽️</div>
+      <div class="biz-cat">Restaurant</div>
+      <div class="biz-name">Main Street Diner</div>
+      <div class="biz-desc">Home-cooked breakfast and lunch, a local favorite since 1998.</div>
+      <div class="biz-meta">(555) 555-0177<br><a href="#">Visit Website</a><br>210 Main St</div>
+    </div>
+    <div class="biz-card">
+      <div class="biz-photo">🛠️</div>
+      <div class="biz-cat">Professional Services</div>
+      <div class="biz-name">Example Town Roofing</div>
+      <div class="biz-desc">Locally owned roofing and repair, free estimates.</div>
+      <div class="biz-meta">(555) 555-0199<br><a href="#">Visit Website</a></div>
+    </div>
+    <div class="biz-card">
+      <div class="biz-photo">🏛️</div>
+      <div class="biz-cat">Community</div>
+      <div class="biz-name">First Baptist Church</div>
+      <div class="biz-desc">Sunday services at 9am and 11am, all welcome.</div>
+      <div class="biz-meta">(555) 555-0111</div>
+    </div>
+    <div class="biz-card">
+      <div class="biz-photo">🛍️</div>
+      <div class="biz-cat">Retail</div>
+      <div class="biz-name">The Corner Boutique</div>
+      <div class="biz-desc">Women's clothing and gifts, family owned.</div>
+      <div class="biz-meta">(555) 555-0122<br><a href="#">Visit Website</a></div>
+    </div>
+    <div class="home-card">
+      <div class="card-photo" style="background:linear-gradient(135deg,#0C3057,#1A3A5C);"></div>
+      <div class="card-body">
+        <div class="home-price">$425,000</div>
+        <div class="home-stats">3 bed / 2 bath &middot; 1,850 sqft</div>
+        <div class="home-address">456 Oak Lane</div>
+        <div class="home-subdivision">Example Town Estates</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-band">
+    <div class="about-photo-placeholder">JR</div>
+    <div class="about-body">
+      <div class="about-eyebrow">Who's Behind We &hearts; Example Town</div>
+      <div class="about-name">Jamie Realtor</div>
+      <div class="about-bio">Local agent and lifelong Example Town resident, helping neighbors find and support local businesses.</div>
+      <div class="about-contact">(555) 555-0100 &middot; jamie@example.com</div>
+    </div>
+  </div>
+
+  <div class="sticker-band">
+    <h2>Live in Example Town? Get a free bumper sticker.</h2>
+    <p>No catch — just show your community pride. Give me your name and email or address, and I'll get you one.</p>
+    <div class="sticker-form">
+      <input type="text" placeholder="Full name" disabled>
+      <input type="email" placeholder="Email (or leave address below)" disabled>
+      <input type="text" placeholder="Address (or leave email above)" disabled>
+      <button disabled>Send Me a Sticker</button>
+      <div class="sticker-msg">This is a sample page — forms are disabled here.</div>
+    </div>
+  </div>
+
+  <div class="decal-band">
+    <h2>Own a business here?</h2>
+    <p>Join the directory free and get a window decal for your storefront — help your neighbors find you, and help the whole community find each other.</p>
+    <a class="btn" style="background: var(--navy); color: #fff;" href="#">Get Listed &rarr;</a>
+  </div>
+</div>
+
+<footer>A product of Attorney Broker Services · This sample page lives at welovemyhometown.com/[your-town]</footer>
+
+</body>
+</html>
