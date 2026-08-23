@@ -121,13 +121,13 @@
 <script>
   const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let allRequests = [];
   let activeTab = 'pending';
 
   async function requireLogin() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (!session) {
       window.location.href = 'login.html';
       return null;
@@ -239,7 +239,7 @@
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     window.location.href = 'login.html';
   }
 
