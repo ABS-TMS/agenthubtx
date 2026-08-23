@@ -493,10 +493,6 @@
       <div class="plan">
         <div class="plan-founding-badge">Founding Member Pricing</div>
         <div class="plan-label">Your Town</div>
-        <div class="billing-toggle">
-          <button id="btnMonthly" class="active" onclick="setBilling('monthly')">Monthly</button>
-          <button id="btnAnnual" onclick="setBilling('annual')">Annual</button>
-        </div>
         <div class="price" id="planPrice">
           $29.95 <span>/mo</span>
         </div>
@@ -530,21 +526,6 @@
 </footer>
 
 <script>
-  function setBilling(mode) {
-    const price = document.getElementById('planPrice');
-    const btnM = document.getElementById('btnMonthly');
-    const btnA = document.getElementById('btnAnnual');
-    if (mode === 'annual') {
-      price.innerHTML = '$299 <span>/yr</span><span class="save-note">Save $60.40 vs. monthly</span>';
-      btnA.classList.add('active');
-      btnM.classList.remove('active');
-    } else {
-      price.innerHTML = '$29.95 <span>/mo</span>';
-      btnM.classList.add('active');
-      btnA.classList.remove('active');
-    }
-  }
-
   // Live-updating sticker: typing a town name is the whole demo.
   const townField = document.getElementById('townField');
   townField.addEventListener('input', () => {
