@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Town Requests | WeLoveMyHometown Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F0EAD9; --paper-2: #E8E0CB; --denim: #26415E; --denim-2: #1B2E44;
+    --barn: #A32D2D; --barn-2: #832222; --gold: #C98A2B; --ink: #1B2430;
+    --line: #D2C7AA; --white: #FCFAF3; --green: #2F7A4E;
+    --display: 'Fraunces', serif; --body: 'Inter', sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); line-height: 1.5; }
+
+  header {
+    background: var(--denim-2); padding: 22px 28px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 18px; color: #fff; }
+  .wordmark .heart { color: var(--barn); }
+  .logout-btn {
+    background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff;
+    padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: var(--body);
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.08); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  h1 { font-family: var(--display); font-size: 26px; color: var(--denim-2); margin: 0 0 6px; }
+  .subhead { font-size: 14.5px; color: #5A6577; margin: 0 0 32px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tab {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--white); color: var(--denim); cursor: pointer;
+  }
+  .tab.active { background: var(--denim-2); color: #fff; border-color: var(--denim-2); }
+  .tab .count {
+    display: inline-block; margin-left: 6px; background: var(--barn); color: #fff;
+    border-radius: 999px; padding: 1px 7px; font-size: 11px;
+  }
+  .tab.active .count { background: var(--gold); color: var(--denim-2); }
+
+  .request-card {
+    background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px 24px; margin-bottom: 14px;
+  }
+  .request-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .request-town {
+    font-family: var(--display); font-weight: 600; font-size: 19px; color: var(--denim-2);
+  }
+  .request-status {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .request-status.pending { background: #FFF3D6; color: #8A6416; }
+  .request-status.approved { background: #E1F0E6; color: var(--green); }
+  .request-status.rejected { background: #FCEBEB; color: var(--barn); }
+
+  .request-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin: 14px 0;
+    font-size: 13.5px;
+  }
+  .request-meta div span.label {
+    display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #9CA6B4; margin-bottom: 2px;
+  }
+  .request-date { font-size: 12px; color: #9CA6B4; margin-top: 4px; }
+
+  .notes-field {
+    width: 100%; font-family: var(--body); font-size: 13.5px; color: var(--ink);
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper); margin-top: 12px; resize: vertical; min-height: 44px;
+  }
+
+  .request-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-approve, .btn-reject {
+    font-family: var(--body); font-size: 13.5px; font-weight: 600; padding: 9px 18px;
+    border-radius: 8px; border: none; cursor: pointer;
+  }
+  .btn-approve { background: var(--green); color: #fff; }
+  .btn-approve:hover { background: #256640; }
+  .btn-reject { background: transparent; color: var(--barn); border: 1px solid var(--barn); }
+  .btn-reject:hover { background: #FCEBEB; }
+  .btn-approve:disabled, .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .reviewed-note { font-size: 12.5px; color: #5A6577; margin-top: 10px; font-style: italic; }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: #9CA6B4; font-size: 14.5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">WeLoveMy<span class="heart">&hearts;</span>Hometown &mdash; Admin</div>
+  <button class="logout-btn" onclick="logout()">Log out</button>
+</header>
+
+<main>
+  <h1>Town Requests</h1>
+  <p class="subhead">Review new agent requests and claim towns.</p>
+
+  <div class="tabs">
+    <button class="tab active" data-status="pending" onclick="setTab('pending')">Pending <span class="count" id="countPending">0</span></button>
+    <button class="tab" data-status="approved" onclick="setTab('approved')">Approved <span class="count" id="countApproved">0</span></button>
+    <button class="tab" data-status="rejected" onclick="setTab('rejected')">Rejected <span class="count" id="countRejected">0</span></button>
+  </div>
+
+  <div id="requestList"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let allRequests = [];
+  let activeTab = 'pending';
+
+  async function requireLogin() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return null;
+    }
+    return session;
+  }
+
+  async function loadRequests() {
+    const token = await getAccessToken();
+    if (!token) return; // already redirected to login
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_get_town_requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    allRequests = await res.json();
+    renderCounts();
+    renderList();
+  }
+
+  async function getAccessToken() {
+    const session = await requireLogin();
+    return session ? session.access_token : null;
+  }
+
+  function renderCounts() {
+    document.getElementById('countPending').textContent = allRequests.filter(r => r.status === 'pending').length;
+    document.getElementById('countApproved').textContent = allRequests.filter(r => r.status === 'approved').length;
+    document.getElementById('countRejected').textContent = allRequests.filter(r => r.status === 'rejected').length;
+  }
+
+  function setTab(status) {
+    activeTab = status;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.status === status));
+    renderList();
+  }
+
+  function renderList() {
+    const list = document.getElementById('requestList');
+    const filtered = allRequests.filter(r => r.status === activeTab);
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">No ${activeTab} requests.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(r => `
+      <div class="request-card" data-id="${r.id}">
+        <div class="request-top">
+          <div class="request-town">${escapeHtml(r.town_name)}</div>
+          <div class="request-status ${r.status}">${r.status}</div>
+        </div>
+        <div class="request-meta">
+          <div><span class="label">Name</span>${escapeHtml(r.full_name)}</div>
+          <div><span class="label">Brokerage</span>${escapeHtml(r.brokerage)}</div>
+          <div><span class="label">Email</span><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></div>
+          <div><span class="label">Phone</span>${escapeHtml(r.phone)}</div>
+        </div>
+        <div class="request-date">Submitted ${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+        ${r.status === 'pending' ? `
+          <textarea class="notes-field" placeholder="Notes (optional)..." id="notes-${r.id}"></textarea>
+          <div class="request-actions">
+            <button class="btn-approve" onclick="review('${r.id}', 'approved')">Approve</button>
+            <button class="btn-reject" onclick="review('${r.id}', 'rejected')">Reject</button>
+          </div>
+        ` : r.admin_notes ? `<div class="reviewed-note">Note: ${escapeHtml(r.admin_notes)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  async function review(id, newStatus) {
+    const notesField = document.getElementById(`notes-${id}`);
+    const notes = notesField ? notesField.value.trim() : null;
+    const card = document.querySelector(`.request-card[data-id="${id}"]`);
+    card.querySelectorAll('button').forEach(b => b.disabled = true);
+
+    const token = await getAccessToken();
+    if (!token) return;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_review_town_request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ request_id: id, new_status: newStatus, notes })
+    });
+
+    if (!res.ok) {
+      alert('Something went wrong — please try again.');
+      card.querySelectorAll('button').forEach(b => b.disabled = false);
+      return;
+    }
+
+    if (newStatus === 'approved') {
+      alert('Marked approved. Remember: this does NOT auto-create the agent\'s account — go set them up manually (or trigger the welcome-email flow) same as usual.');
+    }
+
+    await loadRequests();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  loadRequests();
+</script>
+
+</body>
+</html>
