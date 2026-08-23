@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>See the Difference | WeLoveMyHometown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F0EAD9; --paper-2: #E8E0CB; --denim: #26415E; --denim-2: #1B2E44;
+    --barn: #A32D2D; --barn-2: #832222; --gold: #C98A2B; --ink: #1B2430;
+    --line: #D2C7AA; --white: #FCFAF3;
+    --display: 'Fraunces', serif; --body: 'Inter', sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 28px; }
+
+  nav { background: rgba(240,234,217,0.96); border-bottom: 1px solid var(--line); }
+  .nav-inner { max-width: 1000px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; text-decoration: none; color: var(--denim); }
+  .wordmark .heart { color: var(--barn); }
+  .back-link { font-size: 14px; font-weight: 500; color: var(--denim); text-decoration: none; }
+  .back-link:hover { text-decoration: underline; }
+
+  main { padding: 60px 0 88px; }
+  .eyebrow { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--barn); margin-bottom: 16px; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: clamp(28px, 4vw, 38px); margin: 0 0 14px; color: var(--denim-2); letter-spacing: -0.01em; }
+  .lede { font-size: 16px; color: #4A5568; max-width: 56ch; margin: 0 0 48px; }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--white); border: 1px solid var(--line); border-radius: 16px;
+    padding: 32px; display: flex; flex-direction: column;
+  }
+  .card.featured { border: 2px solid var(--gold); }
+
+  .card-badge {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 999px; display: inline-block; margin-bottom: 16px; width: fit-content;
+  }
+  .card-badge.included { background: var(--paper-2); color: var(--denim); }
+  .card-badge.upgrade { background: var(--gold); color: var(--denim-2); }
+
+  .card h2 { font-family: var(--display); font-weight: 600; font-size: 21px; margin: 0 0 8px; color: var(--denim-2); }
+  .card .url-example {
+    font-family: var(--mono); font-size: 13.5px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 14px; margin: 10px 0 18px; color: var(--denim); word-break: break-all;
+  }
+  .card p.desc { font-size: 14.5px; color: #5A6577; margin: 0 0 20px; flex-grow: 1; }
+
+  .card ul { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 8px; }
+  .card li { font-size: 13.5px; color: var(--ink); display: flex; gap: 8px; align-items: flex-start; }
+  .card li::before { content: '✓'; color: var(--barn); font-weight: 700; flex-shrink: 0; }
+
+  .btn-view {
+    display: inline-block; text-align: center; text-decoration: none;
+    font-weight: 600; font-size: 14.5px; padding: 12px 20px; border-radius: 9px;
+  }
+  .btn-view.primary { background: var(--denim-2); color: var(--white); }
+  .btn-view.primary:hover { background: var(--denim); }
+  .btn-view.gold { background: var(--gold); color: var(--denim-2); }
+  .btn-view.gold:hover { background: #DDA13A; }
+
+  .note {
+    margin-top: 40px; padding: 18px 22px; background: var(--paper-2); border-radius: 12px;
+    font-size: 13.5px; color: #4A5568;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="welovemyhometown.html" class="wordmark">WeLoveMy<span class="heart">&hearts;</span>Hometown</a>
+    <a href="welovemyhometown.html" class="back-link">&larr; Back to home</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="eyebrow">— See the difference</div>
+  <h1>Same page, two different addresses.</h1>
+  <p class="lede">Every plan includes a full working page — the only real difference is the URL your neighbors see. Take a look at both live examples below.</p>
+
+  <div class="compare">
+    <div class="card">
+      <span class="card-badge included">Included with every plan</span>
+      <h2>Default URL</h2>
+      <div class="url-example">welovemyhometown.com/your-town</div>
+      <p class="desc">Your page, live and fully functional, at no extra cost. Everything works exactly the same — businesses, stickers, homes for sale — just under a shared address.</p>
+      <ul>
+        <li>Full business directory</li>
+        <li>Sticker request tracking</li>
+        <li>Homes for Sale listings</li>
+      </ul>
+      <a href="we-love-example.html" class="btn-view primary" target="_blank" rel="noopener">View live example →</a>
+    </div>
+
+    <div class="card featured">
+      <span class="card-badge upgrade">+$99 one-time — first month included</span>
+      <h2>Your Own Domain</h2>
+      <div class="url-example">weloveyourtown.com</div>
+      <p class="desc">Your very own branded web address — easier to remember, easier to put on a sign or a card, and it's all yours. We handle the entire setup.</p>
+      <ul>
+        <li>Everything in the default plan</li>
+        <li>Your own memorable .com</li>
+        <li>No DNS or tech setup on your end</li>
+      </ul>
+      <a href="https://weloverhome.com" class="btn-view gold" target="_blank" rel="noopener">View live example →</a>
+    </div>
+  </div>
+
+  <div class="note">
+    Both examples above are real — not rough mockups. The Example Town page uses the exact same live template every agent's page is built on, just with sample content instead of a real Supabase-backed directory; weloverhome.com is Jennifer Lewis's actual, active site for Rhome, TX.
+  </div>
+</main>
+
+</body>
+</html>
