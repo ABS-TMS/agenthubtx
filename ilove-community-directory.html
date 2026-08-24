@@ -38,6 +38,12 @@
   .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
   .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); }
+  .biz-photo-fallback {
+    width: 100%; height: 120px; border-radius: 8px; margin-bottom: 12px;
+    background: var(--off); display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-size: 11px; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: 0.03em; text-align: center; border: 1px dashed var(--gray-300);
+  }
   .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
   .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
   .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -212,6 +218,16 @@
     return div.innerHTML;
   }
 
+  // If a stored photo_url isn't actually a loadable image (e.g. someone
+  // pastes a Yelp page link instead of an image URL), swap in a clean
+  // placeholder instead of showing a browser broken-image icon.
+  function handlePhotoError(imgEl) {
+    const fallback = document.createElement('div');
+    fallback.className = 'biz-photo-fallback';
+    fallback.textContent = 'Coming Soon';
+    imgEl.replaceWith(fallback);
+  }
+
   function loadSite() {
     sitePromise = (async () => {
       try {
@@ -318,7 +334,7 @@
 
     grid.innerHTML = items.map(b => `
       <div class="biz-card">
-        ${b.photo_url ? `<img class="biz-photo" src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}">` : ''}
+        ${b.photo_url ? `<img class="biz-photo" src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}" onerror="handlePhotoError(this)">` : ''}
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
