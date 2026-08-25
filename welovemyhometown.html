@@ -231,7 +231,7 @@
   .biz-benefit h3 { font-family: var(--display); font-size: 16.5px; font-weight: 600; margin: 0 0 4px; color: var(--denim-2); }
   .biz-benefit p { font-size: 14px; color: #5A6577; margin: 0; }
 
-  .billboard-stage { display: flex; justify-content: center; }
+  .billboard-stage { display: flex; justify-content: center; align-items: center; }
   .billboard {
     background: #1F6B4A; border: 6px solid var(--white); border-radius: 8px;
     padding: 28px 30px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.22);
@@ -250,6 +250,19 @@
   }
   .billboard .bb-sub {
     font-family: var(--mono); font-size: 11px; color: #BFE3CE; margin-top: 10px; letter-spacing: 0.02em;
+  }
+
+  .proof-stack { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .proof-photo {
+    width: 100%; max-width: 300px;
+  }
+  .proof-photo img {
+    width: 100%; display: block;
+    filter: drop-shadow(0 18px 28px rgba(0,0,0,0.16));
+  }
+  .proof-caption {
+    font-family: var(--mono); font-size: 11.5px; color: #7A8494; text-align: center;
+    max-width: 300px; line-height: 1.5;
   }
 
   /* Live example */
@@ -454,10 +467,16 @@
         </div>
       </div>
       <div class="billboard-stage">
-        <div class="billboard">
-          <div class="bb-eyebrow">Now serving Main Street</div>
-          <div class="bb-name">Your Business Here</div>
-          <div class="bb-sub">Free listing · No expiration</div>
+        <div class="proof-stack">
+          <div class="proof-photo">
+            <img src="weloverhome-tshirt.png" alt="Custom WeLoveRhome.com T-shirt, made by agent Jennifer Lewis">
+          </div>
+          <div class="proof-caption">Real merch, real agent. Jennifer had these made for We ❤ Rhome — this isn't a mockup.</div>
+          <div class="billboard">
+            <div class="bb-eyebrow">Now serving Main Street</div>
+            <div class="bb-name">Your Business Here</div>
+            <div class="bb-sub">Free listing · No expiration</div>
+          </div>
         </div>
       </div>
     </div>
