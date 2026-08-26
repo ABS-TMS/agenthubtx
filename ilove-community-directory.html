@@ -47,6 +47,11 @@
   .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
   .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
   .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .biz-coupon {
+    display: inline-flex; align-items: center; background: #E1F5EE;
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; font-size: 12.5px;
+    font-weight: 700; color: #0F6E56;
+  }
   .biz-meta { font-size: 12.5px; color: var(--gray-700); }
   .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
 
@@ -338,6 +343,7 @@
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
+        ${b.coupon_text ? `<div class="biz-coupon">${escapeHtml(b.coupon_text)}</div>` : ''}
         <div class="biz-meta">
           ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
           ${b.website ? `<a href="${escapeHtml(b.website)}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
