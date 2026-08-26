@@ -36,6 +36,12 @@
   .filter-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
   .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .see-more-row { grid-column: 1 / -1; text-align: center; padding-top: 8px; }
+  .btn-see-more {
+    background: var(--white); color: var(--navy); border: 1px solid var(--gray-300);
+    border-radius: 8px; padding: 11px 26px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .btn-see-more:hover { background: var(--off); }
   .biz-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .biz-photo { width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 12px; background: var(--off); }
   .biz-photo-fallback {
@@ -287,6 +293,9 @@
 
   let allListings = [];
   let activeCategory = 'All';
+  let visibleCount = 12;
+  const INITIAL_BATCH = 12;
+  const REVEAL_BATCH = 9;
   const HOMES_CAT = 'Homes for Sale';
 
   async function loadDirectory() {
@@ -312,10 +321,17 @@
 
   function setCategory(cat) {
     activeCategory = cat;
+    visibleCount = INITIAL_BATCH;
     renderFilters();
     renderGrid();
   }
   window.setCategory = setCategory;
+
+  function revealMore() {
+    visibleCount += REVEAL_BATCH;
+    renderGrid();
+  }
+  window.revealMore = revealMore;
 
   function renderGrid() {
     const grid = document.getElementById('directoryGrid');
@@ -337,7 +353,10 @@
       return;
     }
 
-    grid.innerHTML = items.map(b => `
+    const shown = items.slice(0, visibleCount);
+    const remaining = items.length - shown.length;
+
+    grid.innerHTML = shown.map(b => `
       <div class="biz-card">
         ${b.photo_url ? `<img class="biz-photo" src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}" onerror="handlePhotoError(this)">` : ''}
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
@@ -350,7 +369,9 @@
           ${b.address ? escapeHtml(b.address) : ''}
         </div>
       </div>
-    `).join('');
+    `).join('') + (remaining > 0
+      ? `<div class="see-more-row"><button class="btn-see-more" onclick="revealMore()">See ${Math.min(remaining, REVEAL_BATCH)} more &darr;</button></div>`
+      : '');
   }
 
   function showStickerMsg(text, isError) {
