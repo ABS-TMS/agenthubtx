@@ -89,6 +89,11 @@
         <span id="descCount" style="font-size: 11px; color: var(--gray-500);">0 / 150</span>
       </div>
 
+      <div class="field"><label>Special Offer <span>(optional — a discount or deal for the directory)</span></label>
+        <input type="text" id="f-coupon" maxlength="80" placeholder="e.g. 10% off first visit — code RHOME10" oninput="document.getElementById('couponCount').textContent = this.value.length + ' / 80'">
+        <span id="couponCount" style="font-size: 11px; color: var(--gray-500);">0 / 80</span>
+      </div>
+
       <div class="row2">
         <div class="field"><label>Phone</label><input type="tel" id="f-phone" placeholder="(940) 555-0123"></div>
         <div class="field"><label>Website <span>(optional)</span></label><input type="url" id="f-website" placeholder="https://..."></div>
@@ -166,6 +171,7 @@
     const name = document.getElementById('f-name').value.trim();
     const category = document.getElementById('f-category').value;
     const description = document.getElementById('f-description').value.trim();
+    const coupon = document.getElementById('f-coupon').value.trim();
     const phone = document.getElementById('f-phone').value.trim();
     const website = document.getElementById('f-website').value.trim();
     const address = document.getElementById('f-address').value.trim();
@@ -190,6 +196,7 @@
         p_website: website || null,
         p_address: address || null,
         p_photo_url: photo || null,
+        p_coupon_text: coupon || null,
         p_contact_name: contactName,
         p_contact_email: contactEmail,
       });
