@@ -270,7 +270,7 @@
     document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
     document.getElementById('decalCta').href = `ilove-community-merchant-signup.html?c=${encodeURIComponent(COMMUNITY_SLUG)}`;
     document.getElementById('listBusinessCta').href = `ilove-community-merchant-signup.html?c=${encodeURIComponent(COMMUNITY_SLUG)}`;
-    document.getElementById('pageFooter').textContent = `${brand} \u00b7 a community project for ${communityName}${site && site.city ? ', ' + site.city : ''}`;
+    document.getElementById('pageFooter').innerHTML = `${escapeHtml(brand)} &middot; a community project for ${escapeHtml(communityName)}${site && site.city ? ', ' + escapeHtml(site.city) : ''}<br><span style="font-size: 11px; opacity: 0.7;">&copy; 2026 Attorney Broker Services, LLC. All rights reserved.</span>`;
 
     const initials = agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     const photoUrl = site && site.agent_photo_url;
