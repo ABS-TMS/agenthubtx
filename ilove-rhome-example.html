@@ -72,6 +72,23 @@
   .biz-cat { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
   .biz-name { font-size: 16px; font-weight: 700; color: var(--navy); margin: 4px 0 6px; }
   .biz-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .biz-photo-fallback {
+    width: 100%; height: 100%; background: var(--off); border: 1px dashed var(--gray-300);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-size: 11px; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: 0.03em; text-align: center;
+  }
+  .biz-coupon {
+    display: inline-flex; align-items: center; background: #E1F5EE;
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; font-size: 12.5px;
+    font-weight: 700; color: #0F6E56;
+  }
+  .directory-see-more-row { grid-column: 1 / -1; text-align: center; padding-top: 8px; }
+  .btn-directory-see-more {
+    background: var(--white); color: var(--navy); border: 1px solid var(--gray-300);
+    border-radius: 8px; padding: 11px 26px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .btn-directory-see-more:hover { background: var(--off); }
   .biz-meta { font-size: 12.5px; color: var(--gray-700); }
   .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
 
@@ -396,7 +413,7 @@
     document.getElementById('decalSub').textContent = `Join the directory free and get a "${brand}" window decal for your storefront \u2014 help your neighbors find you, and help the whole community find each other.`;
     document.getElementById('decalCta').href = 'ilove-community-merchant-signup.html?c=' + encodeURIComponent(COMMUNITY_SLUG);
     document.getElementById('listBusinessCta').href = 'ilove-community-merchant-signup.html?c=' + encodeURIComponent(COMMUNITY_SLUG);
-    document.getElementById('pageFooterBrand').textContent = `${brand} \u00b7 a community project for ${SITE.communityName}, ${SITE.city} \u00b7 A marketing service of Attorney Broker Services`;
+    document.getElementById('pageFooterBrand').innerHTML = `${escapeHtml(brand)} &middot; a community project for ${escapeHtml(SITE.communityName)}, ${escapeHtml(SITE.city)} &middot; A marketing service of Attorney Broker Services<br><span style="font-size: 11px; opacity: 0.7;">&copy; 2026 Attorney Broker Services, LLC. All rights reserved.</span>`;
 
     const initials = SITE.agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     document.getElementById('aboutBand').innerHTML = `
@@ -415,6 +432,9 @@
   let activeCategory = 'All';
   const HOMES_CAT = 'Homes for Sale';
   let LISTINGS = FALLBACK_LISTINGS;
+  let visibleCount = 12;
+  const INITIAL_BATCH = 12;
+  const REVEAL_BATCH = 9;
 
   async function loadDirectory() {
     try {
@@ -444,14 +464,29 @@
 
   function setCategory(cat) {
     activeCategory = cat;
+    visibleCount = INITIAL_BATCH;
     renderFilters();
     renderGrid();
   }
   window.setCategory = setCategory;
 
+  function revealMore() {
+    visibleCount += REVEAL_BATCH;
+    renderGrid();
+  }
+  window.revealMore = revealMore;
+
+  function handlePhotoError(imgEl) {
+    const fallback = document.createElement('div');
+    fallback.className = 'biz-photo-fallback';
+    fallback.textContent = 'Coming Soon';
+    imgEl.replaceWith(fallback);
+  }
+  window.handlePhotoError = handlePhotoError;
+
   function photoSlot(b, i) {
     if (b.photo_url) {
-      return `<img src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}">`;
+      return `<img src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}" onerror="handlePhotoError(this)">`;
     }
     if (b.id) {
       // Real listing with no photo yet
@@ -480,19 +515,30 @@
 
     const items = activeCategory === 'All' ? LISTINGS : LISTINGS.filter(b => b.category === activeCategory);
 
-    grid.innerHTML = items.map((b, i) => `
+    if (!items.length) {
+      grid.innerHTML = `<div class="empty-state">No businesses in this category yet.</div>`;
+      return;
+    }
+
+    const shown = items.slice(0, visibleCount);
+    const remaining = items.length - shown.length;
+
+    grid.innerHTML = shown.map((b, i) => `
       <div class="biz-card">
         <div class="card-photo">${photoSlot(b, i)}</div>
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
+        ${b.coupon_text ? `<div class="biz-coupon">${escapeHtml(b.coupon_text)}</div>` : ''}
         <div class="biz-meta">
           ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
           ${b.website ? `<a href="${escapeHtml(normalizeUrl(b.website))}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
           ${b.address ? escapeHtml(b.address) : ''}
         </div>
       </div>
-    `).join('');
+    `).join('') + (remaining > 0
+      ? `<div class="directory-see-more-row"><button class="btn-directory-see-more" onclick="revealMore()">See ${Math.min(remaining, REVEAL_BATCH)} more &darr;</button></div>`
+      : '');
   }
 
   // Maps a raw citysearch listing (RETS field names) into the simple shape
