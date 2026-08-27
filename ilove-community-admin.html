@@ -142,6 +142,7 @@
     <div class="section-title">Merchant Listings</div>
     <div class="stats-row" id="statsRow"></div>
     <div class="filter-tabs" id="filterTabs"></div>
+    <div class="filter-tabs" id="sortToggle" style="margin-top: -6px; margin-bottom: 16px;"></div>
     <div id="listWrap"></div>
 
     <div class="section-title">Resident Sticker Requests</div>
@@ -164,6 +165,7 @@
 
   let listings = [];
   let activeFilter = 'pending';
+  let sortMode = 'newest'; // 'newest' | 'az'
   const expandedIds = new Set();
 
   function escapeHtml(str) {
@@ -262,7 +264,17 @@
       `<button class="filter-tab ${activeFilter === key ? 'active' : ''}" onclick="setFilter('${key}')">${label} (${n})</button>`
     ).join('');
 
-    const visible = activeFilter === 'all' ? listings : listings.filter(l => l.status === activeFilter);
+    if (document.getElementById('sortToggle')) {
+      document.getElementById('sortToggle').innerHTML = `
+        <button class="filter-tab ${sortMode === 'newest' ? 'active' : ''}" onclick="setSort('newest')">Newest first</button>
+        <button class="filter-tab ${sortMode === 'az' ? 'active' : ''}" onclick="setSort('az')">A&ndash;Z</button>
+      `;
+    }
+
+    let visible = activeFilter === 'all' ? listings : listings.filter(l => l.status === activeFilter);
+    visible = sortMode === 'az'
+      ? [...visible].sort((a, b) => a.business_name.localeCompare(b.business_name))
+      : [...visible].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const listWrap = document.getElementById('listWrap');
     if (!listings.length) {
@@ -334,6 +346,11 @@
 
   function setFilter(key) {
     activeFilter = key;
+    render();
+  }
+
+  function setSort(mode) {
+    sortMode = mode;
     render();
   }
 
