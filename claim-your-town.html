@@ -133,8 +133,8 @@
 
 <main class="wrap">
   <div class="eyebrow">&mdash; Claim your town</div>
-  <h1>Which town is yours?</h1>
-  <p class="lede">Tell us a bit about yourself and the town you want. We'll check it's available and get back to you — usually within a day.</p>
+  <h1>Which town — or neighborhood — is yours?</h1>
+  <p class="lede">Tell us a bit about yourself and the area you want. We'll check it's available and get back to you — usually within a day.</p>
 
   <form id="requestForm">
     <div class="field">
@@ -154,9 +154,10 @@
       <input type="text" id="brokerage" name="brokerage" required>
     </div>
     <div class="field">
-      <label for="town">Town you want to claim</label>
-      <input type="text" id="town" name="town" required placeholder="e.g. Denton">
+      <label for="town">Town or neighborhood you want to claim</label>
+      <input type="text" id="town" name="town" required placeholder="e.g. Rhome, or Robson Ranch">
       <div class="town-status" id="townStatus"></div>
+      <p style="font-size: 12.5px; color: #7A8494; margin-top: 6px; line-height: 1.5;">In a smaller town? Claim the whole town. In a larger city, claim your specific neighborhood or subdivision instead — one agent can't realistically cover a whole city, so we keep it to areas one person can actually own.</p>
     </div>
 
     <button type="submit" class="btn-primary" id="submitBtn">Request my town</button>
