@@ -48,8 +48,9 @@
 //     -> the real production endpoint for OpenDFWHomes.com. Replaces the manual
 //        Matrix-PDF-parsing + pdfimages workflow: given one MLS#, pulls the property
 //        record, finds its soonest upcoming open house via mode=openhouses internally,
-//        fetches the primary photo and embeds it as base64 (matching the site's
-//        existing fully self-contained card pattern — no external image hosting),
+//        and links directly to the primary photo's real URL (same lightweight
+//        approach as mode=citysearch — no base64 embedding, which used to bloat
+//        index.html into the multi-MB range once dozens of cards were added),
 //        and returns a ready-to-paste { html: "<article class=\"card\">...</article>" }
 //        block matching the site's exact existing markup. Also returns { raw: {...} }
 //        with the individual field values, for updating hero stats/listing_expiration_tracker.csv.
@@ -692,10 +693,10 @@ async function retsGetPrimaryPhoto(session, { resource = 'Property', listingKey 
   }
 }
 
-// OpenDFWHomes.com embeds every listing photo as a base64 data: URI directly
-// in the HTML (a fully self-contained static site, no external image
-// hosting) — this fetches the actual photo bytes from the Location URL
-// above and re-encodes them, matching that existing pattern.
+// No longer called by mode=cardbuilder as of Aug 2026 — that mode now links
+// directly to the photo URL instead of embedding it, to keep index.html
+// small as the number of listed cards grows. Left in place unused in case
+// a future need for a self-contained base64 photo comes up.
 async function fetchImageAsBase64(url) {
   try {
     const res = await fetch(url);
@@ -812,10 +813,11 @@ exports.handler = async (event) => {
     } else if (mode === 'cardbuilder') {
       // Builds a complete, ready-to-paste OpenDFWHomes.com <article class="card">
       // block for one listing: pulls the property record, finds its soonest
-      // upcoming open house date/time, fetches the primary photo and embeds
-      // it as base64 (matching the site's existing fully self-contained
-      // pattern), and formats everything into the exact markup already used
-      // on the site. Replaces the manual Matrix-PDF-parsing + pdfimages steps.
+      // upcoming open house date/time, and links directly to the primary
+      // photo's real URL (same lightweight pattern as citysearch mode —
+      // no base64 embedding, which used to bloat index.html to multiple MB
+      // once dozens of listings were added). Replaces the manual
+      // Matrix-PDF-parsing + pdfimages steps.
       if (!qs.mlsNumber) throw new Error('Provide mlsNumber');
 
       const propertyResult = await retsSearch(session, {
@@ -844,7 +846,6 @@ exports.handler = async (event) => {
           resource: qs.resource,
           listingKey: record.ListingKeyNumeric,
         });
-        const photoBase64 = photoUrl ? await fetchImageAsBase64(photoUrl) : null;
 
         const addressParts = [record.StreetNumber, record.StreetDirPrefix, record.StreetName, record.StreetSuffix, record.StreetDirSuffix]
           .filter(Boolean).join(' ') + (record.UnitNumber ? (' #' + record.UnitNumber) : '');
@@ -866,8 +867,8 @@ exports.handler = async (event) => {
         const addrJs = escapeJsString(addressParts);
         const badgeJs = badge ? escapeJsString(badge) : '';
 
-        const photoTag = photoBase64
-          ? `<img src="${photoBase64}" alt="${addrEsc}" loading="lazy">`
+        const photoTag = photoUrl
+          ? `<img src="${escapeHtmlText(photoUrl)}" alt="${addrEsc}" loading="lazy">`
           : '<!-- photo fetch failed — add manually -->';
 
         const html = `    <article class="card" data-day="${dayCode}">
@@ -893,7 +894,7 @@ exports.handler = async (event) => {
         result = {
           found: true,
           html,
-          photoFetchFailed: !photoBase64,
+          photoFetchFailed: !photoUrl,
           openHouseFound: !!upcoming,
           raw: {
             mlsNumber: qs.mlsNumber,
