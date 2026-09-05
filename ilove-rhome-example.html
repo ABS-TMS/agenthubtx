@@ -222,8 +222,8 @@
   }
   .spotlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
   .spotlight-card { background: var(--white); border-radius: 10px; overflow: hidden; border: 1px solid var(--gray-300); }
-  .spotlight-card .spotlight-photo { width: 100%; height: 100px; }
-  .spotlight-card .spotlight-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .spotlight-card .spotlight-photo { width: 100%; height: 100px; background: #F0EBDA; display: flex; align-items: center; justify-content: center; }
+  .spotlight-card .spotlight-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .spotlight-card .spotlight-body { padding: 10px 12px; }
   .spotlight-card .spotlight-name { font-size: 13px; font-weight: 700; color: var(--navy); }
   .spotlight-card .spotlight-cat { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
