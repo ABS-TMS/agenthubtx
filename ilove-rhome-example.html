@@ -141,6 +141,11 @@
   .sticker-msg.ok { color: var(--gold); }
   .sticker-msg.err { color: #ff9b9b; }
 
+  .feature-consent { text-align: left; font-size: 13px; color: #cdd8e6; }
+  .feature-consent-label { display: block; margin-bottom: 6px; }
+  .feature-consent-option { display: inline-flex; align-items: center; gap: 5px; margin-right: 18px; font-weight: 600; color: #fff; cursor: pointer; }
+  .feature-consent-option input { width: auto; padding: 0; accent-color: var(--gold); }
+
   footer { text-align: center; padding: 30px 20px; font-size: 12.5px; color: var(--gray-500); }
 
   .status-bar {
@@ -208,6 +213,33 @@
   .modal-box textarea { min-height: 80px; resize: vertical; }
   .modal-form { display: none; margin-top: 12px; }
   .modal-form.show { display: block; }
+
+  .spotlight-strip { background: var(--off); padding: 26px 20px 8px; }
+  .spotlight-inner { max-width: 960px; margin: 0 auto; }
+  .spotlight-kicker {
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--red); margin-bottom: 12px;
+  }
+  .spotlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .spotlight-card { background: var(--white); border-radius: 10px; overflow: hidden; border: 1px solid var(--gray-300); }
+  .spotlight-card .spotlight-photo { width: 100%; height: 100px; }
+  .spotlight-card .spotlight-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .spotlight-card .spotlight-body { padding: 10px 12px; }
+  .spotlight-card .spotlight-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .spotlight-card .spotlight-cat { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+  .about-testimonial-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; margin: 50px 0;
+  }
+  .about-testimonial-row .about-band { margin: 0; }
+  .testimonial-card {
+    background: var(--white); border-radius: 14px; padding: 24px;
+    border-left: 3px solid var(--red);
+  }
+  .testimonial-source { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--gray-500); margin-bottom: 10px; }
+  .testimonial-quote { font-size: 14px; color: var(--gray-700); line-height: 1.5; margin-bottom: 12px; }
+  .testimonial-link { font-size: 11.5px; font-weight: 700; color: var(--red); text-decoration: none; }
 </style>
 </head>
 <body>
@@ -228,6 +260,8 @@
   </div>
 </header>
 
+<div class="spotlight-strip" id="spotlightStrip"></div>
+
 <div class="wrap" id="directory">
   <div class="filter-bar" id="filterBar"></div>
   <div class="directory-grid" id="directoryGrid">
@@ -235,7 +269,16 @@
   </div>
   <div class="see-more-wrap" id="seeMoreSection"></div>
 
-  <div class="about-band" id="aboutBand"></div>
+  <div class="about-testimonial-row">
+    <div class="about-band" id="aboutBand"></div>
+    <div class="testimonial-card">
+      <div class="testimonial-source">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4 12 13 2 4"/></svg>
+        Joe Bryant, local vendor &middot; posted after listing
+      </div>
+      <div class="testimonial-quote">&ldquo;Jennifer Lewis appreciate ya inviting us to be listed as contractors/service providers on your vendor referral list, weloverhome.com! We shall serve Rhome well!&rdquo;</div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="homeModal">
     <div class="modal-box">
@@ -251,6 +294,11 @@
       <input type="text" id="s-name" placeholder="Full name">
       <input type="email" id="s-email" placeholder="Email (or leave address below)">
       <input type="text" id="s-address" placeholder="Address (or leave email above)">
+      <div class="feature-consent">
+        <span class="feature-consent-label">Okay to feature your photo or comment on the site?</span>
+        <label class="feature-consent-option"><input type="radio" name="s-can-feature" value="yes"> Yes</label>
+        <label class="feature-consent-option"><input type="radio" name="s-can-feature" value="no"> No</label>
+      </div>
       <button onclick="submitStickerRequest()">Send Me a Sticker</button>
       <div class="sticker-msg" id="stickerMsg"></div>
     </div>
@@ -444,6 +492,7 @@
         LISTINGS = data;
         renderFilters();
         renderGrid();
+        renderSpotlight();
       }
       // If no live listings yet, silently keep showing FALLBACK_LISTINGS -- no error, no empty state.
     } catch (err) {
@@ -497,6 +546,38 @@
     }
     // Sample/demo listing -- keep the decorative illustration
     return storeIllustration(i);
+  }
+
+  function renderSpotlight() {
+    const strip = document.getElementById('spotlightStrip');
+    // Only real, approved listings with a photo qualify -- never the decorative
+    // fallback/demo listings, so the spotlight never shows a placeholder illustration.
+    const withPhotos = LISTINGS.filter(b => b.photo_url);
+    if (!withPhotos.length) {
+      strip.innerHTML = '';
+      return;
+    }
+    // Newest-first by approved_at (when the listing actually went live).
+    const spotlighted = [...withPhotos]
+      .sort((a, b) => (b.approved_at ? new Date(b.approved_at) : 0) - (a.approved_at ? new Date(a.approved_at) : 0))
+      .slice(0, 2);
+
+    strip.innerHTML = `
+      <div class="spotlight-inner">
+        <div class="spotlight-kicker">This Week's Spotlight &middot; Newest Additions</div>
+        <div class="spotlight-grid">
+          ${spotlighted.map(b => `
+            <div class="spotlight-card">
+              <div class="spotlight-photo"><img src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}" onerror="this.closest('.spotlight-card').remove()"></div>
+              <div class="spotlight-body">
+                <div class="spotlight-name">${escapeHtml(b.business_name)}</div>
+                ${b.category ? `<div class="spotlight-cat">${escapeHtml(b.category)}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
   }
 
   function renderGrid() {
@@ -815,6 +896,7 @@
     const name = document.getElementById('s-name').value.trim();
     const email = document.getElementById('s-email').value.trim();
     const address = document.getElementById('s-address').value.trim();
+    const canFeatureChoice = document.querySelector('input[name="s-can-feature"]:checked');
     const btn = document.querySelector('.sticker-form button');
 
     if (!name) {
@@ -823,6 +905,10 @@
     }
     if (!email && !address) {
       showStickerMsg('Add an email or address so I know where to send it.', true);
+      return;
+    }
+    if (!canFeatureChoice) {
+      showStickerMsg('Please let us know if it\'s okay to feature your photo or comment.', true);
       return;
     }
 
@@ -834,12 +920,14 @@
         p_email: email || null,
         p_phone: null,
         p_address: address || null,
+        p_can_feature: canFeatureChoice.value === 'yes',
       });
       if (error) throw error;
       showStickerMsg("You're on the list \u2014 I'll get a sticker to you soon!", false);
       document.getElementById('s-name').value = '';
       document.getElementById('s-email').value = '';
       document.getElementById('s-address').value = '';
+      document.querySelectorAll('input[name="s-can-feature"]').forEach(r => r.checked = false);
     } catch (err) {
       showStickerMsg('Could not submit: ' + err.message, true);
     } finally {
@@ -850,6 +938,7 @@
   renderSite();
   renderFilters();
   renderGrid();
+  renderSpotlight();
   loadDirectory();
 
   // Live status bar: date/time update every second; weather fetched once (Rhome, TX coords)
