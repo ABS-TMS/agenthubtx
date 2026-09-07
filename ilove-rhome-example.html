@@ -233,6 +233,20 @@
     gap: 16px; margin: 50px 0;
   }
   .about-testimonial-row .about-band { margin: 0; }
+
+  .lost-pet-alert {
+    background: #FDF1EC; border-bottom: 2px solid var(--red);
+    padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .lost-pet-alert .lp-photo {
+    width: 38px; height: 38px; border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    background: var(--gray-300); display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .lost-pet-alert .lp-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lost-pet-alert .lp-text { flex: 1; min-width: 0; font-size: 13px; color: #2A2723; }
+  .lost-pet-alert .lp-text b { color: var(--red); }
+  .lost-pet-alert .lp-link { font-size: 12px; font-weight: 700; color: var(--red); text-decoration: none; margin-left: 8px; white-space: nowrap; }
+  .lost-pet-alert .lp-close { color: var(--gray-500); font-size: 18px; cursor: pointer; flex-shrink: 0; line-height: 1; }
   .testimonial-card {
     background: var(--white); border-radius: 14px; padding: 24px;
     border-left: 3px solid var(--red);
@@ -250,6 +264,8 @@
   <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2.1A4 4 0 0 0 6.5 19h11z"/></svg><span id="statusWeather">Loading weather&hellip;</span></div>
   <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span id="statusRate">30-yr fixed: <b>&mdash;</b></span></div>
 </div>
+
+<div class="lost-pet-alert" id="lostPetAlert" style="display:none;"></div>
 
 <header class="hero">
   <h1 id="heroBrand">We <span class="heart">&hearts;</span> Community</h1>
@@ -301,6 +317,20 @@
       </div>
       <button onclick="submitStickerRequest()">Send Me a Sticker</button>
       <div class="sticker-msg" id="stickerMsg"></div>
+    </div>
+  </div>
+
+  <div class="sticker-band" id="lostPetBand">
+    <h2>Lost a pet?</h2>
+    <p>Post it here and it'll show right at the top of the site until it's resolved &mdash; the fastest way to get eyes on it from your neighbors.</p>
+    <div class="sticker-form">
+      <input type="text" id="lp-pet-name" placeholder="Pet's name">
+      <input type="text" id="lp-description" maxlength="120" placeholder="Short description &mdash; e.g. Missing since Tuesday near Main St.">
+      <input type="url" id="lp-photo" placeholder="Photo link (optional)">
+      <input type="text" id="lp-contact-name" placeholder="Your name">
+      <input type="text" id="lp-contact" placeholder="Your phone or email">
+      <button onclick="submitLostPetPost()">Post It</button>
+      <div class="sticker-msg" id="lostPetMsg"></div>
     </div>
   </div>
 
@@ -935,10 +965,92 @@
     }
   }
 
+  async function renderLostPetAlert() {
+    const alertEl = document.getElementById('lostPetAlert');
+    // Once dismissed this session, stay dismissed until the tab is closed --
+    // reappears on a fresh visit so it doesn't get permanently ignored.
+    if (sessionStorage.getItem('lostPetDismissed')) return;
+
+    try {
+      const { data, error } = await sb.rpc('get_active_lost_pet_post', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      const post = data && data[0];
+      if (!post) return;
+
+      alertEl.innerHTML = `
+        <div class="lp-photo">${post.photo_url ? `<img src="${escapeHtml(post.photo_url)}" alt="${escapeHtml(post.pet_name)}" onerror="this.parentElement.textContent='\u{1F43E}'">` : '\u{1F43E}'}</div>
+        <div class="lp-text"><b>Have you seen ${escapeHtml(post.pet_name)}?</b> ${escapeHtml(post.description)}
+          <a class="lp-link" href="#lostPetBand">See details &rarr;</a>
+        </div>
+        <div class="lp-close" onclick="dismissLostPetAlert()">&times;</div>
+      `;
+      alertEl.style.display = 'flex';
+    } catch (err) {
+      console.error('Could not load lost pet alert:', err);
+    }
+  }
+
+  function dismissLostPetAlert() {
+    document.getElementById('lostPetAlert').style.display = 'none';
+    sessionStorage.setItem('lostPetDismissed', '1');
+  }
+  window.dismissLostPetAlert = dismissLostPetAlert;
+
+  function showLostPetMsg(text, isError) {
+    const el = document.getElementById('lostPetMsg');
+    el.textContent = text;
+    el.className = 'sticker-msg show ' + (isError ? 'err' : 'ok');
+  }
+
+  async function submitLostPetPost() {
+    const petName = document.getElementById('lp-pet-name').value.trim();
+    const description = document.getElementById('lp-description').value.trim();
+    const photo = document.getElementById('lp-photo').value.trim();
+    const contactName = document.getElementById('lp-contact-name').value.trim();
+    const contact = document.getElementById('lp-contact').value.trim();
+    const btn = document.querySelector('#lostPetBand button');
+
+    if (!petName || !description || !contactName) {
+      showLostPetMsg('Please fill in the pet\'s name, a short description, and your name.', true);
+      return;
+    }
+    if (!contact) {
+      showLostPetMsg('Add a phone or email so people can reach you.', true);
+      return;
+    }
+    const isEmail = contact.includes('@');
+
+    btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('submit_lost_pet_post', {
+        p_community_slug: COMMUNITY_SLUG,
+        p_pet_name: petName,
+        p_description: description,
+        p_photo_url: photo || null,
+        p_contact_name: contactName,
+        p_contact_phone: isEmail ? null : contact,
+        p_contact_email: isEmail ? contact : null,
+      });
+      if (error) throw error;
+      showLostPetMsg("Got it \u2014 I'll review and get this posted right away.", false);
+      document.getElementById('lp-pet-name').value = '';
+      document.getElementById('lp-description').value = '';
+      document.getElementById('lp-photo').value = '';
+      document.getElementById('lp-contact-name').value = '';
+      document.getElementById('lp-contact').value = '';
+    } catch (err) {
+      showLostPetMsg('Could not submit: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  window.submitLostPetPost = submitLostPetPost;
+
   renderSite();
   renderFilters();
   renderGrid();
   renderSpotlight();
+  renderLostPetAlert();
   loadDirectory();
 
   // Live status bar: date/time update every second; weather fetched once (Rhome, TX coords)
