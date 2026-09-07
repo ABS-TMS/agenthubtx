@@ -147,6 +147,8 @@
 
     <div class="section-title">Resident Sticker Requests</div>
     <div class="stats-row" id="stickerStatsRow"></div>
+    <div class="filter-tabs" id="stickerFilterTabs"></div>
+    <div class="filter-tabs" id="stickerSortToggle" style="margin-top: -6px; margin-bottom: 16px;"></div>
     <div id="stickerListWrap"></div>
 
     <div class="section-title">Home Search Interest</div>
@@ -167,6 +169,10 @@
   let activeFilter = 'pending';
   let sortMode = 'newest'; // 'newest' | 'az'
   const expandedIds = new Set();
+
+  let activeStickerFilter = 'pending';
+  let stickerSortMode = 'newest'; // 'newest' | 'az'
+  const expandedStickerIds = new Set();
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -536,38 +542,91 @@
 
   function renderStickerRequests() {
     const fulfilled = stickerRequests.filter(r => r.fulfilled).length;
+    const pending = stickerRequests.length - fulfilled;
     document.getElementById('stickerStatsRow').innerHTML = `
       <div class="stat"><div class="num">${stickerRequests.length}</div><div class="label">Total Requests</div></div>
-      <div class="stat"><div class="num">${stickerRequests.length - fulfilled}</div><div class="label">Awaiting Delivery</div></div>
+      <div class="stat"><div class="num">${pending}</div><div class="label">Awaiting Delivery</div></div>
       <div class="stat"><div class="num">${fulfilled}</div><div class="label">Delivered</div></div>
     `;
+
+    const stickerTabs = [
+      ['all', 'All', stickerRequests.length],
+      ['pending', 'Pending', pending],
+      ['delivered', 'Delivered', fulfilled],
+    ];
+    document.getElementById('stickerFilterTabs').innerHTML = stickerTabs.map(([key, label, n]) =>
+      `<button class="filter-tab ${activeStickerFilter === key ? 'active' : ''}" onclick="setStickerFilter('${key}')">${label} (${n})</button>`
+    ).join('');
+
+    document.getElementById('stickerSortToggle').innerHTML = `
+      <button class="filter-tab ${stickerSortMode === 'newest' ? 'active' : ''}" onclick="setStickerSort('newest')">Newest first</button>
+      <button class="filter-tab ${stickerSortMode === 'az' ? 'active' : ''}" onclick="setStickerSort('az')">A&ndash;Z</button>
+    `;
+
+    let visible = activeStickerFilter === 'all'
+      ? stickerRequests
+      : stickerRequests.filter(r => activeStickerFilter === 'delivered' ? r.fulfilled : !r.fulfilled);
+    visible = stickerSortMode === 'az'
+      ? [...visible].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''))
+      : [...visible].sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
 
     const wrap = document.getElementById('stickerListWrap');
     if (!stickerRequests.length) {
       wrap.innerHTML = '<div class="empty-state">No sticker requests yet.</div>';
       return;
     }
+    if (!visible.length) {
+      wrap.innerHTML = `<div class="empty-state">No ${activeStickerFilter === 'all' ? '' : activeStickerFilter + ' '}requests.</div>`;
+      return;
+    }
 
-    wrap.innerHTML = stickerRequests.map(r => `
+    // Same collapsed-summary / click-to-expand pattern as Merchant Listings,
+    // so this section stays short even once a lot of requests pile up.
+    wrap.innerHTML = visible.map(r => {
+      const isOpen = expandedStickerIds.has(r.id);
+      return `
       <div class="row">
-        <div class="row-top">
-          <div>
-            <div class="biz-name">${escapeHtml(r.full_name)}</div>
-            <div class="biz-meta">${r.email ? escapeHtml(r.email) + ' &middot; ' : ''}${r.phone ? escapeHtml(r.phone) + ' &middot; ' : ''}${r.address ? escapeHtml(r.address) : ''}</div>
-            <div class="biz-contact">Requested ${formatDate(r.requested_at)}</div>
+        <div class="row-summary" onclick="toggleStickerRow('${r.id}')">
+          <div class="row-summary-left">
+            <span class="row-chevron ${isOpen ? 'open' : ''}">&#9656;</span>
+            <span class="biz-name">${escapeHtml(r.full_name)}</span>
+            <span class="biz-meta-inline">${r.address ? escapeHtml(r.address) + ' &middot; ' : ''}Requested ${formatDate(r.requested_at)}</span>
           </div>
           <span class="badge ${r.fulfilled ? 'badge-approved' : 'badge-pending'}">${r.fulfilled ? 'Delivered' : 'Pending'}</span>
         </div>
-        <div class="row-actions">
-          <button class="btn-small ${r.fulfilled ? 'sent' : ''}" onclick="toggleStickerRequestFulfilled('${r.id}', ${!r.fulfilled})">${r.fulfilled ? '&#10003; Delivered' : 'Mark Delivered'}</button>
-          <button class="btn-small btn-reject" onclick="deleteStickerRequest('${r.id}', '${escapeHtml(r.full_name)}')">Delete</button>
-        </div>
-        <div class="notes-row">
-          <input type="text" id="notes-sticker-${r.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(r.notes || '')}" oninput="document.getElementById('save-notes-sticker-${r.id}').disabled = false;">
-          <button id="save-notes-sticker-${r.id}" disabled onclick="saveStickerRequestNotes('${r.id}')">Save</button>
+        <div class="row-detail ${isOpen ? 'open' : ''}" id="sticker-row-detail-${r.id}">
+          <div class="biz-meta">${r.email ? escapeHtml(r.email) + ' &middot; ' : ''}${r.phone ? escapeHtml(r.phone) + ' &middot; ' : ''}${r.address ? escapeHtml(r.address) : ''}</div>
+          <div class="biz-contact">Requested ${formatDate(r.requested_at)}</div>
+          <div class="row-actions">
+            <button class="btn-small ${r.fulfilled ? 'sent' : ''}" onclick="toggleStickerRequestFulfilled('${r.id}', ${!r.fulfilled})">${r.fulfilled ? '&#10003; Delivered' : 'Mark Delivered'}</button>
+            <button class="btn-small btn-reject" onclick="deleteStickerRequest('${r.id}', '${escapeHtml(r.full_name)}')">Delete</button>
+          </div>
+          <div class="notes-row">
+            <input type="text" id="notes-sticker-${r.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(r.notes || '')}" oninput="document.getElementById('save-notes-sticker-${r.id}').disabled = false;">
+            <button id="save-notes-sticker-${r.id}" disabled onclick="saveStickerRequestNotes('${r.id}')">Save</button>
+          </div>
         </div>
       </div>
-    `).join('');
+    `; }).join('');
+  }
+
+  function setStickerFilter(key) {
+    activeStickerFilter = key;
+    renderStickerRequests();
+  }
+
+  function setStickerSort(mode) {
+    stickerSortMode = mode;
+    renderStickerRequests();
+  }
+
+  function toggleStickerRow(id) {
+    if (expandedStickerIds.has(id)) {
+      expandedStickerIds.delete(id);
+    } else {
+      expandedStickerIds.add(id);
+    }
+    renderStickerRequests();
   }
 
   async function toggleStickerRequestFulfilled(id, fulfilled) {
