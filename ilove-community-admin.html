@@ -57,7 +57,7 @@
   .edit-field { display: flex; flex-direction: column; gap: 4px; }
   .edit-field-wide { grid-column: 1 / -1; }
   .edit-field label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
-  .edit-field input, .edit-field textarea {
+  .edit-field input, .edit-field textarea, .edit-field select {
     padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
     font-size: 12.5px; font-family: inherit; resize: vertical;
   }
@@ -323,7 +323,12 @@
           </div>
           <div class="edit-row" id="edit-row-${l.id}" style="display:none;">
             <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
-            <div class="edit-field"><label>Category</label><input type="text" id="edit-category-${l.id}" value="${escapeHtml(l.category || '')}"></div>
+            <div class="edit-field"><label>Category</label>
+              <select id="edit-category-${l.id}">
+                ${['Restaurant / Food','Home Services','Health & Wellness','Retail / Shopping','Professional Services','Beauty & Personal Care','Automotive','Church / Community','Pets & Pet Services','Entertainment','Other']
+                  .map(c => `<option value="${escapeHtml(c)}" ${l.category === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              </select>
+            </div>
             <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
             <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
             <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
