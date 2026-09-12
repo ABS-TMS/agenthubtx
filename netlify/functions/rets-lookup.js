@@ -313,6 +313,26 @@ const ACTIVE_STATUS_CODE = 'ACT';
 // PND=Pending, SLD=Closed, WTH=Withdrawn.
 const CLOSED_STATUS_CODE = 'SLD';
 
+// Access control for the CMA modes (soldcomps, offerestimate) — these return real MLS financial data
+// (close prices, seller concessions, etc.) that's licensed for internal agent use, not public access.
+// Every OTHER mode in this file (citysearch, cardbuilder, etc.) is intentionally left open, since those
+// already power live public pages (OpenDFWHomes) with their own, separate client-safe filtering. This
+// check is narrowly scoped to the two modes that were never meant to be reachable by anyone without the
+// key — set OFFER_TOOL_KEY in Netlify env vars, and only share that value with the specific agents who
+// should have access, not the whole roster.
+function requireOfferToolKey(qs) {
+  const expected = process.env.OFFER_TOOL_KEY;
+  if (!expected) {
+    // Fails CLOSED if the env var itself isn't set — better to break the tool than silently run with
+    // no protection at all because someone forgot to configure it.
+    throw new Error('OFFER_TOOL_KEY is not configured on the server — this mode is disabled until it is.');
+  }
+  if (qs.key !== expected) {
+    throw new Error('Invalid or missing key for this tool.');
+  }
+}
+
+
 // OpenHouseStatus (on the separate Openhouse resource, not Property) has its
 // own lookup table — confirmed via mode=lookups&resource=Openhouse: Active's
 // code is also "ACT", same convention as StandardStatus. This resource is
@@ -1261,6 +1281,7 @@ exports.handler = async (event) => {
       result = await retsGetPhotos(session, { resource: qs.resource, listingKey: qs.listingKey });
     } else if (mode === 'soldcomps') {
       // AGENT-FACING CMA TOOL — see header comment block above. Not for public/consumer pages.
+      requireOfferToolKey(qs);
       if (!qs.city && !qs.subdivision) throw new Error('Provide city or subdivision');
       const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
 
@@ -1294,6 +1315,7 @@ exports.handler = async (event) => {
       // calculateReasonableOffer() over the result.
       // NOT FOR PUBLIC PAGES — same reasoning as mode=soldcomps above. This is a CMA-style estimate,
       // not an appraisal; every caller/UI built on top of this must say so.
+      requireOfferToolKey(qs);
       if (!qs.mlsNumber && !qs.address) throw new Error('Provide mlsNumber or address');
       const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
 
