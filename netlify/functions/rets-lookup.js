@@ -48,9 +48,8 @@
 //     -> the real production endpoint for OpenDFWHomes.com. Replaces the manual
 //        Matrix-PDF-parsing + pdfimages workflow: given one MLS#, pulls the property
 //        record, finds its soonest upcoming open house via mode=openhouses internally,
-//        and links directly to the primary photo's real URL (same lightweight
-//        approach as mode=citysearch — no base64 embedding, which used to bloat
-//        index.html into the multi-MB range once dozens of cards were added),
+//        fetches the primary photo and embeds it as base64 (matching the site's
+//        existing fully self-contained card pattern — no external image hosting),
 //        and returns a ready-to-paste { html: "<article class=\"card\">...</article>" }
 //        block matching the site's exact existing markup. Also returns { raw: {...} }
 //        with the individual field values, for updating hero stats/listing_expiration_tracker.csv.
@@ -60,6 +59,26 @@
 //        Location=1 (multipart vs. flat key/value) is implementation-specific and UNVERIFIED against the
 //        live NTREIS server — the parser here is permissive (regex over Location: lines) but flag this as
 //        the first thing to sanity-check once real credentials are wired up.
+//
+//   mode=soldcomps&subdivision=Robson+Ranch&monthsBack=6  (or &city=Rhome instead of &subdivision=)
+//     -> AGENT-FACING CMA tool. Returns { soldComps: [...], activeCompetition: [...], _debug } —
+//        closed/sold listings (MlsStatus=SLD, confirmed via mode=lookups) within the last N months
+//        (default 6), plus the same subdivision/city's current active competition (reuses
+//        buildSubdivisionActiveQuery/buildCityActiveQuery). This is the one mode that intentionally
+//        returns ClosePrice/CloseDate — every other mode in this file strips those via
+//        buildClientSafeRecord() because NTREIS's Customer Full display rules don't allow showing sold
+//        price/date directly to a consumer. This mode does NOT use buildClientSafeRecord(); it uses
+//        buildCompRecord() below instead, which is a deliberately separate, narrower allow-list.
+//        THIS IS AN AGENT TOOL, NOT A PUBLIC ENDPOINT — it exists for an agent to use while building a
+//        CMA with/for a buyer or seller (the exact "internal use — CMAs, stats" scope already confirmed
+//        under the Broker Back Office Agreement), not for a consumer-facing page to call directly.
+//        Do not wire this into any public-facing page the way citysearch is wired into OpenDFWHomes.
+//        NOTE: only address/subdivision/ListPrice/ClosePrice/CloseDate/MLS#/DOM-relevant date fields are
+//        wired up below, using field names already confirmed elsewhere in this file. Square footage,
+//        bedroom/bathroom count, and year-built field names are NOT yet confirmed against this server's
+//        actual metadata — run mode=metadata (or mode=search on one known closed MLS#) first and fill
+//        those in below before relying on them; don't guess NTREIS field names, same rule as the rest
+//        of this file.
 //
 // This file intentionally does NOT hardcode a NTREIS field-select list yet — see mode=metadata / mode=search
 // above. Wiring the real client-safe field map (matching the Customer Full filtering logic already confirmed)
@@ -288,6 +307,11 @@ function buildQuery({ mlsNumber, address }) {
 // numeric ID that's DIFFERENT PER CITY (Rhome=1252) and can't be hardcoded —
 // must be resolved from the live lookup table for whatever city is requested.
 const ACTIVE_STATUS_CODE = 'ACT';
+// Confirmed live via mode=lookups&lookupName=MlsStatus (same verification method already used for
+// ACTIVE_STATUS_CODE above) — full table at that call: ACT=Active, AC=Active Contingent, AKO=Active KO,
+// AOC=Active Option Contract, CAN=Cancelled, CSN=Coming Soon, EXP=Expired, HOLD=Hold, INC=Incomplete,
+// PND=Pending, SLD=Closed, WTH=Withdrawn.
+const CLOSED_STATUS_CODE = 'SLD';
 
 // OpenHouseStatus (on the separate Openhouse resource, not Property) has its
 // own lookup table — confirmed via mode=lookups&resource=Openhouse: Active's
@@ -408,6 +432,52 @@ async function buildCityActiveQuery(session, city) {
 function buildSubdivisionActiveQuery(subdivision) {
   // Same MlsStatus reasoning as buildCityActiveQuery above.
   return `(SubdivisionName=${subdivision}) AND (MlsStatus=${ACTIVE_STATUS_CODE})`;
+}
+
+// Sold/closed comps for a CMA, scoped to the last N months. Date-range syntax mirrors
+// buildOpenHouseByDateRangeQuery above (confirmed dialect: hyphen-joined start-end inside one clause,
+// not a >= operator) — applying that same confirmed pattern here rather than assuming it also works
+// for CloseDate; worth a live sanity-check the first time this runs against the real server.
+function monthsAgoIsoDate(monthsBack) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - monthsBack);
+  return d.toISOString().split('T')[0];
+}
+
+async function buildSubdivisionSoldCompsQuery(subdivision, monthsBack) {
+  const startDate = monthsAgoIsoDate(monthsBack);
+  const endDate = new Date().toISOString().split('T')[0];
+  return `(SubdivisionName=${subdivision}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate})`;
+}
+
+async function buildCitySoldCompsQuery(session, city, monthsBack) {
+  const cityCode = await resolveCityCode(session, city);
+  const startDate = monthsAgoIsoDate(monthsBack);
+  const endDate = new Date().toISOString().split('T')[0];
+  return `(City=${cityCode}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate})`;
+}
+
+// Deliberately separate from buildClientSafeRecord() — that function exists to strip fields NTREIS's
+// Customer Full rules don't allow showing a consumer (including ClosePrice/CloseDate). This is the
+// opposite case: an agent-facing CMA record where ClosePrice/CloseDate are the entire point. This is an
+// explicit allow-list, not an exclude-list, so nothing sensitive (lockbox codes, other agents' direct
+// phone/email, financial/lending fields) accidentally leaks through just because a new field gets added
+// to the MLS feed later — same defensive posture as buildClientSafeRecord(), opposite direction.
+//
+// TODO before relying on this: confirm the real field SystemNames for square footage, bedroom count,
+// bathroom count, and year built via mode=metadata against this server (Property/RESI class), then add
+// them below. Left out for now rather than guessed.
+function buildCompRecord(record) {
+  return {
+    ListingId: record.ListingId || record.ListingKey || '',
+    FormattedAddress: buildClientSafeRecord(record).FormattedAddress,
+    SubdivisionName: record.SubdivisionName || '',
+    ListPrice: record.ListPrice || null,
+    ClosePrice: record.ClosePrice || null,
+    CloseDate: record.CloseDate || null,
+    ListingContractDate: record.ListingContractDate || null,
+    MlsStatus: record.MlsStatus || '',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -693,10 +763,10 @@ async function retsGetPrimaryPhoto(session, { resource = 'Property', listingKey 
   }
 }
 
-// No longer called by mode=cardbuilder as of Aug 2026 — that mode now links
-// directly to the photo URL instead of embedding it, to keep index.html
-// small as the number of listed cards grows. Left in place unused in case
-// a future need for a self-contained base64 photo comes up.
+// OpenDFWHomes.com embeds every listing photo as a base64 data: URI directly
+// in the HTML (a fully self-contained static site, no external image
+// hosting) — this fetches the actual photo bytes from the Location URL
+// above and re-encodes them, matching that existing pattern.
 async function fetchImageAsBase64(url) {
   try {
     const res = await fetch(url);
@@ -813,11 +883,10 @@ exports.handler = async (event) => {
     } else if (mode === 'cardbuilder') {
       // Builds a complete, ready-to-paste OpenDFWHomes.com <article class="card">
       // block for one listing: pulls the property record, finds its soonest
-      // upcoming open house date/time, and links directly to the primary
-      // photo's real URL (same lightweight pattern as citysearch mode —
-      // no base64 embedding, which used to bloat index.html to multiple MB
-      // once dozens of listings were added). Replaces the manual
-      // Matrix-PDF-parsing + pdfimages steps.
+      // upcoming open house date/time, fetches the primary photo and embeds
+      // it as base64 (matching the site's existing fully self-contained
+      // pattern), and formats everything into the exact markup already used
+      // on the site. Replaces the manual Matrix-PDF-parsing + pdfimages steps.
       if (!qs.mlsNumber) throw new Error('Provide mlsNumber');
 
       const propertyResult = await retsSearch(session, {
@@ -846,6 +915,7 @@ exports.handler = async (event) => {
           resource: qs.resource,
           listingKey: record.ListingKeyNumeric,
         });
+        const photoBase64 = photoUrl ? await fetchImageAsBase64(photoUrl) : null;
 
         const addressParts = [record.StreetNumber, record.StreetDirPrefix, record.StreetName, record.StreetSuffix, record.StreetDirSuffix]
           .filter(Boolean).join(' ') + (record.UnitNumber ? (' #' + record.UnitNumber) : '');
@@ -867,8 +937,8 @@ exports.handler = async (event) => {
         const addrJs = escapeJsString(addressParts);
         const badgeJs = badge ? escapeJsString(badge) : '';
 
-        const photoTag = photoUrl
-          ? `<img src="${escapeHtmlText(photoUrl)}" alt="${addrEsc}" loading="lazy">`
+        const photoTag = photoBase64
+          ? `<img src="${photoBase64}" alt="${addrEsc}" loading="lazy">`
           : '<!-- photo fetch failed — add manually -->';
 
         const html = `    <article class="card" data-day="${dayCode}">
@@ -894,7 +964,7 @@ exports.handler = async (event) => {
         result = {
           found: true,
           html,
-          photoFetchFailed: !photoUrl,
+          photoFetchFailed: !photoBase64,
           openHouseFound: !!upcoming,
           raw: {
             mlsNumber: qs.mlsNumber,
@@ -1002,8 +1072,36 @@ exports.handler = async (event) => {
     } else if (mode === 'photos') {
       if (!qs.listingKey) throw new Error('Provide listingKey');
       result = await retsGetPhotos(session, { resource: qs.resource, listingKey: qs.listingKey });
+    } else if (mode === 'soldcomps') {
+      // AGENT-FACING CMA TOOL — see header comment block above. Not for public/consumer pages.
+      if (!qs.city && !qs.subdivision) throw new Error('Provide city or subdivision');
+      const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
+
+      const soldQuery = qs.subdivision
+        ? await buildSubdivisionSoldCompsQuery(qs.subdivision, monthsBack)
+        : await buildCitySoldCompsQuery(session, qs.city, monthsBack);
+      const activeQuery = qs.subdivision
+        ? buildSubdivisionActiveQuery(qs.subdivision)
+        : await buildCityActiveQuery(session, qs.city);
+
+      const [soldResult, activeResult] = await Promise.all([
+        retsSearch(session, { resource: qs.resource, class: qs.class, rawQuery: soldQuery, limit: 50 }),
+        retsSearch(session, { resource: qs.resource, class: qs.class, rawQuery: activeQuery, limit: 50 }),
+      ]);
+
+      result = {
+        soldComps: soldResult.records.map(buildCompRecord),
+        activeCompetition: activeResult.records.map(buildCompRecord),
+        _debug: {
+          soldQueryUsed: soldQuery,
+          activeQueryUsed: activeQuery,
+          soldReplyCode: soldResult.replyCode,
+          activeReplyCode: activeResult.replyCode,
+          monthsBack,
+        },
+      };
     } else {
-      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, citysearch, or photos`);
+      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, citysearch, photos, or soldcomps`);
     }
 
     return { statusCode: 200, headers: cors, body: JSON.stringify(result, null, 2) };
