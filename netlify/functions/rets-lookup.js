@@ -487,9 +487,19 @@ async function buildCityActiveForSaleQuery(session, city) {
 // them below. Left out for now rather than guessed.
 //
 // UPDATE: confirmed via the mode=resources metadata dump (Property/Property class) —
-// BedroomsTotal, BathroomsFull, BathroomsHalf, BathroomsTotalDecimal, BuildingAreaTotal, YearBuilt,
-// StoriesTotal, PoolYN, SellerContributions, DaysOnMarket, CumulativeDaysOnMarket are all real field
+// BedroomsTotal, BathroomsFull, BathroomsHalf, BathroomsTotalDecimal, YearBuilt, PoolYN,
+// SellerContributions, DaysOnMarket, CumulativeDaysOnMarket are all real, POPULATED field
 // SystemNames on this server. Wired in below.
+//
+// TWO IMPORTANT EXCEPTIONS, found by comparing a live mode=search response against this list —
+// both fields are real, valid metadata definitions, but neither is actually populated by this MLS:
+//   - BuildingAreaTotal is always blank. The real square-footage field agents actually fill in is
+//     LivingArea (confirmed via RATIO_ClosePrice_By_LivingArea having a real computed value on a
+//     known listing, while RATIO_ClosePrice_By_BuildingAreaTotal was blank on the same listing).
+//   - StoriesTotal is always blank. The real story-count field is Levels — a TEXT field
+//     ("One", "Two", "One and One Half"), not a number, confirmed via a live record showing
+//     "Levels": "One". Comparisons below match Levels as an exact string, not a numeric value.
+//
 // SellerContributions confirmed against a real closed listing: $340,000 ClosePrice, $11,000
 // SellerContributions ("Slr Paid" in Matrix's UI label) — netClosePrice/netPricePerSqFt below use it.
 function buildCompRecord(record) {
@@ -506,9 +516,9 @@ function buildCompRecord(record) {
     BathroomsFull: record.BathroomsFull || null,
     BathroomsHalf: record.BathroomsHalf || null,
     BathroomsTotalDecimal: record.BathroomsTotalDecimal || null,
-    BuildingAreaTotal: record.BuildingAreaTotal || null,
+    LivingArea: record.LivingArea || null,
     YearBuilt: record.YearBuilt || null,
-    StoriesTotal: record.StoriesTotal || null,
+    Levels: record.Levels || null, // real populated field, text value like "One"/"Two"/"One and One Half" (StoriesTotal is a real metadata field but never actually populated by this MLS)
     PoolYN: record.PoolYN || null,
     SellerContributions: record.SellerContributions || null,
     DaysOnMarket: record.DaysOnMarket || null,
@@ -516,7 +526,7 @@ function buildCompRecord(record) {
     // Computed $/sqft — null-safe: only calculated when both a price and a real square footage exist.
     pricePerSqFt: (() => {
       const price = record.ClosePrice || record.ListPrice;
-      const sqft = record.BuildingAreaTotal;
+      const sqft = record.LivingArea;
       if (!price || !sqft || Number(sqft) === 0) return null;
       return Math.round((Number(price) / Number(sqft)) * 100) / 100;
     })(),
@@ -528,10 +538,10 @@ function buildCompRecord(record) {
       return Number(record.ClosePrice) - contributions;
     })(),
     netPricePerSqFt: (() => {
-      if (!record.ClosePrice || !record.BuildingAreaTotal || Number(record.BuildingAreaTotal) === 0) return null;
+      if (!record.ClosePrice || !record.LivingArea || Number(record.LivingArea) === 0) return null;
       const contributions = Number(record.SellerContributions) || 0;
       const net = Number(record.ClosePrice) - contributions;
-      return Math.round((net / Number(record.BuildingAreaTotal)) * 100) / 100;
+      return Math.round((net / Number(record.LivingArea)) * 100) / 100;
     })(),
   };
 }
@@ -548,14 +558,14 @@ function buildCompRecord(record) {
 //   - This is a CMA-style estimate, not an appraisal. Every caller of this function should surface
 //     that distinction to whoever ultimately sees the output.
 function calculateReasonableOffer(subject, soldComps, activeCompetition, monthsBack) {
-  const subjectSqft = Number(subject.BuildingAreaTotal) || null;
-  const subjectStories = subject.StoriesTotal != null ? Number(subject.StoriesTotal) : null;
+  const subjectSqft = Number(subject.LivingArea) || null;
+  const subjectLevels = subject.Levels || null;
   const reasoning = [];
 
   if (!subjectSqft) {
     return {
       estimate: null,
-      reasoning: ['Subject property has no BuildingAreaTotal on file — cannot calculate a $/sqft-based estimate.'],
+      reasoning: ['Subject property has no LivingArea on file — cannot calculate a $/sqft-based estimate.'],
       compsUsed: 0,
     };
   }
@@ -565,18 +575,18 @@ function calculateReasonableOffer(subject, soldComps, activeCompetition, monthsB
   function filterComps(comps, sqftTolerancePct, requireStoryMatch) {
     return comps.filter((c) => {
       if (c.netPricePerSqFt == null) return false;
-      if (!c.BuildingAreaTotal) return false;
-      const sqftDiff = Math.abs(Number(c.BuildingAreaTotal) - subjectSqft) / subjectSqft;
+      if (!c.LivingArea) return false;
+      const sqftDiff = Math.abs(Number(c.LivingArea) - subjectSqft) / subjectSqft;
       if (sqftDiff > sqftTolerancePct) return false;
-      if (requireStoryMatch && subjectStories != null && c.StoriesTotal != null) {
-        if (Number(c.StoriesTotal) !== subjectStories) return false;
+      if (requireStoryMatch && subjectLevels != null && c.Levels != null) {
+        if (c.Levels !== subjectLevels) return false;
       }
       return true;
     });
   }
 
   let filtered = filterComps(soldComps, 0.15, true);
-  let filterDescription = 'within 15% of subject square footage, matching story count';
+  let filterDescription = 'within 15% of subject square footage, matching Levels (story count)';
   if (filtered.length < 3) {
     filtered = filterComps(soldComps, 0.20, false);
     filterDescription = 'within 20% of subject square footage (story count not matched — too few comps to require it)';
@@ -620,15 +630,15 @@ function calculateReasonableOffer(subject, soldComps, activeCompetition, monthsB
   // softened since the most recent closings. Only nudges down, never up — active list prices are
   // aspirational and shouldn't inflate an offer estimate.
   const comparableActive = activeCompetition.filter((c) => {
-    if (!c.BuildingAreaTotal || !c.ListPrice) return false;
-    const sqftDiff = Math.abs(Number(c.BuildingAreaTotal) - subjectSqft) / subjectSqft;
+    if (!c.LivingArea || !c.ListPrice) return false;
+    const sqftDiff = Math.abs(Number(c.LivingArea) - subjectSqft) / subjectSqft;
     return sqftDiff <= 0.20;
   });
 
   let adjustmentPct = 0;
   if (comparableActive.length >= 2) {
     const avgActivePerSqft =
-      comparableActive.reduce((sum, c) => sum + Number(c.ListPrice) / Number(c.BuildingAreaTotal), 0) /
+      comparableActive.reduce((sum, c) => sum + Number(c.ListPrice) / Number(c.LivingArea), 0) /
       comparableActive.length;
     const gapPct = (avgActivePerSqft - weightedAvgPricePerSqFt) / weightedAvgPricePerSqFt;
     if (gapPct < -0.03) {
