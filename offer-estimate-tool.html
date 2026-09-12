@@ -220,7 +220,8 @@
 <body>
 
 <header>
-  <div class="wrap">
+  <div class="wrap" style="position: relative;">
+    <button id="logoutBtn" onclick="lockTool()" style="display:none; position:absolute; top:0; right:0; background:transparent; border:1px solid #4A6484; color:#C6D0DC; font-size:0.78rem; padding:6px 12px; cursor:pointer;">Log out</button>
     <div class="eyebrow">AGENTS SHIELD · AGENT TOOL</div>
     <h1>Offer Estimate</h1>
     <p>Pull comparable sold and active listings, get a reasonable-offer range in seconds</p>
@@ -233,12 +234,26 @@
     <div class="search-row">
       <div class="field">
         <label for="mlsNumber">MLS #</label>
-        <input type="text" id="mlsNumber" placeholder="e.g. 21048939" inputmode="numeric">
+        <input type="text" id="mlsNumber" placeholder="e.g. 21048939" inputmode="numeric" autocomplete="off">
       </div>
       <div class="or-sep">or</div>
+      <div class="field" style="flex: 0 0 100px;">
+        <label for="streetNumber">Street #</label>
+        <input type="text" id="streetNumber" placeholder="11404" inputmode="numeric" autocomplete="off">
+      </div>
       <div class="field">
         <label for="streetAddress">Street name</label>
-        <input type="text" id="streetAddress" placeholder="e.g. Iron Bark">
+        <input type="text" id="streetAddress" placeholder="e.g. Iron Bark" autocomplete="off">
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="field">
+        <label for="cityField">City</label>
+        <input type="text" id="cityField" placeholder="e.g. Denton" autocomplete="off">
+      </div>
+      <div class="field" style="flex: 0 0 120px;">
+        <label for="zipField">Zip</label>
+        <input type="text" id="zipField" placeholder="76207" inputmode="numeric" autocomplete="off">
       </div>
     </div>
     <div class="search-row">
@@ -302,10 +317,23 @@
     }
     accessKey = val;
     document.getElementById('keyGate').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'block';
   }
   document.getElementById('accessKeyInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') unlockTool();
   });
+
+  function lockTool() {
+    // Full reset — clears the key from memory, wipes anything currently on screen (subject property,
+    // estimate, comps), and re-shows the gate. Nothing sensitive is left visible or in memory after this.
+    accessKey = null;
+    document.getElementById('accessKeyInput').value = '';
+    document.getElementById('keyError').textContent = '';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('status').textContent = '';
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('keyGate').style.display = 'flex';
+  }
 
   function money(n) {
     if (n == null || n === '') return '—';
@@ -322,14 +350,17 @@
 
   async function runEstimate() {
     const mlsNumber = document.getElementById('mlsNumber').value.trim();
+    const streetNumber = document.getElementById('streetNumber').value.trim();
     const streetAddress = document.getElementById('streetAddress').value.trim();
+    const city = document.getElementById('cityField').value.trim();
+    const zip = document.getElementById('zipField').value.trim();
     const monthsBack = document.getElementById('monthsBack').value;
     const status = document.getElementById('status');
     const results = document.getElementById('results');
     const btn = document.getElementById('runBtn');
 
-    if (!mlsNumber && !streetAddress) {
-      status.textContent = 'Enter an MLS number or a street name first.';
+    if (!mlsNumber && !streetNumber && !streetAddress && !city && !zip) {
+      status.textContent = 'Enter an MLS number, or at least one address field, first.';
       status.className = 'error';
       return;
     }
@@ -344,7 +375,10 @@
       if (mlsNumber) {
         params.set('mlsNumber', mlsNumber);
       } else {
-        params.set('address', streetAddress);
+        if (streetNumber) params.set('streetNumber', streetNumber);
+        if (streetAddress) params.set('address', streetAddress);
+        if (city) params.set('city', city);
+        if (zip) params.set('postalCode', zip);
       }
       const url = `${ENDPOINT}?${params.toString()}`;
       const res = await fetch(url);
@@ -353,9 +387,8 @@
       if (!res.ok || data.error) {
         status.className = 'error';
         if (/invalid or missing key/i.test(data.error || '')) {
-          status.textContent = '';
+          lockTool();
           document.getElementById('keyError').textContent = 'That key was rejected — try again.';
-          document.getElementById('keyGate').style.display = 'flex';
           btn.disabled = false;
           return;
         }
@@ -453,8 +486,10 @@
   document.getElementById('mlsNumber').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') runEstimate();
   });
-  document.getElementById('streetAddress').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') runEstimate();
+  ['streetNumber', 'streetAddress', 'cityField', 'zipField'].forEach((id) => {
+    document.getElementById(id).addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runEstimate();
+    });
   });
 </script>
 
