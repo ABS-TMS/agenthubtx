@@ -485,6 +485,12 @@ async function buildCityActiveForSaleQuery(session, city) {
 // TODO before relying on this: confirm the real field SystemNames for square footage, bedroom count,
 // bathroom count, and year built via mode=metadata against this server (Property/RESI class), then add
 // them below. Left out for now rather than guessed.
+//
+// UPDATE: confirmed via the mode=resources metadata dump (Property/Property class) —
+// BedroomsTotal, BathroomsFull, BathroomsHalf, BathroomsTotalDecimal, BuildingAreaTotal, YearBuilt,
+// StoriesTotal, PoolYN, SellerContributions are all real field SystemNames on this server. Wired in below.
+// SellerContributions confirmed against a real closed listing: $340,000 ClosePrice, $11,000
+// SellerContributions ("Slr Paid" in Matrix's UI label) — netClosePrice/netPricePerSqFt below use it.
 function buildCompRecord(record) {
   return {
     ListingId: record.ListingId || record.ListingKey || '',
@@ -495,6 +501,35 @@ function buildCompRecord(record) {
     CloseDate: record.CloseDate || null,
     ListingContractDate: record.ListingContractDate || null,
     MlsStatus: record.MlsStatus || '',
+    BedroomsTotal: record.BedroomsTotal || null,
+    BathroomsFull: record.BathroomsFull || null,
+    BathroomsHalf: record.BathroomsHalf || null,
+    BathroomsTotalDecimal: record.BathroomsTotalDecimal || null,
+    BuildingAreaTotal: record.BuildingAreaTotal || null,
+    YearBuilt: record.YearBuilt || null,
+    StoriesTotal: record.StoriesTotal || null,
+    PoolYN: record.PoolYN || null,
+    SellerContributions: record.SellerContributions || null,
+    // Computed $/sqft — null-safe: only calculated when both a price and a real square footage exist.
+    pricePerSqFt: (() => {
+      const price = record.ClosePrice || record.ListPrice;
+      const sqft = record.BuildingAreaTotal;
+      if (!price || !sqft || Number(sqft) === 0) return null;
+      return Math.round((Number(price) / Number(sqft)) * 100) / 100;
+    })(),
+    // Net of seller-paid concessions — a truer comp price than raw ClosePrice. Confirmed real-world
+    // example: $340,000 close price with $11,000 SellerContributions nets to $329,000.
+    netClosePrice: (() => {
+      if (!record.ClosePrice) return null;
+      const contributions = Number(record.SellerContributions) || 0;
+      return Number(record.ClosePrice) - contributions;
+    })(),
+    netPricePerSqFt: (() => {
+      if (!record.ClosePrice || !record.BuildingAreaTotal || Number(record.BuildingAreaTotal) === 0) return null;
+      const contributions = Number(record.SellerContributions) || 0;
+      const net = Number(record.ClosePrice) - contributions;
+      return Math.round((net / Number(record.BuildingAreaTotal)) * 100) / 100;
+    })(),
   };
 }
 
