@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offer Estimate Tool | Agents Shield</title>
+<style>
+  :root {
+    --navy: #0C3057;
+    --navy-deep: #081F3A;
+    --gold: #C8922A;
+    --paper: #EFEDE6;
+    --white: #FFFFFF;
+    --ink: #22262B;
+    --slate: #5B6570;
+    --line: #D7D2C4;
+    --sage: #4B6B4F;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.55;
+  }
+
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 28px 0 24px;
+  }
+  header .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: normal;
+    font-size: 1.75rem;
+  }
+  header p {
+    color: #C6D0DC;
+    font-size: 0.92rem;
+    margin-top: 4px;
+  }
+
+  .search-bar {
+    background: var(--white);
+    border: 1px solid var(--line);
+    padding: 18px;
+    margin: 24px 0;
+  }
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .search-row + .search-row { margin-top: 14px; }
+  .or-sep {
+    color: var(--slate);
+    font-size: 0.85rem;
+    padding-bottom: 11px;
+  }
+  .field { flex: 1; min-width: 160px; }
+  .search-bar label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--slate);
+    margin-bottom: 4px;
+  }
+  .search-bar input, .search-bar select {
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .search-bar button {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .search-bar button:hover { background: var(--navy-deep); }
+  .search-bar button:disabled { opacity: 0.6; cursor: default; }
+
+  #status {
+    font-size: 0.9rem;
+    color: var(--slate);
+    margin-bottom: 16px;
+    min-height: 1.4em;
+  }
+  #status.error { color: #9C3B2E; }
+
+  #results { display: none; }
+
+  .subject-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .subject-card .address {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+  .subject-card .meta {
+    color: var(--slate);
+    font-size: 0.88rem;
+  }
+
+  .estimate-block {
+    background: var(--navy);
+    color: #fff;
+    padding: 30px 24px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .estimate-block .label {
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .estimate-block .range {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+  }
+  .estimate-block .midpoint {
+    color: #C6D0DC;
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+  .disclaimer-line {
+    background: var(--gold);
+    color: var(--navy-deep);
+    font-size: 0.78rem;
+    text-align: center;
+    padding: 7px 10px;
+    margin-bottom: 22px;
+    font-weight: 600;
+  }
+
+  .reasoning {
+    background: #FBFAF6;
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    margin-bottom: 26px;
+    font-size: 0.9rem;
+  }
+  .reasoning ul { list-style: none; }
+  .reasoning li { margin-bottom: 6px; }
+  .reasoning li::before { content: '— '; color: var(--gold); }
+
+  h2.section-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.15rem;
+    margin: 26px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  table.comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+  table.comp-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--slate);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+  table.comp-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.comp-table tr:last-child td { border-bottom: none; }
+
+  .empty-note {
+    color: var(--slate);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 20px 0 40px;
+    margin-top: 30px;
+    font-size: 0.78rem;
+    color: var(--slate);
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.4rem; }
+    .estimate-block .range { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">AGENTS SHIELD · AGENT TOOL</div>
+    <h1>Offer Estimate</h1>
+    <p>Pull comparable sold and active listings, get a reasonable-offer range in seconds</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="search-bar">
+    <div class="search-row">
+      <div class="field">
+        <label for="mlsNumber">MLS #</label>
+        <input type="text" id="mlsNumber" placeholder="e.g. 21048939" inputmode="numeric">
+      </div>
+      <div class="or-sep">or</div>
+      <div class="field">
+        <label for="streetAddress">Street name</label>
+        <input type="text" id="streetAddress" placeholder="e.g. Iron Bark">
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="field" style="flex: 0 0 160px;">
+        <label for="monthsBack">Comp window</label>
+        <select id="monthsBack">
+          <option value="3">3 months</option>
+          <option value="6" selected>6 months</option>
+          <option value="12">12 months</option>
+        </select>
+      </div>
+      <button id="runBtn" onclick="runEstimate()">Get estimate</button>
+    </div>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="results">
+
+    <div class="subject-card" id="subjectCard"></div>
+
+    <div class="estimate-block" id="estimateBlock"></div>
+    <div class="disclaimer-line">CMA-style estimate, not a licensed appraisal — for your own conversation with a buyer or seller</div>
+
+    <div class="reasoning" id="reasoningBlock"></div>
+
+    <h2 class="section-title">Sold comps considered</h2>
+    <div id="soldCompsTable"></div>
+
+    <h2 class="section-title">Active competition</h2>
+    <div id="activeCompsTable"></div>
+
+  </div>
+
+</div>
+
+<footer>
+  Attorney Broker Services, LLC · TREC #9007529 · Internal agent tool, not for consumer display
+</footer>
+
+<script>
+  const ENDPOINT = 'https://agenthubtx.com/.netlify/functions/rets-lookup';
+
+  function money(n) {
+    if (n == null || n === '') return '—';
+    return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  function perSqft(n) {
+    if (n == null) return '—';
+    return '$' + Number(n).toFixed(2);
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return d;
+  }
+
+  async function runEstimate() {
+    const mlsNumber = document.getElementById('mlsNumber').value.trim();
+    const streetAddress = document.getElementById('streetAddress').value.trim();
+    const monthsBack = document.getElementById('monthsBack').value;
+    const status = document.getElementById('status');
+    const results = document.getElementById('results');
+    const btn = document.getElementById('runBtn');
+
+    if (!mlsNumber && !streetAddress) {
+      status.textContent = 'Enter an MLS number or a street name first.';
+      status.className = 'error';
+      return;
+    }
+
+    btn.disabled = true;
+    results.style.display = 'none';
+    status.className = '';
+    status.textContent = 'Pulling comps and calculating…';
+
+    try {
+      const params = new URLSearchParams({ mode: 'offerestimate', monthsBack });
+      if (mlsNumber) {
+        params.set('mlsNumber', mlsNumber);
+      } else {
+        params.set('address', streetAddress);
+      }
+      const url = `${ENDPOINT}?${params.toString()}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        status.className = 'error';
+        // Ambiguous street-name matches come back with a "Candidates: [...]" JSON tail —
+        // surface those as a readable list instead of a raw error string.
+        const candidateMatch = (data.error || '').match(/Candidates: (\[.*\])$/);
+        if (candidateMatch) {
+          try {
+            const candidates = JSON.parse(candidateMatch[1]);
+            const list = candidates.map(c => `MLS# ${c.ListingId} — ${c.FormattedAddress}`).join('<br>');
+            status.innerHTML = `That street name matched more than one listing. Try the exact MLS# instead:<br>${list}`;
+          } catch (e) {
+            status.textContent = data.error;
+          }
+        } else {
+          status.textContent = data.error || 'Something went wrong pulling this listing.';
+        }
+        btn.disabled = false;
+        return;
+      }
+
+      render(data);
+      status.textContent = '';
+      results.style.display = 'block';
+    } catch (err) {
+      status.className = 'error';
+      status.textContent = 'Could not reach the lookup service — check your connection and try again.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function render(data) {
+    const s = data.subject;
+    document.getElementById('subjectCard').innerHTML = `
+      <div class="address">${s.FormattedAddress || 'Address not on file'}</div>
+      <div class="meta">
+        MLS# ${s.ListingId} · ${s.SubdivisionName || ''} ·
+        ${s.BedroomsTotal || '—'} bd / ${s.BathroomsTotalDecimal || '—'} ba ·
+        ${s.LivingArea ? Number(s.LivingArea).toLocaleString() + ' sqft' : 'sqft n/a'} ·
+        ${s.Levels || ''} · ${s.MlsStatus}
+        ${s.MlsStatus === 'Active' ? ' · List ' + money(s.ListPrice) : ' · Closed ' + money(s.ClosePrice)}
+      </div>
+    `;
+
+    const est = data.offerEstimate.estimate;
+    if (est) {
+      document.getElementById('estimateBlock').innerHTML = `
+        <div class="label">ESTIMATED REASONABLE OFFER RANGE</div>
+        <div class="range">${money(est.low)} – ${money(est.high)}</div>
+        <div class="midpoint">Midpoint ${money(est.midpoint)} · based on ${data.offerEstimate.compsUsed} comp(s)</div>
+      `;
+    } else {
+      document.getElementById('estimateBlock').innerHTML = `
+        <div class="label">ESTIMATE NOT AVAILABLE</div>
+        <div class="range" style="font-size:1.1rem;">Not enough data to calculate a range for this listing</div>
+      `;
+    }
+
+    document.getElementById('reasoningBlock').innerHTML = `
+      <ul>${data.offerEstimate.reasoning.map(r => `<li>${r}</li>`).join('')}</ul>
+    `;
+
+    document.getElementById('soldCompsTable').innerHTML = compTable(data.soldComps, true);
+    document.getElementById('activeCompsTable').innerHTML = compTable(data.activeCompetition, false);
+  }
+
+  function compTable(comps, isSold) {
+    if (!comps || comps.length === 0) {
+      return '<p class="empty-note">None found in this window.</p>';
+    }
+    const rows = comps.map(c => `
+      <tr>
+        <td>${c.FormattedAddress || '—'}</td>
+        <td>${c.LivingArea ? Number(c.LivingArea).toLocaleString() : '—'}</td>
+        <td>${c.Levels || '—'}</td>
+        <td>${isSold ? money(c.ClosePrice) : money(c.ListPrice)}</td>
+        <td>${isSold ? perSqft(c.netPricePerSqFt) : '—'}</td>
+        <td>${isSold ? fmtDate(c.CloseDate) : (c.DaysOnMarket ? c.DaysOnMarket + ' DOM' : '—')}</td>
+      </tr>
+    `).join('');
+    return `
+      <table class="comp-table">
+        <tr>
+          <th>Address</th><th>Sqft</th><th>Levels</th>
+          <th>${isSold ? 'Close Price' : 'List Price'}</th>
+          <th>${isSold ? 'Net $/sqft' : ''}</th>
+          <th>${isSold ? 'Closed' : 'Days on Market'}</th>
+        </tr>
+        ${rows}
+      </table>
+    `;
+  }
+
+  document.getElementById('mlsNumber').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runEstimate();
+  });
+  document.getElementById('streetAddress').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runEstimate();
+  });
+</script>
+
+</body>
+</html>
