@@ -488,7 +488,8 @@ async function buildCityActiveForSaleQuery(session, city) {
 //
 // UPDATE: confirmed via the mode=resources metadata dump (Property/Property class) —
 // BedroomsTotal, BathroomsFull, BathroomsHalf, BathroomsTotalDecimal, BuildingAreaTotal, YearBuilt,
-// StoriesTotal, PoolYN, SellerContributions are all real field SystemNames on this server. Wired in below.
+// StoriesTotal, PoolYN, SellerContributions, DaysOnMarket, CumulativeDaysOnMarket are all real field
+// SystemNames on this server. Wired in below.
 // SellerContributions confirmed against a real closed listing: $340,000 ClosePrice, $11,000
 // SellerContributions ("Slr Paid" in Matrix's UI label) — netClosePrice/netPricePerSqFt below use it.
 function buildCompRecord(record) {
@@ -510,6 +511,8 @@ function buildCompRecord(record) {
     StoriesTotal: record.StoriesTotal || null,
     PoolYN: record.PoolYN || null,
     SellerContributions: record.SellerContributions || null,
+    DaysOnMarket: record.DaysOnMarket || null,
+    CumulativeDaysOnMarket: record.CumulativeDaysOnMarket || null,
     // Computed $/sqft — null-safe: only calculated when both a price and a real square footage exist.
     pricePerSqFt: (() => {
       const price = record.ClosePrice || record.ListPrice;
@@ -530,6 +533,127 @@ function buildCompRecord(record) {
       const net = Number(record.ClosePrice) - contributions;
       return Math.round((net / Number(record.BuildingAreaTotal)) * 100) / 100;
     })(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// REASONABLE OFFER CALCULATION
+//
+// Turns the raw soldComps/activeCompetition arrays from mode=soldcomps into an actual estimated
+// offer range for a subject property. Deliberately conservative in a few ways:
+//   - Always returns a RANGE, never a single number — false precision is worse than an honest range.
+//   - Falls back gracefully when comp count is thin (widens the range instead of pretending confidence
+//     it doesn't have).
+//   - Uses netPricePerSqFt (post seller-concessions), not raw ClosePrice, as the core comp number.
+//   - This is a CMA-style estimate, not an appraisal. Every caller of this function should surface
+//     that distinction to whoever ultimately sees the output.
+function calculateReasonableOffer(subject, soldComps, activeCompetition, monthsBack) {
+  const subjectSqft = Number(subject.BuildingAreaTotal) || null;
+  const subjectStories = subject.StoriesTotal != null ? Number(subject.StoriesTotal) : null;
+  const reasoning = [];
+
+  if (!subjectSqft) {
+    return {
+      estimate: null,
+      reasoning: ['Subject property has no BuildingAreaTotal on file — cannot calculate a $/sqft-based estimate.'],
+      compsUsed: 0,
+    };
+  }
+
+  // Progressive filtering: start strict (matching stories, tight sqft band), relax if too few comps
+  // survive. Never silently return zero comps if a looser match would have worked.
+  function filterComps(comps, sqftTolerancePct, requireStoryMatch) {
+    return comps.filter((c) => {
+      if (c.netPricePerSqFt == null) return false;
+      if (!c.BuildingAreaTotal) return false;
+      const sqftDiff = Math.abs(Number(c.BuildingAreaTotal) - subjectSqft) / subjectSqft;
+      if (sqftDiff > sqftTolerancePct) return false;
+      if (requireStoryMatch && subjectStories != null && c.StoriesTotal != null) {
+        if (Number(c.StoriesTotal) !== subjectStories) return false;
+      }
+      return true;
+    });
+  }
+
+  let filtered = filterComps(soldComps, 0.15, true);
+  let filterDescription = 'within 15% of subject square footage, matching story count';
+  if (filtered.length < 3) {
+    filtered = filterComps(soldComps, 0.20, false);
+    filterDescription = 'within 20% of subject square footage (story count not matched — too few comps to require it)';
+  }
+  if (filtered.length < 2) {
+    filtered = soldComps.filter((c) => c.netPricePerSqFt != null);
+    filterDescription = 'all available sold comps with a valid net $/sqft (too few close matches to filter by size/stories)';
+    reasoning.push('Very few closely comparable sales were available — this estimate leans on a wider, less precise comp set.');
+  }
+
+  if (filtered.length === 0) {
+    return {
+      estimate: null,
+      reasoning: ['No sold comps with usable price/sqft data were found in this window — widen monthsBack or check a broader area.'],
+      compsUsed: 0,
+    };
+  }
+
+  // Recency weighting: comps closer to today count more. Linear decay across the requested window,
+  // floored at 0.15 so even the oldest comp in the window still counts a little rather than zero.
+  const now = Date.now();
+  const windowMs = (monthsBack || 6) * 30 * 24 * 60 * 60 * 1000;
+  const weighted = filtered.map((c) => {
+    const closeMs = c.CloseDate ? new Date(c.CloseDate).getTime() : now - windowMs;
+    const ageMs = now - closeMs;
+    const recencyWeight = Math.max(0.15, 1 - ageMs / windowMs);
+    return { ...c, weight: recencyWeight };
+  });
+
+  const totalWeight = weighted.reduce((sum, c) => sum + c.weight, 0);
+  const weightedAvgPricePerSqFt =
+    weighted.reduce((sum, c) => sum + c.netPricePerSqFt * c.weight, 0) / totalWeight;
+
+  const baseline = Math.round(weightedAvgPricePerSqFt * subjectSqft);
+  reasoning.push(
+    `Baseline of $${weightedAvgPricePerSqFt.toFixed(2)}/sqft (recency-weighted, net of seller concessions) from ${filtered.length} comp(s), ${filterDescription}, applied to ${subjectSqft} sqft.`
+  );
+
+  // Active competition cross-check: if comparable active listings are priced meaningfully below the
+  // sold-comp baseline, that's real downward pressure worth reflecting — the market right now may have
+  // softened since the most recent closings. Only nudges down, never up — active list prices are
+  // aspirational and shouldn't inflate an offer estimate.
+  const comparableActive = activeCompetition.filter((c) => {
+    if (!c.BuildingAreaTotal || !c.ListPrice) return false;
+    const sqftDiff = Math.abs(Number(c.BuildingAreaTotal) - subjectSqft) / subjectSqft;
+    return sqftDiff <= 0.20;
+  });
+
+  let adjustmentPct = 0;
+  if (comparableActive.length >= 2) {
+    const avgActivePerSqft =
+      comparableActive.reduce((sum, c) => sum + Number(c.ListPrice) / Number(c.BuildingAreaTotal), 0) /
+      comparableActive.length;
+    const gapPct = (avgActivePerSqft - weightedAvgPricePerSqFt) / weightedAvgPricePerSqFt;
+    if (gapPct < -0.03) {
+      // Active competition priced meaningfully lower than recent solds — soften the estimate.
+      adjustmentPct = Math.max(gapPct * 0.5, -0.06); // half the gap, capped at -6%
+      reasoning.push(
+        `${comparableActive.length} comparable active listing(s) are priced noticeably below recent sold comps ($${avgActivePerSqft.toFixed(2)}/sqft avg) — nudging the estimate down to reflect current competition.`
+      );
+    }
+  }
+
+  const adjustedBaseline = Math.round(baseline * (1 + adjustmentPct));
+
+  // Range width scales with confidence: fewer comps or a bigger reliance on the loosened filter widens
+  // the range instead of pretending false precision.
+  const rangeWidthPct = filtered.length >= 5 ? 0.035 : filtered.length >= 3 ? 0.05 : 0.07;
+  const low = Math.round(adjustedBaseline * (1 - rangeWidthPct));
+  const high = Math.round(adjustedBaseline * (1 + rangeWidthPct));
+
+  return {
+    estimate: { low, high, midpoint: adjustedBaseline },
+    reasoning,
+    compsUsed: filtered.length,
+    activeCompsConsidered: comparableActive.length,
+    _debug: { weightedAvgPricePerSqFt, baseline, adjustmentPct, rangeWidthPct },
   };
 }
 
@@ -1153,8 +1277,61 @@ exports.handler = async (event) => {
           monthsBack,
         },
       };
+    } else if (mode === 'offerestimate') {
+      // AGENT-FACING CMA TOOL, end-to-end. Give it one MLS#; it pulls that listing's own record,
+      // auto-detects its subdivision, fetches sold comps + active competition for that subdivision
+      // (reusing the same soldcomps logic above), and runs calculateReasonableOffer() over the result.
+      // NOT FOR PUBLIC PAGES — same reasoning as mode=soldcomps above. This is a CMA-style estimate,
+      // not an appraisal; every caller/UI built on top of this must say so.
+      if (!qs.mlsNumber) throw new Error('Provide mlsNumber');
+      const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
+
+      const subjectResult = await retsSearch(session, {
+        resource: qs.resource,
+        class: qs.class,
+        mlsNumber: qs.mlsNumber,
+        limit: 1,
+      });
+      if (!subjectResult.records.length) {
+        throw new Error(`No listing found for MLS# ${qs.mlsNumber}`);
+      }
+      const subjectRaw = subjectResult.records[0];
+      const subject = buildCompRecord(subjectRaw);
+      if (!subject.SubdivisionName) {
+        throw new Error(`MLS# ${qs.mlsNumber} has no SubdivisionName on file — can't auto-detect comps area.`);
+      }
+
+      const soldQuery = await buildSubdivisionSoldCompsQuery(subject.SubdivisionName, monthsBack);
+      const activeQuery = buildSubdivisionActiveForSaleQuery(subject.SubdivisionName);
+
+      const [soldResult, activeResult] = await Promise.all([
+        retsSearch(session, { resource: qs.resource, class: qs.class, rawQuery: soldQuery, limit: 50 }),
+        retsSearch(session, { resource: qs.resource, class: qs.class, rawQuery: activeQuery, limit: 50 }),
+      ]);
+
+      const soldComps = soldResult.records
+        .map(buildCompRecord)
+        .filter((c) => c.ListingId !== subject.ListingId); // never comp a listing against itself
+      const activeCompetition = activeResult.records
+        .map(buildCompRecord)
+        .filter((c) => c.ListingId !== subject.ListingId);
+
+      const offerEstimate = calculateReasonableOffer(subject, soldComps, activeCompetition, monthsBack);
+
+      result = {
+        subject,
+        offerEstimate,
+        soldComps,
+        activeCompetition,
+        disclaimer: 'This is a CMA-style estimate based on comparable sold and active listings, not a licensed appraisal. For internal agent use in a conversation with a buyer or seller — not for direct consumer display.',
+        _debug: {
+          soldQueryUsed: soldQuery,
+          activeQueryUsed: activeQuery,
+          monthsBack,
+        },
+      };
     } else {
-      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, citysearch, photos, or soldcomps`);
+      throw new Error(`Unknown mode "${mode}" — use metadata, search, report, citysearch, photos, soldcomps, or offerestimate`);
     }
 
     return { statusCode: 200, headers: cors, body: JSON.stringify(result, null, 2) };
