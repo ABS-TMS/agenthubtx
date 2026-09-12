@@ -280,20 +280,29 @@ function parseCompact(xmlText) {
   };
 }
 
-// Builds a DMQL2 query. mlsNumber match is exact; address match is a loose CONTAINS-style
-// match on StreetName since we don't yet know NTREIS's exact address field breakdown
-// (StreetNumber/StreetName/StreetSuffix are usually separate fields, not one "Address" field —
-// confirm via mode=metadata before relying on address search for real).
-function buildQuery({ mlsNumber, address }) {
+// Builds a DMQL2 query. mlsNumber match is exact. Address search can now be narrowed with any
+// combination of streetNumber (exact), address/StreetName (loose CONTAINS), city (resolved via the
+// City lookup table, same as buildCityActiveQuery), and postalCode (exact) — combined with the
+// confirmed " AND " dialect between separately-parenthesized clauses used everywhere else in this
+// file. All narrowing fields are optional; provide as many as you have to cut down ambiguous matches.
+async function buildQuery(session, { mlsNumber, address, streetNumber, city, postalCode }) {
   if (mlsNumber) {
     // Confirmed via live metadata: SystemName is "ListingId" (Character, max 30) —
     // this is NOT the same as ListingKey/ListingKeyNumeric (internal DB IDs).
     return `(ListingId=${mlsNumber})`;
   }
-  if (address) {
-    return `(StreetName=~*${address}*)`;
+  const clauses = [];
+  if (streetNumber) clauses.push(`(StreetNumber=${streetNumber})`);
+  if (address) clauses.push(`(StreetName=~*${address}*)`);
+  if (postalCode) clauses.push(`(PostalCode=${postalCode})`);
+  if (city) {
+    const cityCode = await resolveCityCode(session, city);
+    clauses.push(`(City=${cityCode})`);
   }
-  throw new Error('Provide mlsNumber or address');
+  if (clauses.length === 0) {
+    throw new Error('Provide mlsNumber, or at least one of address/streetNumber/city/postalCode');
+  }
+  return clauses.join(' AND ');
 }
 
 // DMQL2 conjunction: (Field1=Value1),(Field2=Value2) — comma at this bracket
@@ -805,8 +814,8 @@ function buildClientSafeRecord(fullRecord) {
   return safe;
 }
 
-async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address, rawQuery, limit = 1 }) {
-  const query = rawQuery || buildQuery({ mlsNumber, address });
+async function retsSearch(session, { resource = 'Property', class: cls = 'Property', mlsNumber, address, streetNumber, city, postalCode, rawQuery, limit = 1 }) {
+  const query = rawQuery || await buildQuery(session, { mlsNumber, address, streetNumber, city, postalCode });
   const params = new URLSearchParams({
     SearchType: resource,
     Class: cls,
@@ -1316,7 +1325,9 @@ exports.handler = async (event) => {
       // NOT FOR PUBLIC PAGES — same reasoning as mode=soldcomps above. This is a CMA-style estimate,
       // not an appraisal; every caller/UI built on top of this must say so.
       requireOfferToolKey(qs);
-      if (!qs.mlsNumber && !qs.address) throw new Error('Provide mlsNumber or address');
+      if (!qs.mlsNumber && !qs.address && !qs.streetNumber && !qs.city && !qs.postalCode) {
+        throw new Error('Provide mlsNumber, or at least one of address/streetNumber/city/postalCode');
+      }
       const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
 
       // Address search is a loose CONTAINS match on StreetName only (see buildQuery) — it can
@@ -1330,12 +1341,22 @@ exports.handler = async (event) => {
         class: qs.class,
         mlsNumber: qs.mlsNumber,
         address: qs.address,
+        streetNumber: qs.streetNumber,
+        city: qs.city,
+        postalCode: qs.postalCode,
         limit: qs.mlsNumber ? 1 : 5,
       });
 
+      const searchDescription = [
+        qs.streetNumber && `street# ${qs.streetNumber}`,
+        qs.address && `street name "${qs.address}"`,
+        qs.city && `city ${qs.city}`,
+        qs.postalCode && `zip ${qs.postalCode}`,
+      ].filter(Boolean).join(', ');
+
       if (!subjectResult.records.length) {
         throw new Error(
-          qs.mlsNumber ? `No listing found for MLS# ${qs.mlsNumber}` : `No listing found matching address "${qs.address}"`
+          qs.mlsNumber ? `No listing found for MLS# ${qs.mlsNumber}` : `No listing found matching ${searchDescription}`
         );
       }
       if (!qs.mlsNumber && subjectResult.records.length > 1) {
@@ -1344,8 +1365,8 @@ exports.handler = async (event) => {
           FormattedAddress: c.FormattedAddress,
         }));
         throw new Error(
-          `"${qs.address}" matched ${subjectResult.records.length} listings — too ambiguous to pick one automatically. ` +
-          `Search again with the exact MLS# instead, or a more specific address. Candidates: ${JSON.stringify(candidates)}`
+          `Search on ${searchDescription} matched ${subjectResult.records.length} listings — too ambiguous to pick one automatically. ` +
+          `Add more criteria (street number, city, zip) or search again with the exact MLS#. Candidates: ${JSON.stringify(candidates)}`
         );
       }
 
