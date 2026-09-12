@@ -1288,27 +1288,49 @@ exports.handler = async (event) => {
         },
       };
     } else if (mode === 'offerestimate') {
-      // AGENT-FACING CMA TOOL, end-to-end. Give it one MLS#; it pulls that listing's own record,
-      // auto-detects its subdivision, fetches sold comps + active competition for that subdivision
-      // (reusing the same soldcomps logic above), and runs calculateReasonableOffer() over the result.
+      // AGENT-FACING CMA TOOL, end-to-end. Give it an MLS# OR a street address; it pulls that
+      // listing's own record, auto-detects its subdivision, fetches sold comps + active competition
+      // for that subdivision (reusing the same soldcomps logic above), and runs
+      // calculateReasonableOffer() over the result.
       // NOT FOR PUBLIC PAGES — same reasoning as mode=soldcomps above. This is a CMA-style estimate,
       // not an appraisal; every caller/UI built on top of this must say so.
-      if (!qs.mlsNumber) throw new Error('Provide mlsNumber');
+      if (!qs.mlsNumber && !qs.address) throw new Error('Provide mlsNumber or address');
       const monthsBack = qs.monthsBack ? Math.min(parseInt(qs.monthsBack, 10) || 6, 24) : 6;
 
+      // Address search is a loose CONTAINS match on StreetName only (see buildQuery) — it can
+      // genuinely match more than one property (e.g. "Main" matches every Main St listing). Unlike
+      // mode=report, which silently takes the first match, this mode fetches several and errors out
+      // with the candidate list if the match is ambiguous — a silently-wrong subject property here
+      // means a silently-wrong dollar estimate, which is a much worse failure than making the agent
+      // search again with the exact MLS# or a more specific address.
       const subjectResult = await retsSearch(session, {
         resource: qs.resource,
         class: qs.class,
         mlsNumber: qs.mlsNumber,
-        limit: 1,
+        address: qs.address,
+        limit: qs.mlsNumber ? 1 : 5,
       });
+
       if (!subjectResult.records.length) {
-        throw new Error(`No listing found for MLS# ${qs.mlsNumber}`);
+        throw new Error(
+          qs.mlsNumber ? `No listing found for MLS# ${qs.mlsNumber}` : `No listing found matching address "${qs.address}"`
+        );
       }
+      if (!qs.mlsNumber && subjectResult.records.length > 1) {
+        const candidates = subjectResult.records.map((r) => buildCompRecord(r)).map((c) => ({
+          ListingId: c.ListingId,
+          FormattedAddress: c.FormattedAddress,
+        }));
+        throw new Error(
+          `"${qs.address}" matched ${subjectResult.records.length} listings — too ambiguous to pick one automatically. ` +
+          `Search again with the exact MLS# instead, or a more specific address. Candidates: ${JSON.stringify(candidates)}`
+        );
+      }
+
       const subjectRaw = subjectResult.records[0];
       const subject = buildCompRecord(subjectRaw);
       if (!subject.SubdivisionName) {
-        throw new Error(`MLS# ${qs.mlsNumber} has no SubdivisionName on file — can't auto-detect comps area.`);
+        throw new Error(`${subject.FormattedAddress || 'This listing'} has no SubdivisionName on file — can't auto-detect comps area.`);
       }
 
       const soldQuery = await buildSubdivisionSoldCompsQuery(subject.SubdivisionName, monthsBack);
