@@ -275,12 +275,37 @@
 
 </div>
 
+<div id="keyGate" style="position:fixed; inset:0; background:rgba(8,31,58,0.94); display:flex; align-items:center; justify-content:center; z-index:999;">
+  <div style="background:#fff; padding:28px 30px; max-width:340px; width:90%; text-align:center;">
+    <div style="font-family:Georgia,serif; font-size:1.2rem; margin-bottom:8px; color:#0C3057;">Agent Access Only</div>
+    <p style="font-size:0.88rem; color:#5B6570; margin-bottom:16px;">This tool uses live, licensed MLS data. Enter your access key to continue.</p>
+    <input type="password" id="accessKeyInput" placeholder="Access key" style="width:100%; padding:10px 12px; border:1px solid #D7D2C4; margin-bottom:10px; font-size:0.95rem;">
+    <button onclick="unlockTool()" style="width:100%; background:#0C3057; color:#fff; border:none; padding:11px; font-weight:600; cursor:pointer;">Unlock</button>
+    <div id="keyError" style="color:#9C3B2E; font-size:0.82rem; margin-top:10px; min-height:1.2em;"></div>
+  </div>
+</div>
+
 <footer>
   Attorney Broker Services, LLC · TREC #9007529 · Internal agent tool, not for consumer display
 </footer>
 
 <script>
   const ENDPOINT = 'https://agenthubtx.com/.netlify/functions/rets-lookup';
+  let accessKey = null;
+
+  function unlockTool() {
+    const val = document.getElementById('accessKeyInput').value.trim();
+    const err = document.getElementById('keyError');
+    if (!val) {
+      err.textContent = 'Enter your access key.';
+      return;
+    }
+    accessKey = val;
+    document.getElementById('keyGate').style.display = 'none';
+  }
+  document.getElementById('accessKeyInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') unlockTool();
+  });
 
   function money(n) {
     if (n == null || n === '') return '—';
@@ -315,7 +340,7 @@
     status.textContent = 'Pulling comps and calculating…';
 
     try {
-      const params = new URLSearchParams({ mode: 'offerestimate', monthsBack });
+      const params = new URLSearchParams({ mode: 'offerestimate', monthsBack, key: accessKey || '' });
       if (mlsNumber) {
         params.set('mlsNumber', mlsNumber);
       } else {
@@ -327,6 +352,13 @@
 
       if (!res.ok || data.error) {
         status.className = 'error';
+        if (/invalid or missing key/i.test(data.error || '')) {
+          status.textContent = '';
+          document.getElementById('keyError').textContent = 'That key was rejected — try again.';
+          document.getElementById('keyGate').style.display = 'flex';
+          btn.disabled = false;
+          return;
+        }
         // Ambiguous street-name matches come back with a "Candidates: [...]" JSON tail —
         // surface those as a readable list instead of a raw error string.
         const candidateMatch = (data.error || '').match(/Candidates: (\[.*\])$/);
