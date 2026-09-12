@@ -447,14 +447,32 @@ function monthsAgoIsoDate(monthsBack) {
 async function buildSubdivisionSoldCompsQuery(subdivision, monthsBack) {
   const startDate = monthsAgoIsoDate(monthsBack);
   const endDate = new Date().toISOString().split('T')[0];
-  return `(SubdivisionName=${subdivision}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate})`;
+  // TransactionType=FS excludes For Lease (FL) and For Sale/Lease (FSL) — confirmed via
+  // mode=resources metadata: field SystemName TransactionType, LookupName TransactionType,
+  // values FL=For Lease, FS=For Sale, FSL=For Sale/Lease. Without this, closed lease
+  // transactions (e.g. $2,900-$3,150/mo) show up mixed into sold comps and badly skew $/sqft math.
+  return `(SubdivisionName=${subdivision}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate}) AND (TransactionType=FS)`;
 }
 
 async function buildCitySoldCompsQuery(session, city, monthsBack) {
   const cityCode = await resolveCityCode(session, city);
   const startDate = monthsAgoIsoDate(monthsBack);
   const endDate = new Date().toISOString().split('T')[0];
-  return `(City=${cityCode}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate})`;
+  return `(City=${cityCode}) AND (MlsStatus=${CLOSED_STATUS_CODE}) AND (CloseDate=${startDate}-${endDate}) AND (TransactionType=FS)`;
+}
+
+// Dedicated to soldcomps' "active competition" side — deliberately NOT reusing
+// buildSubdivisionActiveQuery/buildCityActiveQuery (used by the live citysearch mode /
+// OpenDFWHomes) so this fix doesn't silently change already-live production behavior.
+// See the header note above mode=soldcomps: citysearch may have the same lease-contamination
+// issue and is worth checking separately, on purpose, rather than folding into this change.
+function buildSubdivisionActiveForSaleQuery(subdivision) {
+  return `(SubdivisionName=${subdivision}) AND (MlsStatus=${ACTIVE_STATUS_CODE}) AND (TransactionType=FS)`;
+}
+
+async function buildCityActiveForSaleQuery(session, city) {
+  const cityCode = await resolveCityCode(session, city);
+  return `(City=${cityCode}) AND (MlsStatus=${ACTIVE_STATUS_CODE}) AND (TransactionType=FS)`;
 }
 
 // Deliberately separate from buildClientSafeRecord() — that function exists to strip fields NTREIS's
@@ -1081,8 +1099,8 @@ exports.handler = async (event) => {
         ? await buildSubdivisionSoldCompsQuery(qs.subdivision, monthsBack)
         : await buildCitySoldCompsQuery(session, qs.city, monthsBack);
       const activeQuery = qs.subdivision
-        ? buildSubdivisionActiveQuery(qs.subdivision)
-        : await buildCityActiveQuery(session, qs.city);
+        ? buildSubdivisionActiveForSaleQuery(qs.subdivision)
+        : await buildCityActiveForSaleQuery(session, qs.city);
 
       const [soldResult, activeResult] = await Promise.all([
         retsSearch(session, { resource: qs.resource, class: qs.class, rawQuery: soldQuery, limit: 50 }),
