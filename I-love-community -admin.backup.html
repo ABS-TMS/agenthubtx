@@ -154,6 +154,42 @@
     <div class="section-title">Home Search Interest</div>
     <div class="stats-row" id="homeLeadsStatsRow"></div>
     <div id="homeLeadsListWrap"></div>
+
+    <div class="section-title">Homes for Sale Search</div>
+    <p style="color:var(--gray-500); font-size:13px; margin:-8px 0 16px;">
+      Choose how the "Homes for Sale" section on your public page finds listings.
+    </p>
+    <div class="filter-tabs">
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--gray-700); cursor:pointer;">
+        <input type="radio" name="homesSearchType" value="city" onchange="onHomesSearchTypeChange()"> Standard area search (default)
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--gray-700); cursor:pointer;">
+        <input type="radio" name="homesSearchType" value="agent_idx" onchange="onHomesSearchTypeChange()"> Use my own IDX search
+      </label>
+    </div>
+
+    <div id="agentIdxPanel" style="display:none; margin-bottom:16px;">
+      <p style="color:var(--gray-500); font-size:13px; margin-bottom:8px;">
+        In NTREIS Matrix, go to <b>My Matrix &gt; Settings &gt; IDX Configuration</b>,
+        open (or create) an IDX page, and copy the full code from the <b>HTML</b> field
+        under Activation. Paste the whole thing below &mdash; no need to edit it first.
+      </p>
+      <textarea id="agentIdxInput" rows="4" style="width:100%; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--gray-300); border-radius:6px;"
+        placeholder='&lt;iframe src="https://ntrdd.mlsmatrix.com/Matrix/public/IDX.aspx?idx=..." width="100%" height="600"&gt;&lt;/iframe&gt;'></textarea>
+      <div style="margin-top:8px;">
+        <button type="button" onclick="previewAgentIdx()" style="background:none; border:1px solid var(--gray-300); border-radius:6px; padding:8px 16px; font-size:12.5px; font-weight:600; color:var(--navy); cursor:pointer;">Preview</button>
+      </div>
+      <div id="idxPreviewWrap" style="display:none; margin-top:12px; border:1px solid var(--gray-300); border-radius:6px; padding:8px;">
+        <p style="color:var(--gray-500); font-size:12px; margin-bottom:8px;">Preview &mdash; this is what visitors will see:</p>
+        <div id="idxPreviewFrame"></div>
+      </div>
+      <div id="idxErrorMsg" style="display:none; color:var(--red); font-size:12.5px; margin-top:8px;"></div>
+    </div>
+
+    <button type="button" onclick="saveHomesSearch()" style="background:var(--navy); color:#fff; border:none; border-radius:8px; padding:11px 22px; font-size:13.5px; font-weight:700; cursor:pointer;">
+      Save Homes for Sale Settings
+    </button>
+    <div id="homesSearchStatus" style="margin-top:10px; font-size:13px;"></div>
   </div>
 </div>
 
@@ -162,7 +198,7 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const DEFAULT_SLUG = 'robson';
+  const DEFAULT_SLUG = 'robson-ranch-2';
   const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
 
   let listings = [];
@@ -218,12 +254,91 @@
     window.location.reload();
   }
 
+  // ===========================================================
+  // Homes for Sale Search settings
+  // ===========================================================
+  const ALLOWED_IDX_SRC_PREFIX = 'https://ntrdd.mlsmatrix.com/';
+
+  function extractIdxSrc(pasted) {
+    const match = (pasted || '').match(/src=["']([^"']+)["']/i);
+    return (match ? match[1] : (pasted || '')).trim();
+  }
+
+  function initHomesSearchForm() {
+    const type = (currentSite && currentSite.homes_search_type) || 'city';
+    const radio = document.querySelector(`input[name="homesSearchType"][value="${type === 'agent_idx' ? 'agent_idx' : 'city'}"]`);
+    if (radio) radio.checked = true;
+    if (type === 'agent_idx' && currentSite && currentSite.homes_search_value) {
+      document.getElementById('agentIdxInput').value =
+        `<iframe src="${currentSite.homes_search_value}" width="100%" height="600"></iframe>`;
+    }
+    onHomesSearchTypeChange();
+  }
+
+  function onHomesSearchTypeChange() {
+    const selected = document.querySelector('input[name="homesSearchType"]:checked');
+    document.getElementById('agentIdxPanel').style.display =
+      (selected && selected.value === 'agent_idx') ? 'block' : 'none';
+  }
+
+  function previewAgentIdx() {
+    const errorEl = document.getElementById('idxErrorMsg');
+    const wrapEl = document.getElementById('idxPreviewWrap');
+    const frameEl = document.getElementById('idxPreviewFrame');
+    errorEl.style.display = 'none';
+    const url = extractIdxSrc(document.getElementById('agentIdxInput').value);
+    if (!url.startsWith(ALLOWED_IDX_SRC_PREFIX)) {
+      errorEl.textContent = "That doesn't look like a valid NTREIS Matrix IDX link. Copy the full embed code from My Matrix > Settings > IDX Configuration and paste it in as-is.";
+      errorEl.style.display = 'block';
+      wrapEl.style.display = 'none';
+      return;
+    }
+    frameEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.width = '100%';
+    iframe.height = '500';
+    iframe.style.border = 'none';
+    frameEl.appendChild(iframe);
+    wrapEl.style.display = 'block';
+  }
+
+  async function saveHomesSearch() {
+    const statusEl = document.getElementById('homesSearchStatus');
+    const selected = document.querySelector('input[name="homesSearchType"]:checked');
+    const searchType = selected ? selected.value : 'city';
+    const searchInput = searchType === 'agent_idx' ? document.getElementById('agentIdxInput').value : null;
+
+    statusEl.textContent = 'Saving\u2026';
+    statusEl.style.color = 'var(--gray-500)';
+    try {
+      const { error } = await sb.rpc('update_community_homes_search', {
+        p_slug: COMMUNITY_SLUG,
+        p_search_type: searchType,
+        p_search_input: searchInput
+      });
+      if (error) throw error;
+      statusEl.textContent = 'Saved.';
+      statusEl.style.color = 'var(--teal)';
+      if (currentSite) {
+        currentSite.homes_search_type = searchType;
+      }
+    } catch (err) {
+      statusEl.textContent = err.message || 'Something went wrong saving this.';
+      statusEl.style.color = 'var(--red)';
+    }
+  }
+
+  let currentSite = null;
+
   async function showApp() {
     document.getElementById('logoutBtn').style.display = 'inline-block';
     try {
       const { data: siteData } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
       const site = siteData && siteData[0];
+      currentSite = site || null;
       if (site) document.getElementById('pageBrand').innerHTML = `${escapeHtml(site.brand_name || site.community_name)} <span>&hearts;</span> &middot; Directory Admin`;
+      initHomesSearchForm();
     } catch (err) { /* cosmetic only -- fall through to default heading */ }
 
     document.getElementById('app').style.display = 'block';
