@@ -531,7 +531,7 @@
     }
     if (homesLoadState === 'idx') {
       const idxUrl = site && site.homes_search_value;
-      grid.innerHTML = `<iframe src="${escapeHtml(idxUrl)}" width="100%" height="650" style="border:none;display:block;" loading="lazy"></iframe>`;
+      grid.innerHTML = `<iframe src="${escapeHtml(idxUrl)}" width="100%" height="900" style="border:none;display:block;" loading="lazy"></iframe>`;
       return;
     }
     const communityName = (site && site.community_name) || 'this community';
