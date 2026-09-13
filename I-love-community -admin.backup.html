@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Directory Admin | I &hearts; Community</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0C3057; --gold: #C8922A; --white: #ffffff; --off: #F7F6F3;
+    --gray-300: #C8C5BC; --gray-500: #888780; --gray-700: #444441;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --amber: #B8860B; --amber-light: #FFF3D6;
+    --red: #A32D2D; --red-light: #FCEBEB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--off); color: var(--gray-700); }
+
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 18px 24px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  header .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: #fff; border-radius: 6px; padding: 7px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  header .logout-btn:hover { background: rgba(255,255,255,0.1); }
+  header .brand { font-weight: 700; font-size: 15px; }
+  header .brand span { color: var(--red); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 70px; }
+
+  #loginState { max-width: 340px; margin: 80px auto; text-align: center; }
+  #loginState input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 14.5px; margin-bottom: 10px; }
+  #loginState button { width: 100%; background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  #loginState .err { color: var(--red); font-size: 13px; margin-top: 10px; }
+
+  #deniedState { text-align: center; padding: 80px 20px; color: var(--gray-500); }
+
+  .stats-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat { background: var(--white); border: 1px solid #E5E3DA; border-radius: 8px; padding: 10px 16px; font-size: 12.5px; flex: 1; min-width: 100px; text-align: center; }
+  .stat .num { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .stat .label { color: var(--gray-500); font-size: 11px; text-transform: uppercase; }
+
+  .row { background: var(--white); border: 1px solid #E5E3DA; border-radius: 9px; padding: 16px 18px; margin-bottom: 10px; }
+  .row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .biz-name { font-weight: 700; color: var(--navy); font-size: 15px; }
+  .biz-cat { font-size: 11.5px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .biz-meta { font-size: 12.5px; color: var(--gray-500); margin-top: 4px; }
+  .biz-contact { font-size: 12px; color: var(--gray-700); margin-top: 6px; }
+
+  .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; }
+  .badge-pending { background: var(--amber-light); color: var(--amber); }
+  .badge-approved { background: var(--teal-light); color: var(--teal); }
+  .badge-rejected { background: var(--red-light); color: var(--red); }
+
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .edit-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 12px; padding: 12px; background: var(--off); border-radius: 8px;
+  }
+  .edit-field { display: flex; flex-direction: column; gap: 4px; }
+  .edit-field-wide { grid-column: 1 / -1; }
+  .edit-field label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+  .edit-field input, .edit-field textarea, .edit-field select {
+    padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: 12.5px; font-family: inherit; resize: vertical;
+  }
+  .edit-actions { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 4px; }
+
+  .notes-row { display: flex; gap: 8px; margin-top: 10px; }
+  .notes-row input {
+    flex: 1; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: 12.5px; font-family: inherit;
+  }
+  .notes-row button {
+    background: none; border: 1px solid var(--gray-300); border-radius: 6px;
+    padding: 6px 12px; font-size: 11.5px; font-weight: 600; color: var(--navy); cursor: pointer;
+  }
+  .notes-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-small { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--navy); }
+
+  .photo-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .photo-thumb {
+    width: 44px; height: 44px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
+    background: var(--off); border: 1px solid var(--gray-300);
+  }
+  .photo-thumb-empty {
+    width: 44px; height: 44px; border-radius: 6px; flex-shrink: 0; background: var(--off);
+    border: 1px dashed var(--gray-300); display: flex; align-items: center; justify-content: center;
+    color: var(--gray-500); font-size: 9px; text-align: center; line-height: 1.1;
+  }
+  .photo-row input[type="file"] { flex: 1; font-size: 11.5px; }
+  .photo-row button {
+    background: none; border: 1px solid var(--gray-300); border-radius: 6px;
+    padding: 6px 12px; font-size: 11.5px; font-weight: 600; color: var(--navy); cursor: pointer; flex-shrink: 0;
+  }
+  .photo-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-approve { border-color: var(--teal); color: var(--teal); }
+  .btn-reject { border-color: var(--red); color: var(--red); }
+  .btn-sticker.sent { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 13.5px; }
+
+  .section-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 34px 0 14px; }
+  .section-title:first-of-type { margin-top: 0; }
+
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-tab {
+    background: var(--white); border: 1px solid var(--gray-300); border-radius: 20px;
+    padding: 7px 16px; font-size: 12.5px; font-weight: 600; color: var(--gray-700);
+    cursor: pointer; font-family: inherit;
+  }
+  .filter-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  .row-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; }
+  .row-summary:hover .biz-name { text-decoration: underline; }
+  .row-summary-left { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .row-summary .biz-cat { flex-shrink: 0; }
+  .row-summary .biz-name { flex-shrink: 0; }
+  .row-summary .biz-meta-inline { font-size: 12px; color: var(--gray-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-chevron { color: var(--gray-500); font-size: 12px; flex-shrink: 0; transition: transform 0.15s; }
+  .row-chevron.open { transform: rotate(90deg); }
+  .row-detail { display: none; margin-top: 14px; }
+  .row-detail.open { display: block; }
+</style>
+</head>
+<body>
+
+<header><div class="brand" id="pageBrand">I <span>&hearts;</span> Community &middot; Directory Admin</div><button class="logout-btn" id="logoutBtn" onclick="doLogout()" style="display:none;">Log Out</button></header>
+
+<div id="loginState">
+  <h2 style="color:var(--navy); margin-bottom:16px;">Admin Login</h2>
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPassword" placeholder="Password">
+  <button onclick="doLogin()">Sign In</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="deniedState" style="display:none;">
+  <h2 style="color:var(--navy); margin-bottom:10px;">Not authorized</h2>
+  <p>Your login isn't the owner of this community site. Log in with the account you used to create it in "My Community Site."</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="wrap">
+    <div class="section-title">Merchant Listings</div>
+    <div class="stats-row" id="statsRow"></div>
+    <div class="filter-tabs" id="filterTabs"></div>
+    <div class="filter-tabs" id="sortToggle" style="margin-top: -6px; margin-bottom: 16px;"></div>
+    <div id="listWrap"></div>
+
+    <div class="section-title">Resident Sticker Requests</div>
+    <div class="stats-row" id="stickerStatsRow"></div>
+    <div class="filter-tabs" id="stickerFilterTabs"></div>
+    <div class="filter-tabs" id="stickerSortToggle" style="margin-top: -6px; margin-bottom: 16px;"></div>
+    <div id="stickerListWrap"></div>
+
+    <div class="section-title">Home Search Interest</div>
+    <div class="stats-row" id="homeLeadsStatsRow"></div>
+    <div id="homeLeadsListWrap"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tjdxnmukjraljvjprolk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZeQUPnpkiJvLGw-v-Dw9Mw_FilZ1eP5';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const DEFAULT_SLUG = 'robson';
+  const COMMUNITY_SLUG = new URLSearchParams(window.location.search).get('c') || DEFAULT_SLUG;
+
+  let listings = [];
+  let activeFilter = 'pending';
+  let sortMode = 'newest'; // 'newest' | 'az'
+  const expandedIds = new Set();
+
+  let activeStickerFilter = 'pending';
+  let stickerSortMode = 'newest'; // 'newest' | 'az'
+  const expandedStickerIds = new Set();
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+  function formatDate(d) {
+    if (!d) return '';
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // Access is checked by the RPCs themselves (ownership against
+  // community_sites), not a hardcoded email here -- whichever agent owns
+  // this community_slug can manage it. A logged-in agent who doesn't own it
+  // simply gets "not authorized" back from the first RPC call.
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      document.getElementById('loginState').style.display = 'block';
+      return;
+    }
+    document.getElementById('loginState').style.display = 'none';
+    await showApp();
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginErr');
+    errEl.textContent = '';
+    try {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      document.getElementById('loginState').style.display = 'none';
+      await showApp();
+    } catch (err) {
+      errEl.textContent = 'Sign-in failed: ' + err.message;
+    }
+  }
+
+  async function doLogout() {
+    await sb.auth.signOut();
+    window.location.reload();
+  }
+
+  async function showApp() {
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    try {
+      const { data: siteData } = await sb.rpc('get_community_site', { p_slug: COMMUNITY_SLUG });
+      const site = siteData && siteData[0];
+      if (site) document.getElementById('pageBrand').innerHTML = `${escapeHtml(site.brand_name || site.community_name)} <span>&hearts;</span> &middot; Directory Admin`;
+    } catch (err) { /* cosmetic only -- fall through to default heading */ }
+
+    document.getElementById('app').style.display = 'block';
+    try {
+      await loadListings();
+      await loadStickerRequests();
+      await loadHomeLeads();
+    } catch (err) {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('deniedState').style.display = 'block';
+    }
+  }
+
+  async function loadListings() {
+    try {
+      const { data, error } = await sb.rpc('admin_get_all_listings', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      listings = data || [];
+      render();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('listWrap').innerHTML = `<div class="empty-state">Could not load listings: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function render() {
+    const counts = { pending: 0, approved: 0, rejected: 0 };
+    listings.forEach(l => { counts[l.status] = (counts[l.status] || 0) + 1; });
+
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat"><div class="num">${listings.length}</div><div class="label">Total</div></div>
+      <div class="stat"><div class="num">${counts.pending}</div><div class="label">Pending</div></div>
+      <div class="stat"><div class="num">${counts.approved}</div><div class="label">Approved</div></div>
+      <div class="stat"><div class="num">${counts.rejected}</div><div class="label">Rejected</div></div>
+    `;
+
+    const tabs = [
+      ['all', 'All', listings.length],
+      ['pending', 'Pending', counts.pending],
+      ['approved', 'Approved', counts.approved],
+      ['rejected', 'Rejected', counts.rejected],
+    ];
+    document.getElementById('filterTabs').innerHTML = tabs.map(([key, label, n]) =>
+      `<button class="filter-tab ${activeFilter === key ? 'active' : ''}" onclick="setFilter('${key}')">${label} (${n})</button>`
+    ).join('');
+
+    if (document.getElementById('sortToggle')) {
+      document.getElementById('sortToggle').innerHTML = `
+        <button class="filter-tab ${sortMode === 'newest' ? 'active' : ''}" onclick="setSort('newest')">Newest first</button>
+        <button class="filter-tab ${sortMode === 'az' ? 'active' : ''}" onclick="setSort('az')">A&ndash;Z</button>
+      `;
+    }
+
+    let visible = activeFilter === 'all' ? listings : listings.filter(l => l.status === activeFilter);
+    visible = sortMode === 'az'
+      ? [...visible].sort((a, b) => a.business_name.localeCompare(b.business_name))
+      : [...visible].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const listWrap = document.getElementById('listWrap');
+    if (!listings.length) {
+      listWrap.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+      return;
+    }
+    if (!visible.length) {
+      listWrap.innerHTML = `<div class="empty-state">No ${activeFilter === 'all' ? '' : activeFilter + ' '}listings.</div>`;
+      return;
+    }
+
+    // Each listing is a compact, clickable summary line by default -- the
+    // full detail (contact info, edit fields, notes, photo, actions) only
+    // renders when expanded, so the page stays short even with many
+    // businesses on file. Click the row to open/close it; state persists
+    // across re-renders (e.g. after saving) via the expandedIds set.
+    listWrap.innerHTML = visible.map(l => {
+      const isOpen = expandedIds.has(l.id);
+      return `
+      <div class="row">
+        <div class="row-summary" onclick="toggleRow('${l.id}')">
+          <div class="row-summary-left">
+            <span class="row-chevron ${isOpen ? 'open' : ''}">&#9656;</span>
+            <span class="biz-cat">${escapeHtml(l.category || '')}</span>
+            <span class="biz-name">${escapeHtml(l.business_name)}</span>
+            <span class="biz-meta-inline">${escapeHtml(l.contact_name || '')} &middot; ${formatDate(l.submitted_at)}</span>
+          </div>
+          <span class="badge badge-${l.status}">${escapeHtml(l.status)}</span>
+        </div>
+        <div class="row-detail ${isOpen ? 'open' : ''}" id="row-detail-${l.id}">
+          <div class="biz-meta">${l.phone ? escapeHtml(l.phone) + ' &middot; ' : ''}${l.website ? escapeHtml(l.website) + ' &middot; ' : ''}${l.address ? escapeHtml(l.address) : ''}</div>
+          <div class="biz-contact">Submitted by ${escapeHtml(l.contact_name || '')} (${escapeHtml(l.contact_email || '')}) on ${formatDate(l.submitted_at)}</div>
+          <div class="row-actions">
+            ${l.status !== 'approved' ? `<button class="btn-small btn-approve" onclick="updateStatus('${l.id}', 'approved')">Approve</button>` : ''}
+            ${l.status !== 'rejected' ? `<button class="btn-small btn-reject" onclick="updateStatus('${l.id}', 'rejected')">Reject</button>` : ''}
+            ${l.status !== 'pending' ? `<button class="btn-small" onclick="updateStatus('${l.id}', 'pending')">Back to Pending</button>` : ''}
+            <button class="btn-small ${l.sticker_sent ? 'sent' : ''}" onclick="toggleSticker('${l.id}', ${!l.sticker_sent})">${l.sticker_sent ? '&#10003; Decal Delivered' : 'Mark Decal Delivered'}</button>
+            <button class="btn-small" onclick="toggleEdit('${l.id}')">Edit</button>
+            <button class="btn-small btn-reject" onclick="deleteListing('${l.id}', '${escapeHtml(l.business_name)}')">Delete</button>
+          </div>
+          <div class="edit-row" id="edit-row-${l.id}" style="display:none;">
+            <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
+            <div class="edit-field"><label>Category</label>
+              <select id="edit-category-${l.id}">
+                ${['Restaurant / Food','Home Services','Health & Wellness','Retail / Shopping','Professional Services','Beauty & Personal Care','Automotive','Church / Community','Pets & Pet Services','Entertainment','Other']
+                  .map(c => `<option value="${escapeHtml(c)}" ${l.category === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="edit-field"><label>Phone</label><input type="text" id="edit-phone-${l.id}" value="${escapeHtml(l.phone || '')}"></div>
+            <div class="edit-field"><label>Website</label><input type="text" id="edit-website-${l.id}" value="${escapeHtml(l.website || '')}"></div>
+            <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
+            <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2" maxlength="150">${escapeHtml(l.description || '')}</textarea></div>
+            <div class="edit-field edit-field-wide"><label>Special Offer (optional)</label><input type="text" id="edit-coupon-${l.id}" maxlength="80" value="${escapeHtml(l.coupon_text || '')}" placeholder="e.g. 10% off first visit — code RHOME10"></div>
+            <div class="edit-actions">
+              <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
+              <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
+            </div>
+          </div>
+          <div class="notes-row">
+            <input type="text" id="notes-listing-${l.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(l.notes || '')}" oninput="document.getElementById('save-notes-listing-${l.id}').disabled = false;">
+            <button id="save-notes-listing-${l.id}" disabled onclick="saveListingNotes('${l.id}')">Save</button>
+          </div>
+          <div class="photo-row">
+            ${l.photo_url
+              ? `<img class="photo-thumb" src="${escapeHtml(l.photo_url)}" alt="">`
+              : `<div class="photo-thumb-empty">No photo</div>`}
+            <input type="file" id="photo-file-${l.id}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="document.getElementById('upload-photo-${l.id}').disabled = false;">
+            <button id="upload-photo-${l.id}" disabled onclick="uploadListingPhoto('${l.id}')">Upload</button>
+          </div>
+        </div>
+      </div>
+    `; }).join('');
+  }
+
+  function setFilter(key) {
+    activeFilter = key;
+    render();
+  }
+
+  function setSort(mode) {
+    sortMode = mode;
+    render();
+  }
+
+  function toggleRow(id) {
+    if (expandedIds.has(id)) {
+      expandedIds.delete(id);
+    } else {
+      expandedIds.add(id);
+    }
+    render();
+  }
+
+  function toggleEdit(id) {
+    const row = document.getElementById(`edit-row-${id}`);
+    if (row) row.style.display = row.style.display === 'none' ? 'grid' : 'none';
+  }
+
+  async function saveListingDetails(id) {
+    const btn = document.querySelector(`#edit-row-${id} .btn-approve`);
+    const payload = {
+      p_id: id,
+      p_business_name: document.getElementById(`edit-name-${id}`).value.trim(),
+      p_category: document.getElementById(`edit-category-${id}`).value.trim() || null,
+      p_phone: document.getElementById(`edit-phone-${id}`).value.trim() || null,
+      p_website: document.getElementById(`edit-website-${id}`).value.trim() || null,
+      p_address: document.getElementById(`edit-address-${id}`).value.trim() || null,
+      p_description: document.getElementById(`edit-description-${id}`).value.trim() || null,
+      p_coupon_text: document.getElementById(`edit-coupon-${id}`).value.trim() || null,
+    };
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    try {
+      const { error } = await sb.rpc('admin_update_listing_details', payload);
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not save changes: ' + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+    }
+  }
+
+  async function updateStatus(id, status) {
+    try {
+      const { error } = await sb.rpc('admin_update_listing_status', { p_id: id, p_status: status });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function toggleSticker(id, sent) {
+    try {
+      const { error } = await sb.rpc('admin_set_sticker_sent', { p_id: id, p_sent: sent });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function saveListingNotes(id) {
+    const input = document.getElementById(`notes-listing-${id}`);
+    const btn = document.getElementById(`save-notes-listing-${id}`);
+    try {
+      const { error } = await sb.rpc('admin_update_listing_notes', { p_id: id, p_notes: input.value.trim() || null });
+      if (error) throw error;
+      const listing = listings.find(l => l.id === id);
+      if (listing) listing.notes = input.value.trim();
+      btn.disabled = true;
+    } catch (err) {
+      alert('Could not save notes: ' + err.message);
+    }
+  }
+
+  async function uploadListingPhoto(id) {
+    const fileInput = document.getElementById(`photo-file-${id}`);
+    const btn = document.getElementById(`upload-photo-${id}`);
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${id}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await sb.storage.from('merchant-photos').upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = sb.storage.from('merchant-photos').getPublicUrl(path);
+      const photoUrl = urlData.publicUrl;
+
+      const { error: rpcError } = await sb.rpc('admin_update_listing_photo', { p_id: id, p_photo_url: photoUrl });
+      if (rpcError) throw rpcError;
+
+      await loadListings();
+    } catch (err) {
+      alert('Could not upload photo: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'Upload';
+    }
+  }
+
+  async function deleteListing(id, name) {
+    if (!confirm(`Delete "${name}" entirely? This can't be undone.`)) return;
+    try {
+      const { error } = await sb.rpc('admin_delete_listing', { p_id: id });
+      if (error) throw error;
+      await loadListings();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
+  }
+
+  // ---- Home search interest (from the "See more homes" flow) ----
+  let homeLeads = [];
+
+  async function loadHomeLeads() {
+    try {
+      const { data, error } = await sb.rpc('get_home_search_leads', { p_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      homeLeads = data || [];
+      renderHomeLeads();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('homeLeadsListWrap').innerHTML = `<div class="empty-state">Could not load home search interest: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderHomeLeads() {
+    const withContact = homeLeads.filter(l => l.email).length;
+    document.getElementById('homeLeadsStatsRow').innerHTML = `
+      <div class="stat"><div class="num">${homeLeads.length}</div><div class="label">Total Interest</div></div>
+      <div class="stat"><div class="num">${withContact}</div><div class="label">With Contact Info</div></div>
+    `;
+
+    const wrap = document.getElementById('homeLeadsListWrap');
+    if (!homeLeads.length) {
+      wrap.innerHTML = '<div class="empty-state">No home search interest yet -- shows up when a visitor clicks "See more homes" on the site.</div>';
+      return;
+    }
+
+    wrap.innerHTML = homeLeads.map(l => `
+      <div class="row">
+        <div class="row-top">
+          <div>
+            <div class="biz-name">${l.name ? escapeHtml(l.name) : 'Anonymous'}</div>
+            <div class="biz-meta">${l.price_range ? escapeHtml(l.price_range) + ' &middot; ' : ''}${l.beds ? escapeHtml(l.beds) + ' beds' : ''}</div>
+            <div class="biz-contact">${l.email ? escapeHtml(l.email) + ' &middot; ' : ''}${formatDate(l.created_at)}</div>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="btn-small btn-reject" onclick="deleteHomeLead('${l.id}', '${escapeHtml(l.name || 'this entry')}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function deleteHomeLead(id, name) {
+    if (!confirm(`Delete the search interest from "${name}"?`)) return;
+    try {
+      const { error } = await sb.rpc('delete_home_search_lead', { p_id: id });
+      if (error) throw error;
+      await loadHomeLeads();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
+  }
+
+
+  let stickerRequests = [];
+
+  async function loadStickerRequests() {
+    try {
+      const { data, error } = await sb.rpc('admin_get_sticker_requests', { p_community_slug: COMMUNITY_SLUG });
+      if (error) throw error;
+      stickerRequests = data || [];
+      renderStickerRequests();
+    } catch (err) {
+      if ((err.message || '').includes('not authorized')) throw err;
+      document.getElementById('stickerListWrap').innerHTML = `<div class="empty-state">Could not load sticker requests: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderStickerRequests() {
+    const fulfilled = stickerRequests.filter(r => r.fulfilled).length;
+    const pending = stickerRequests.length - fulfilled;
+    document.getElementById('stickerStatsRow').innerHTML = `
+      <div class="stat"><div class="num">${stickerRequests.length}</div><div class="label">Total Requests</div></div>
+      <div class="stat"><div class="num">${pending}</div><div class="label">Awaiting Delivery</div></div>
+      <div class="stat"><div class="num">${fulfilled}</div><div class="label">Delivered</div></div>
+    `;
+
+    const stickerTabs = [
+      ['all', 'All', stickerRequests.length],
+      ['pending', 'Pending', pending],
+      ['delivered', 'Delivered', fulfilled],
+    ];
+    document.getElementById('stickerFilterTabs').innerHTML = stickerTabs.map(([key, label, n]) =>
+      `<button class="filter-tab ${activeStickerFilter === key ? 'active' : ''}" onclick="setStickerFilter('${key}')">${label} (${n})</button>`
+    ).join('');
+
+    document.getElementById('stickerSortToggle').innerHTML = `
+      <button class="filter-tab ${stickerSortMode === 'newest' ? 'active' : ''}" onclick="setStickerSort('newest')">Newest first</button>
+      <button class="filter-tab ${stickerSortMode === 'az' ? 'active' : ''}" onclick="setStickerSort('az')">A&ndash;Z</button>
+    `;
+
+    let visible = activeStickerFilter === 'all'
+      ? stickerRequests
+      : stickerRequests.filter(r => activeStickerFilter === 'delivered' ? r.fulfilled : !r.fulfilled);
+    visible = stickerSortMode === 'az'
+      ? [...visible].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''))
+      : [...visible].sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+
+    const wrap = document.getElementById('stickerListWrap');
+    if (!stickerRequests.length) {
+      wrap.innerHTML = '<div class="empty-state">No sticker requests yet.</div>';
+      return;
+    }
+    if (!visible.length) {
+      wrap.innerHTML = `<div class="empty-state">No ${activeStickerFilter === 'all' ? '' : activeStickerFilter + ' '}requests.</div>`;
+      return;
+    }
+
+    // Same collapsed-summary / click-to-expand pattern as Merchant Listings,
+    // so this section stays short even once a lot of requests pile up.
+    wrap.innerHTML = visible.map(r => {
+      const isOpen = expandedStickerIds.has(r.id);
+      return `
+      <div class="row">
+        <div class="row-summary" onclick="toggleStickerRow('${r.id}')">
+          <div class="row-summary-left">
+            <span class="row-chevron ${isOpen ? 'open' : ''}">&#9656;</span>
+            <span class="biz-name">${escapeHtml(r.full_name)}</span>
+            <span class="biz-meta-inline">${r.address ? escapeHtml(r.address) + ' &middot; ' : ''}Requested ${formatDate(r.requested_at)}</span>
+          </div>
+          <span class="badge ${r.fulfilled ? 'badge-approved' : 'badge-pending'}">${r.fulfilled ? 'Delivered' : 'Pending'}</span>
+        </div>
+        <div class="row-detail ${isOpen ? 'open' : ''}" id="sticker-row-detail-${r.id}">
+          <div class="biz-meta">${r.email ? escapeHtml(r.email) + ' &middot; ' : ''}${r.phone ? escapeHtml(r.phone) + ' &middot; ' : ''}${r.address ? escapeHtml(r.address) : ''}</div>
+          <div class="biz-contact">Requested ${formatDate(r.requested_at)}</div>
+          <div class="row-actions">
+            <button class="btn-small ${r.fulfilled ? 'sent' : ''}" onclick="toggleStickerRequestFulfilled('${r.id}', ${!r.fulfilled})">${r.fulfilled ? '&#10003; Delivered' : 'Mark Delivered'}</button>
+            <button class="btn-small btn-reject" onclick="deleteStickerRequest('${r.id}', '${escapeHtml(r.full_name)}')">Delete</button>
+          </div>
+          <div class="notes-row">
+            <input type="text" id="notes-sticker-${r.id}" placeholder="Notes -- e.g. became a lead, referred by..." value="${escapeHtml(r.notes || '')}" oninput="document.getElementById('save-notes-sticker-${r.id}').disabled = false;">
+            <button id="save-notes-sticker-${r.id}" disabled onclick="saveStickerRequestNotes('${r.id}')">Save</button>
+          </div>
+        </div>
+      </div>
+    `; }).join('');
+  }
+
+  function setStickerFilter(key) {
+    activeStickerFilter = key;
+    renderStickerRequests();
+  }
+
+  function setStickerSort(mode) {
+    stickerSortMode = mode;
+    renderStickerRequests();
+  }
+
+  function toggleStickerRow(id) {
+    if (expandedStickerIds.has(id)) {
+      expandedStickerIds.delete(id);
+    } else {
+      expandedStickerIds.add(id);
+    }
+    renderStickerRequests();
+  }
+
+  async function toggleStickerRequestFulfilled(id, fulfilled) {
+    try {
+      const { error } = await sb.rpc('admin_set_sticker_request_fulfilled', { p_id: id, p_fulfilled: fulfilled });
+      if (error) throw error;
+      await loadStickerRequests();
+    } catch (err) {
+      alert('Could not update: ' + err.message);
+    }
+  }
+
+  async function saveStickerRequestNotes(id) {
+    const input = document.getElementById(`notes-sticker-${id}`);
+    const btn = document.getElementById(`save-notes-sticker-${id}`);
+    try {
+      const { error } = await sb.rpc('admin_update_sticker_request_notes', { p_id: id, p_notes: input.value.trim() || null });
+      if (error) throw error;
+      const req = stickerRequests.find(r => r.id === id);
+      if (req) req.notes = input.value.trim();
+      btn.disabled = true;
+    } catch (err) {
+      alert('Could not save notes: ' + err.message);
+    }
+  }
+
+  async function deleteStickerRequest(id, name) {
+    if (!confirm(`Delete the request from "${name}"?`)) return;
+    try {
+      const { error } = await sb.rpc('admin_delete_sticker_request', { p_id: id });
+      if (error) throw error;
+      await loadStickerRequests();
+    } catch (err) {
+      alert('Could not delete: ' + err.message);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
