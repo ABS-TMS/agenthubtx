@@ -283,7 +283,8 @@ exports.handler = async (event) => {
         const cEmail = pick(/^MemberEmail$/i, /e-?mail/i);
         const cMls = pick(/^MemberMlsId$/i, /mls.?id/i, /office/i);
         const cStatus = pick(/^MemberStatus$/i, /status/i);
-        const picked = { cFirst, cLast, cLic, cEmail, cMls, cStatus };
+        const cType = pick(/^MLSMemberType$/i, /member.?type/i);
+        const picked = { cFirst, cLast, cLic, cEmail, cMls, cStatus, cType };
         const rows = all.map((r) => ({
           'First Name': cFirst ? r[cFirst] : '',
           'Last Name': cLast ? r[cLast] : '',
@@ -291,13 +292,14 @@ exports.handler = async (event) => {
           'MLS ID': cMls ? r[cMls] : '',
           'Email': cEmail ? r[cEmail] : '',
           'Status': cStatus ? r[cStatus] : '',
+          'Member Type': cType ? r[cType] : '',
         }));
         if (qs.format === 'csv') {
           const esc = (v) => {
             const s = String(v ?? '');
             return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
           };
-          const header = Object.keys(rows[0] || { 'First Name': 1, 'Last Name': 1, 'License Number': 1, 'MLS ID': 1, 'Email': 1, 'Status': 1 });
+          const header = Object.keys(rows[0] || { 'First Name': 1, 'Last Name': 1, 'License Number': 1, 'MLS ID': 1, 'Email': 1, 'Status': 1, 'Member Type': 1 });
           const csv = [header.join(',')].concat(rows.map((r) => header.map((h) => esc(r[h])).join(','))).join('\r\n');
           return { statusCode: 200, headers: { ...cors, 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="roster.csv"' }, body: csv };
         }
