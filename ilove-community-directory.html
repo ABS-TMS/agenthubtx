@@ -58,6 +58,12 @@
     border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; font-size: 12.5px;
     font-weight: 700; color: #0F6E56;
   }
+  .biz-vet {
+    display: inline-flex; align-items: center; background: #EAF0F8; color: var(--navy);
+    border: 1px solid #C9D6E8; border-radius: 6px; padding: 3px 9px; margin: 0 0 10px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+  }
+  .filter-note { grid-column: 1 / -1; font-size: 12.5px; color: var(--gray-500); background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 10px 14px; }
   .biz-meta { font-size: 12.5px; color: var(--gray-700); }
   .biz-meta a { color: var(--navy); text-decoration: none; font-weight: 600; }
 
@@ -297,6 +303,7 @@
   const INITIAL_BATCH = 12;
   const REVEAL_BATCH = 9;
   const HOMES_CAT = 'Homes for Sale';
+  const VET_CAT = 'Veteran-owned';
 
   async function loadDirectory() {
     const grid = document.getElementById('directoryGrid');
@@ -313,7 +320,8 @@
   }
 
   function renderFilters() {
-    const cats = ['All', ...new Set(allListings.map(b => b.category).filter(Boolean)), HOMES_CAT];
+    const hasVet = allListings.some(b => b.veteran_owned);
+    const cats = ['All', ...new Set(allListings.map(b => b.category).filter(Boolean)), ...(hasVet ? [VET_CAT] : []), HOMES_CAT];
     document.getElementById('filterBar').innerHTML = cats.map(c =>
       `<div class="filter-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`
     ).join('');
@@ -346,7 +354,12 @@
     }
     grid.style.display = 'grid';
 
-    const items = activeCategory === 'All' ? allListings : allListings.filter(b => b.category === activeCategory);
+    const items = activeCategory === 'All' ? allListings
+      : activeCategory === VET_CAT ? allListings.filter(b => b.veteran_owned)
+      : allListings.filter(b => b.category === activeCategory);
+    const vetNote = activeCategory === VET_CAT
+      ? '<div class="filter-note">Veteran-owned status is reported by each business owner and has not been verified by the directory or the brokerage.</div>'
+      : '';
 
     if (!items.length) {
       grid.innerHTML = `<div class="empty-state">${allListings.length ? 'No businesses in this category yet.' : 'No businesses listed yet &mdash; be the first!'}</div>`;
@@ -356,13 +369,14 @@
     const shown = items.slice(0, visibleCount);
     const remaining = items.length - shown.length;
 
-    grid.innerHTML = shown.map(b => `
+    grid.innerHTML = vetNote + shown.map(b => `
       <div class="biz-card">
         ${b.photo_url ? `<img class="biz-photo" src="${escapeHtml(b.photo_url)}" alt="${escapeHtml(b.business_name)}" onerror="handlePhotoError(this)">` : ''}
         ${b.category ? `<div class="biz-cat">${escapeHtml(b.category)}</div>` : ''}
         <div class="biz-name">${escapeHtml(b.business_name)}</div>
         ${b.description ? `<div class="biz-desc">${escapeHtml(b.description)}</div>` : ''}
         ${b.coupon_text ? `<div class="biz-coupon">${escapeHtml(b.coupon_text)}</div>` : ''}
+        ${b.veteran_owned ? `<div><span class="biz-vet" title="Reported by the business owner; not verified">&#9733; Veteran-owned</span></div>` : ''}
         <div class="biz-meta">
           ${b.phone ? `${escapeHtml(b.phone)}<br>` : ''}
           ${b.website ? `<a href="${escapeHtml(b.website)}" target="_blank" rel="noopener">Visit Website</a><br>` : ''}
