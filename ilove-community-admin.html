@@ -419,7 +419,7 @@
         <div class="row-summary" onclick="toggleRow('${l.id}')">
           <div class="row-summary-left">
             <span class="row-chevron ${isOpen ? 'open' : ''}">&#9656;</span>
-            <span class="biz-cat">${escapeHtml(l.category || '')}</span>
+            <span class="biz-cat">${escapeHtml(l.category || '')}</span>${l.veteran_owned ? ' <span class="biz-cat">★ Veteran-owned</span>' : ''}
             <span class="biz-name">${escapeHtml(l.business_name)}</span>
             <span class="biz-meta-inline">${escapeHtml(l.contact_name || '')} &middot; ${formatDate(l.submitted_at)}</span>
           </div>
@@ -440,7 +440,7 @@
             <div class="edit-field"><label>Business Name</label><input type="text" id="edit-name-${l.id}" value="${escapeHtml(l.business_name || '')}"></div>
             <div class="edit-field"><label>Category</label>
               <select id="edit-category-${l.id}">
-                ${['Restaurant / Food','Home Services','Health & Wellness','Retail / Shopping','Professional Services','Beauty & Personal Care','Automotive','Church / Community','Pets & Pet Services','Entertainment','Other']
+                ${['Restaurant / Food','Home Services','Health & Wellness','Retail / Shopping','Professional Services','Beauty & Personal Care','Automotive','Church / Community','Pets & Pet Services','Entertainment','Veterans & Military Services','Other']
                   .map(c => `<option value="${escapeHtml(c)}" ${l.category === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
               </select>
             </div>
@@ -449,6 +449,7 @@
             <div class="edit-field"><label>Address</label><input type="text" id="edit-address-${l.id}" value="${escapeHtml(l.address || '')}"></div>
             <div class="edit-field edit-field-wide"><label>Description</label><textarea id="edit-description-${l.id}" rows="2" maxlength="150">${escapeHtml(l.description || '')}</textarea></div>
             <div class="edit-field edit-field-wide"><label>Special Offer (optional)</label><input type="text" id="edit-coupon-${l.id}" maxlength="80" value="${escapeHtml(l.coupon_text || '')}" placeholder="e.g. 10% off first visit — code RHOME10"></div>
+            <div class="edit-field edit-field-wide"><label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="edit-veteran-${l.id}" ${l.veteran_owned ? 'checked' : ''} style="width:auto;"> Veteran-owned (self-reported, unverified)</label></div>
             <div class="edit-actions">
               <button class="btn-small btn-approve" onclick="saveListingDetails('${l.id}')">Save Changes</button>
               <button class="btn-small" onclick="toggleEdit('${l.id}')">Cancel</button>
@@ -505,6 +506,7 @@
       p_address: document.getElementById(`edit-address-${id}`).value.trim() || null,
       p_description: document.getElementById(`edit-description-${id}`).value.trim() || null,
       p_coupon_text: document.getElementById(`edit-coupon-${id}`).value.trim() || null,
+      p_veteran_owned: document.getElementById(`edit-veteran-${id}`).checked,
     };
     if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     try {
